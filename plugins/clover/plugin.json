@@ -1,0 +1,8 @@
+{
+  "name": "Lucky Clover Adventure",
+  "description": "Completes the lucky clover adventure.",
+  "author": "sxip",
+  "main": "index.html",
+  "type": "window",
+  "game": "jam"
+}

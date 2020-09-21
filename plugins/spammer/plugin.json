@@ -1,0 +1,8 @@
+{
+  "name": "Packet Spammer",
+  "description": "Spam packets like a boss! 😎",
+  "author": "sxip",
+  "main": "index.html",
+  "type": "window",
+  "game": "jam"
+}

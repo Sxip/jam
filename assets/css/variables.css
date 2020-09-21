@@ -1,0 +1,30 @@
+:root {
+  /**
+    Colors
+  */
+  --dark-primary-color: #16171f;
+  --dark-secondary-color: #191a23;
+
+  /**
+    Backgrounds
+  */
+  --dark-background: #191a23;
+  --dark-background-lighter: #1e2029;
+
+  /**
+    Elements
+  */
+  --text-primary: #b7b7b7;
+  --text-secondary: #e7e7e7;
+  --text-place-holder: #868686;
+
+  --text-link-primary: #c5c5c5;
+  --text-link-secondary: #e4e4e4;
+
+  /**
+    Text
+  */
+  --text-red: #f8acac;
+  --text-yellow: #f6f8ac;
+  --text-green: #acf8b2;
+}

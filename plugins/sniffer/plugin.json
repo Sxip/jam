@@ -1,0 +1,8 @@
+{
+  "name": "Packet Sniffer",
+  "description": "Sniff for game packets. 🕵️",
+  "author": "sxip",
+  "main": "index.html",
+  "type": "window",
+  "game": "jam"
+}

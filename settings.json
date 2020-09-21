@@ -1,0 +1,11 @@
+{
+  "game": "jam",
+  "remote": {
+    "host": "34.215.158.206",
+    "port": 443
+  },
+  "hosts": {
+    "primary": "aws-or-prod-iss01.animaljam.com",
+    "secondary": "aws-or-prod-iss02.animaljam.com"
+  }
+}

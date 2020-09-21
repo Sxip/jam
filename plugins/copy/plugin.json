@@ -1,0 +1,8 @@
+{
+  "name": "Copy",
+  "description": "Copies player messages.",
+  "author": "sxip",
+  "main": "index.js",
+  "type": "game",
+  "game": "jam"
+}

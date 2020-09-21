@@ -1,0 +1,7 @@
+{
+  "ext": "html,css,js",
+  "exec": "npx electron .",
+  "ignore": [
+    "plugins/*"
+  ]
+}

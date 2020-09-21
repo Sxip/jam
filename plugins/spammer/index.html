@@ -1,0 +1,97 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Style -->
+  <link rel="stylesheet" href="../../assets/css/style.css">
+
+  <title>Packet Spammer</title>
+
+  <style>
+    body {
+      background: var(--primary-dark-color) !important;
+      color: var(--primary-white-color);
+      padding-top: 20px;
+    }
+
+    .action-box {
+      height: 50vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container text-center">
+
+    <!-- Table -->
+    <div class="action-box">
+      <table class="table" id="table">
+        <thead>
+          <tr class="clickable-row">
+            <th scope="col">Type</th>
+            <th scope="col">Content</th>
+            <th scope="col">Delay</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="md-form">
+      <textarea id="inputTxt" class="md-textarea form-control" rows="3" placeholder="Content"></textarea>
+    </div>
+
+    <br />
+
+    <div class="row">
+      <div class="col-3 px-1">
+        <select class="custom-select w-100" style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
+          id="inputType">
+          <option value="remote">Client</option>
+          <option value="local">Animal Jam</option>
+          <option value="command">Command</option>
+        </select>
+      </div>
+
+      <div class="col px-1">
+        <input type="text" class="form-control input-sm w-100"
+          style="border-top-left-radius: 0; border-bottom-left-radius: 0;" placeholder="Delay" value="1"
+          id="inputDelay" />
+      </div>
+
+      <div class="px-1">
+        <button type="button" class="btn btn-add" onclick="spammer.addClick()">Add</button>
+        <button type="button" class="btn btn-send" onclick="spammer.sendClick()">Send</button>
+      </div>
+    </div>
+
+    <br />
+    <br />
+
+    <div class="text-center">
+      <div class="px-1">
+
+        <select id="inputRunType" style="margin: 6px;">
+          <option value="loop">Loop</option>
+          <option value="once">Once</option>
+        </select>
+
+        <button type="button" class="btn btn-send" onclick="spammer.stopClick()" id="stopButton">Stop</button>
+        <button type="button" class="btn btn-add" onclick="spammer.runClick()" id="runButton">Start</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Spammer -->
+  <script src="./index.js"></script>
+</body>
+
+</html>
