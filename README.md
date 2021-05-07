@@ -7,8 +7,7 @@
 
 ## About
 
-I developed this project during **2018** in order of understanding how the Animal Jam backend application works, with the ability to inject commands and packets.
-The injector works by performing a MITM (Man-In-The-Middle) attack between the client application and the server and is inspecting the commands and responses that are exchanged between them.
+**Jam** is a modular man-in-the-middle proxy for Animal Jam.
 
 ## Screenshots
 
@@ -17,4 +16,4 @@ The injector works by performing a MITM (Man-In-The-Middle) attack between the c
 
 ## Caveat
 
-To utilise the injector, its required to trick the application into connecting to the injector instead of the remote server. Then the injector will complete the connection.
+To utilise Jam, its required to trick the application into connecting to Jam instead of the remote server. Then Jam will complete the connection.

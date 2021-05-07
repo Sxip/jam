@@ -26,6 +26,7 @@ class TCPServer extends EventEmitter {
         .once('error', error => reject(error))
 
       this.server.listen(443)
+      console.log('Got', this.server.address().port)
     })
   }
 
@@ -45,6 +46,7 @@ class TCPServer extends EventEmitter {
    * Handles new incoming connections
    */
   _onConnection (socket) {
+    console.log('NEW CONNECTION')
     this.session = new Session(
       this,
       new PromiseSocket(socket)

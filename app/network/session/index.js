@@ -1,5 +1,5 @@
 const { NullProtocol, ProtocolType } = require('../NullProtocol')
-const { PromiseSocket } = require('promise-socket')
+const tls = require('tls')
 const PacketManager = require('../PacketManager')
 const { EventEmitter } = require('events')
 const Packet = require('../packets')
@@ -85,14 +85,19 @@ class Session extends EventEmitter {
    */
   async connect () {
     try {
-      this.connection = new PromiseSocket()
-
       const { host, port } = core.settings.get('remote')
-      await this.connection.connect({ host, port })
 
-      this._initialize()
-      this.connection.stream.on('data', data => this._connectionProtocol.chuck(data))
-      this.connection.stream.once('close', () => this.disconnect())
+      this.connection = tls.connect(
+        { 
+          host,
+          port,
+          rejectUnauthorized: false 
+        },
+      )
+      
+      this.connection.on('connect', () => this._initialize())
+      this.connection.on('data', data => this._connectionProtocol.chuck(data))
+      this.connection.once('close', () => this.disconnect())
     } catch (error) {
       core.console.showMessage({
         message: `Failed connecting to the remote host. ${error.message}.`,
@@ -117,7 +122,7 @@ class Session extends EventEmitter {
         core.pluginManager.dispatcher.dispatchLocalHooks(this, toPacket, toPacket.type)
         this.server.emit('packet', { packet, type: 'local' })
 
-        if (toPacket.type === 'verChk' || toPacket.type === 'rndK') {
+        if (toPacket.type === 'verChk' || toPacket.type === 'rndK' || toPacket.type === 'login') {
           toPacket.send = false
           this.remoteWrite(packet)
         }
@@ -138,10 +143,11 @@ class Session extends EventEmitter {
    */
   async remoteWrite (packet) {
     try {
-      if (this.connection.socket.writable && !this.connection.socket.destroyed) {
+      if (this.connection.writable && !this.connection.destroyed) {
         let toPacket = packet instanceof Packet ? packet.toPacket() : packet
         if (typeof toPacket === 'object') toPacket = JSON.stringify(toPacket)
 
+        console.log('REMOTE', packet)
         return this.connection.write(`${toPacket}\x00`)
       }
     } catch (error) {
@@ -162,6 +168,7 @@ class Session extends EventEmitter {
         let toPacket = packet instanceof Packet ? packet.toPacket() : packet
         if (typeof toPacket === 'object') toPacket = JSON.stringify(toPacket)
 
+        console.log('LOCAL', packet)
         return this.socket.write(`${toPacket}\x00`)
       }
     } catch (error) {
