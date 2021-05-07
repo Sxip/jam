@@ -9,11 +9,17 @@
 
 **Jam** is a modular man-in-the-middle proxy for Animal Jam.
 
+## Note
+
+The latest Animal Jam patch requires you to disable "secure mode" within the client. 
+
+If you are unable to do so, Jam has included the latest client with the mode already disabled.
+
+Due to this, you must now use [Fiddler](https://www.telerik.com/fiddler) or something simular to re-route the client to your edited version.
+
+I will not help you setup Fiddler, you're on your own from here.
+
 ## Screenshots
 
 ![](https://i.imgur.com/GWDdXTz.png)
 ![](https://i.imgur.com/qvBAupl.png)
-
-## Caveat
-
-To utilise Jam, its required to trick the application into connecting to Jam instead of the remote server. Then Jam will complete the connection.
