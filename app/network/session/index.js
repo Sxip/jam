@@ -1,8 +1,9 @@
 const { NullProtocol, ProtocolType } = require('../NullProtocol')
-const tls = require('tls')
 const PacketManager = require('../PacketManager')
 const { EventEmitter } = require('events')
 const Packet = require('../packets')
+const tls = require('tls')
+const { promises } = require('dns')
 
 class Session extends EventEmitter {
   constructor (server, socket) {
@@ -21,7 +22,7 @@ class Session extends EventEmitter {
     /**
      * Remote connection
      */
-    this.connection = null
+    this.connection = new tls.TLSSocket()
 
     /**
      * Session properties
@@ -76,8 +77,8 @@ class Session extends EventEmitter {
    * Initializes the session socket events
    */
   _initialize () {
-    this.socket.stream.on('data', data => this._sessionProtocol.chuck(data))
-    this.socket.stream.once('close', () => this.disconnect())
+    this.socket.on('data', data => this._sessionProtocol.chuck(data))
+    this.socket.once('close', () => this.disconnect())
   }
 
   /**
@@ -85,17 +86,34 @@ class Session extends EventEmitter {
    */
   async connect () {
     try {
-      const { host, port } = core.settings.get('remote')
+      await new Promise((resolve, reject) => {
+        if (this.connection.destroyed) reject(new Error('The socket is destroyed.'));
 
-      this.connection = tls.connect(
-        { 
-          host,
-          port,
-          rejectUnauthorized: false 
-        },
-      )
-      
-      this.connection.on('connect', () => this._initialize())
+        const onError = err => {
+          this.connection.off('error', onError);
+          this.connection.off('connect', onConnected);
+          reject(err);
+        };
+  
+        const onConnected = () => {
+          this.connection.off('error', onError);
+          this.connection.off('connect', onConnected);
+          resolve();
+        };
+  
+        this.connection.once('error', onError);
+        this.connection.once('connect', onConnected);
+
+        const { host, port } = core.settings.get('remote')
+        this.connection.connect({
+          host, 
+          port, 
+          rejectUnauthorized: false
+        });
+      });
+
+      this._initialize()
+
       this.connection.on('data', data => this._connectionProtocol.chuck(data))
       this.connection.once('close', () => this.disconnect())
     } catch (error) {
@@ -142,14 +160,39 @@ class Session extends EventEmitter {
    * Sends the packet to the server
    */
   async remoteWrite (packet) {
-    try {
-      if (this.connection.writable && !this.connection.destroyed) {
-        let toPacket = packet instanceof Packet ? packet.toPacket() : packet
-        if (typeof toPacket === 'object') toPacket = JSON.stringify(toPacket)
+    packet = packet instanceof Packet ? packet.toPacket() : packet
 
-        console.log('REMOTE', packet)
-        return this.connection.write(`${toPacket}\x00`)
-      }
+    try {
+      await new Promise((resolve, reject) => {
+        if (!this.connection.writable || this.connection.destroyed) reject(new Error('Failed to write to remote after end!'));
+        if (typeof packet === 'object') packet = JSON.stringify(packet)
+
+        const onceError = err => {
+          this._rejected = true;
+          reject(err);
+        };
+  
+        if (this.connection.write(`${packet}\x00`)) {
+          this.connection.off('error', onceError);
+          if (!this._rejected) return resolve(packet.length);
+        }
+  
+        const onceDrain = () => {
+          this.connection.off('close', onceClose);
+          this.connection.off('error', onceError);
+          resolve(packet.length);
+        };
+  
+        const onceClose = () => {
+          this.connection.off('drain', onceDrain);
+          this.connection.off('error', onceError);
+          resolve(packet.length);
+        };
+  
+        this.connection.once('error', onceError);
+        this.connection.once('close', onceClose);
+        this.connection.once('drain', onceDrain);
+      });
     } catch (error) {
       core.console.showMessage({
         message: `Remote send failed! ${error.message}`,
@@ -163,14 +206,39 @@ class Session extends EventEmitter {
    * Sends the packet to the server
    */
   async localWrite (packet) {
-    try {
-      if (this.socket.writable && !this.socket.destroyed) {
-        let toPacket = packet instanceof Packet ? packet.toPacket() : packet
-        if (typeof toPacket === 'object') toPacket = JSON.stringify(toPacket)
+    packet = packet instanceof Packet ? packet.toPacket() : packet
 
-        console.log('LOCAL', packet)
-        return this.socket.write(`${toPacket}\x00`)
-      }
+    try {
+      await new Promise((resolve, reject) => {
+        if (!this.socket.writable || this.socket.destroyed) reject(new Error('Failed to write to local after end!'));
+        if (typeof packet === 'object') packet = JSON.stringify(packet)
+  
+        const onceError = err => {
+          this._rejected = true;
+          reject(err);
+        };
+        
+        if (this.socket.write(`${packet}\x00`)) {
+          this.socket.off('error', onceError);
+          if (!this._rejected) return resolve(packet.length);
+        }
+  
+        const onceDrain = () => {
+          this.socket.off('close', onceClose);
+          this.socket.off('error', onceError);
+          resolve(packet.length);
+        };
+  
+        const onceClose = () => {
+          this.socket.off('drain', onceDrain);
+          this.socket.off('error', onceError);
+          resolve(packet.length);
+        };
+  
+        this.socket.once('error', onceError);
+        this.socket.once('close', onceClose);
+        this.socket.once('drain', onceDrain);
+      });
     } catch (error) {
       core.console.showMessage({
         message: `Local send failed! Reason: ${error.message}`,
@@ -183,11 +251,14 @@ class Session extends EventEmitter {
   /**
    * Sends multiple packets
    */
-  sendMultiple (packet, type) {
-    packet.forEach(async p => {
-      if (type === 'local') await this.localWrite(p)
-      else await this.remoteWrite(p)
-    })
+  sendMultiple (packets, type) {
+    const promise = []
+
+    for (const packet of packets) {
+      type === 'local' ? promise.push(this.localWrite(packet)) : promises.push(this.remoteWrite(packet))
+    }
+
+    return Promise.all(promises)
   }
 
   /**
@@ -218,8 +289,8 @@ class Session extends EventEmitter {
    * Disconnects the session from the remote host and server
    */
   async disconnect () {
-    await this.connection.end()
-    await this.socket.end()
+    this.connection.end()
+    this.socket.end()
     this.server.onDisconnected()
     return this._destroy()
   }
@@ -228,8 +299,8 @@ class Session extends EventEmitter {
    * Distorys the sockets
    */
   async _destroy () {
-    await this.connection.destroy()
-    await this.socket.destroy()
+    this.connection.destroy()
+    this.socket.destroy()
 
     for (const interval of this.intervals) this.clearInterval(interval)
     this.intervals.clear()
