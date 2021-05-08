@@ -11,7 +11,7 @@
 
 ## Note
 
-The latest Animal Jam path requires you to disable their "secure mode" within the client (top notch security no 🧢). 
+The latest Animal Jam patch requires you to disable their "secure mode" within the client. 
 
 If you are unable to disable that mode, Jam has the latest client with the mode already disabled, however, due to these restrictions you must use [Fiddler](https://www.telerik.com/fiddler) or another similar debugging tool to re-route the client to the edited version.
 
