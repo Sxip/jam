@@ -23,7 +23,6 @@ class HookManager {
    * Hooks a packet
    */
   hookPacket(options = {}) {
-    console.log(options.type)
     if (options.type === 'remote') return this._registerRemoteHook(options)
     else if (options.type === 'local') return this._registerLocalHook(options)
     else return null

@@ -65,7 +65,6 @@ $(function () {
  * Auto complete
  */
 core.application.on('ready', () => {
-  console.log('Done')
   $(function () {
     $('#input').autocomplete({
       source: Array.from(core.pluginManager.commands.commands.values())

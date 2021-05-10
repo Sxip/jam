@@ -73,33 +73,40 @@ class Application extends EventEmitter {
     try {
       await util.promisify(fs.rename)(`${ANIMAL_JAM_BASE_PATH}/app.asar`, `${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`)
       await util.promisify(fs.copyFile)(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/app.asar`)
+     
       this.patched = true
       $("#patch").html('<i class="fal fa-skull"></i> Unpatch')
-      this.settings.update('patch', true)
+      this.settings.update('patched', this.patched)
     } catch (error) {
-      console.log(error)
       this.console.showMessage({
-        message: 'Application has already been patched!',
+        message: `Failed patching ${error.message}`,
         withStatus: true,
         type: 'error'
       })
+    } finally {
+      process.noAsar = false;
     }
+
   }
 
   async unpatchApplication() {
+    process.noAsar = true;
+
     try {
       await util.promisify(fs.unlink)(`${ANIMAL_JAM_BASE_PATH}/app.asar`)
       await util.promisify(fs.rename)(`${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/app.asar`)
+
       this.patched = false
       $("#patch").html('<i class="fal fa-skull"></i> Patch')
-      this.settings.update('patch', false)
+      this.settings.update('patched', this.patched)
     } catch (error) {
-      console.log(error)
       this.console.showMessage({
-        message: 'Application has already been patched!',
+        message: `Failed unpatching ${error.message}`,
         withStatus: true,
         type: 'error'
       })
+    } finally {
+      process.noAsar = false;
     }
   }
   

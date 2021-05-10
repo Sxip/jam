@@ -67,7 +67,6 @@ class TCPServer extends EventEmitter {
    * Handles new incoming connections
    */
   _onConnection (socket) {
-    console.log('??')
     this.session = new Session(
       this,
       socket

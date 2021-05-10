@@ -39,9 +39,13 @@ class Settings {
   /**
    * Updates the json value
    */
-  async update (key, value = false) {
-    if (this.settings[key]) this.settings[key] = value
-    await util.promisify(fs.writeFile)(this.path, JSON.stringify(this.settings, null, 2))
+  async update (key, value) {
+    try {
+      this.settings[key] = value
+      await util.promisify(fs.writeFile)(this.path, JSON.stringify(this.settings, null, 2))
+    } catch (error) {
+      throw new Error(`Failed to write to settings ${error.message}`)
+    }
   }
 }
 

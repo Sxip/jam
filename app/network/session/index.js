@@ -95,7 +95,6 @@ class Session extends EventEmitter {
         };
   
         const onConnected = () => {
-          console.log('connected')
           this.connection.off('error', onError);
           this.connection.off('connect', onConnected);
           resolve();
@@ -185,7 +184,6 @@ class Session extends EventEmitter {
           reject(err);
         };
         
-        console.log('REMOTE', packet)
         if (this.connection.write(`${packet}\x00`)) {
           this.connection.off('error', onceError);
           if (!this._rejected) return resolve(packet.length);
@@ -232,7 +230,6 @@ class Session extends EventEmitter {
           reject(err);
         };
         
-        console.log('LOCAL', packet)
         if (this.socket.write(`${packet}\x00`)) {
           this.socket.off('error', onceError);
           if (!this._rejected) return resolve(packet.length);

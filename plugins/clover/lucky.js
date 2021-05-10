@@ -74,16 +74,10 @@ function onPacket(packet) {
   const type = packet[0]
 
   if (type === 'qpgiftplr') {
-    console.log(packet[7], packet[8])
-
     const itemId = String(packet[7])
     const colorId = String(packet[8])
 
-    console.log(`CHECKING FOR ITEM ${item.value} WITH THE COLOR ${color.value}`)
-
     if (itemId === String(item.value) && colorId === String(color.value)) {
-      console.log(`Item Found!`)
-
       stop()
       collect()
     }
@@ -97,12 +91,8 @@ function sleep(ms) {
 }
 
 async function collect() {
-  console.log(`Collecting in 5 minutes`)
-
   await sleep(300000)
   await server.session.remoteWrite(`%xt%o%qpgiftplr%1%1%0%0%`)
-
-  console.log(`Picked up!`)
   start()
 }
 

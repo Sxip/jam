@@ -89,8 +89,6 @@ class Electron {
     this.hosts.load()
     this.shortcut('f11', () => this.window.webContents.openDevTools())
 
-    console.log(path.join(__dirname, 'web', 'index.js'))
-    
     this.process = new Process(path.join(__dirname, 'web', 'index.js'))
     this.process.spawn()
   }
