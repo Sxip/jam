@@ -7,5 +7,7 @@
   "hosts": {
     "primary": "iss01-classic.prod.animaljam.internal",
     "secondary": "iss02-classic.prod.animaljam.internal"
-  }
+  },
+  "deploy_version": "1617",
+  "patched": false
 }

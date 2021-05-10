@@ -6,6 +6,14 @@ const { EventEmitter } = require('events')
 const Settings = require('../Settings')
 const electron = require('electron')
 const Console = require('./Console')
+const fs = require('fs')
+const util = require('util')
+const os = require('os')
+const path = require('path')
+
+const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
+  .split("\\")
+  .join("/")}/AppData/Local/Programs/animal-jam/resources`
 
 class Application extends EventEmitter {
   constructor () {
@@ -35,6 +43,11 @@ class Application extends EventEmitter {
      * References the console instance
      */
     this.console = new Console()
+
+    /**
+     * Patched check
+     */
+    this.patched = false
   }
 
   /**
@@ -49,6 +62,52 @@ class Application extends EventEmitter {
    */
   close () {
     ipcRenderer.send('window-close')
+  }
+
+  /**
+   * Patches the application
+   */
+  async patchApplication() {
+    process.noAsar = true;
+
+    try {
+      await util.promisify(fs.rename)(`${ANIMAL_JAM_BASE_PATH}/app.asar`, `${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`)
+      await util.promisify(fs.copyFile)(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/app.asar`)
+      this.patched = true
+      $("#patch").html('<i class="fal fa-skull"></i> Unpatch')
+      this.settings.update('patch', true)
+    } catch (error) {
+      console.log(error)
+      this.console.showMessage({
+        message: 'Application has already been patched!',
+        withStatus: true,
+        type: 'error'
+      })
+    }
+  }
+
+  async unpatchApplication() {
+    try {
+      await util.promisify(fs.unlink)(`${ANIMAL_JAM_BASE_PATH}/app.asar`)
+      await util.promisify(fs.rename)(`${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/app.asar`)
+      this.patched = false
+      $("#patch").html('<i class="fal fa-skull"></i> Patch')
+      this.settings.update('patch', false)
+    } catch (error) {
+      console.log(error)
+      this.console.showMessage({
+        message: 'Application has already been patched!',
+        withStatus: true,
+        type: 'error'
+      })
+    }
+  }
+  
+  /**
+   * Patch checker
+   */
+  async patch() {
+    this.patched ? this.unpatchApplication() : this.patchApplication()
   }
 
   /**
@@ -82,6 +141,9 @@ class Application extends EventEmitter {
         this.pluginManager.loadAll(),
         this.server.serve()
       ])
+
+      this.patched = this.settings.get('patched')
+      $("#patch").html(this.patched ? '<i class="fal fa-skull"></i> Unpatch' : '<i class="fal fa-skull"></i> Patch')
 
       this.console.showMessage({
         message: 'Successfully initialized Jam!',

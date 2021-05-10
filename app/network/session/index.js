@@ -3,7 +3,6 @@ const PacketManager = require('../PacketManager')
 const { EventEmitter } = require('events')
 const Packet = require('../packets')
 const tls = require('tls')
-const { promises } = require('dns')
 
 class Session extends EventEmitter {
   constructor (server, socket) {
@@ -96,6 +95,7 @@ class Session extends EventEmitter {
         };
   
         const onConnected = () => {
+          console.log('connected')
           this.connection.off('error', onError);
           this.connection.off('connect', onConnected);
           resolve();
@@ -139,6 +139,19 @@ class Session extends EventEmitter {
       if (type === ProtocolType.local) {
         core.pluginManager.dispatcher.dispatchLocalHooks(this, toPacket, toPacket.type)
         this.server.emit('packet', { packet, type: 'local' })
+        
+        // This shit is ugly, I don't care. Big brain bypass.
+        if (toPacket.type === undefined) {
+          toPacket.send = false
+
+          const packet = `<?xml version="1.0"?>
+          <!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
+          <cross-domain-policy>
+          <allow-access-from domain="*" to-ports="80,443"/>
+          </cross-domain-policy>`
+
+          this.localWrite(packet)
+        }
 
         if (toPacket.type === 'verChk' || toPacket.type === 'rndK' || toPacket.type === 'login') {
           toPacket.send = false
@@ -171,7 +184,8 @@ class Session extends EventEmitter {
           this._rejected = true;
           reject(err);
         };
-  
+        
+        console.log('REMOTE', packet)
         if (this.connection.write(`${packet}\x00`)) {
           this.connection.off('error', onceError);
           if (!this._rejected) return resolve(packet.length);
@@ -218,6 +232,7 @@ class Session extends EventEmitter {
           reject(err);
         };
         
+        console.log('LOCAL', packet)
         if (this.socket.write(`${packet}\x00`)) {
           this.socket.off('error', onceError);
           if (!this._rejected) return resolve(packet.length);

@@ -1,5 +1,6 @@
 const { app, shell, globalShortcut, BrowserWindow } = require('electron')
 const Hosts = require('./util/Hosts')
+const Process = require('./process')
 const path = require('path')
 
 /**
@@ -35,6 +36,11 @@ class Electron {
      * Hosts
      */
     this.hosts = null
+
+    /**
+     * Web server process
+     */
+    this.process = null
   }
 
   /**
@@ -82,6 +88,11 @@ class Electron {
 
     this.hosts.load()
     this.shortcut('f11', () => this.window.webContents.openDevTools())
+
+    console.log(path.join(__dirname, 'web', 'index.js'))
+    
+    this.process = new Process(path.join(__dirname, 'web', 'index.js'))
+    this.process.spawn()
   }
 
   /**

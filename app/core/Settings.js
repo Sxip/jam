@@ -35,6 +35,14 @@ class Settings {
     if (this.settings[key]) return this.settings[key]
     return defaultValue
   }
+
+  /**
+   * Updates the json value
+   */
+  async update (key, value = false) {
+    if (this.settings[key]) this.settings[key] = value
+    await util.promisify(fs.writeFile)(this.path, JSON.stringify(this.settings, null, 2))
+  }
 }
 
 module.exports = Settings

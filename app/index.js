@@ -1,6 +1,7 @@
 const { ipcMain } = require('electron')
 const Electron = require('./Electron')
 
+
 const electron = Electron.bootstrap()
   .create()
 
