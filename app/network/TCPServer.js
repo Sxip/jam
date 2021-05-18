@@ -1,7 +1,7 @@
 const { EventEmitter } = require('events')
 const Session = require('./session')
 const Events = require('../core/Events')
-const { Server } = require('net')
+const net = require('net')
 
 class TCPServer extends EventEmitter {
   constructor () {
@@ -20,7 +20,7 @@ class TCPServer extends EventEmitter {
     await new Promise((resolve, reject) => {
       if (this.server) reject(new Error('The server has already been instantiated.'));
 
-      this.server = new Server();
+      this.server = net.Server();
 
       const dispose = () => {
         this.server.off('listening', onceListening)
@@ -44,7 +44,7 @@ class TCPServer extends EventEmitter {
       this.server.once('listening', onceListening)
       this.server.once('error', onceError)
 
-      this.server.listen(443);
+      this.server.listen(443,"127.0.0.1");
     });
 
     this.server.on('connection', this._onConnection.bind(this));

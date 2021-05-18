@@ -73,7 +73,7 @@ class Electron {
    * Opens a item
    */
   openItem (event, path) {
-    return shell.openItem(path)
+    return shell.openExternal("file://"+path)
   }
 
   /**
@@ -85,8 +85,9 @@ class Electron {
 
     this.window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
     this.window.webContents.on('new-window', this.createWindow.bind(this))
-
-    this.hosts.load()
+    
+    //Don't load change hosts file on load, Let the end-user decide
+    //this.hosts.load()
     this.shortcut('f11', () => this.window.webContents.openDevTools())
 
     this.process = new Process(path.join(__dirname, 'web', 'index.js'))
