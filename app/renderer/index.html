@@ -24,7 +24,7 @@
   <title>Jam</title>
 </head>
 
-<body>
+<body onload="onLoad()">
   <!-- Titlebar -->
   <nav class="titlebar">
     <div class="title">Jam</div>
@@ -35,7 +35,7 @@
         <a class="toggle-menu icon" role="button" id="sidebarCollapse" data-toggle="dropdown" aria-expanded="false">
           <i class="fal fa-bars"></i>
         </a>
-  
+
         <div class="dropdown-menu">
           <a class="dropdown-item" href="#" data-toggle="modal" data-target="#pluginsModal">
             <i class="fal fa-share-alt"></i> Plugins
@@ -47,6 +47,9 @@
             <i class="fal fa-eraser"></i> Clear
           </a>
           <a class="dropdown-item" id="patch" href="#" onclick="core.application.patch()">
+          </a>
+          <a class="dropdown-item" data-toggle="modal" data-target="#hostSettingsModal">
+            <i class="fal fa-cog"></i> Host Settings
           </a>
         </div>
       </div>
@@ -87,10 +90,48 @@
             <input class="form-control" id="search" placeholder="Search for a plugin...">
           </div>
 
-          <div class="plugin-container"></div>
+          <div id="pluginContainer"class="plugin-container"></div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!--Host Settings-->
+  <div class="modal fade" id="hostSettingsModal" tabindex="-1" role="dialog" aria-labelledby="hostSettingsModal"
+    aria-hidden="true">
+    <div class="modal-dialog mw-100 w-75" role="document">
+
+      <div class="modal-content">
+        <div class="modal-header text-center">
+          <p class="modal-title w-100"><i class="fal fa-cog"></i>Host Settings</p>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="container" style="padding: 0 16px 14px;">
+          </div>
+          <div class="plugin-container">
+            <input class="form-check-input" id="useNoAdmin" type="radio" name="shouldUse" value="1" checked>
+            <label class="form-check-label" for="useNoAdmin">
+              Use Jam without hosts file modification
+            </label>
+            <div class="form-inline form-group">
+              <input class="form-control col-md-10" id="pathToClassic" oninput="isValidPath()" placeholder="Select the AJ Classic executable...">
+              <button class="btn col-md-2" style="font-size: 12px;" id="selectPath" onclick="openFileDialog()"><span class="far fa-fw fa-folder"
+                  aria-hidden="true"></span></button>
+              <button class="form-control col-md-3" style="font-size: 12px;" id="openClassic" onclick="startClassic()" disabled>Open AJ Classic</button>
+            </div>           
+            <input class="form-check-input" id="useHosts" name="shouldUse" value="0" type="radio">
+            <label class="form-check-label" for="useHosts">
+              Use hosts file
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 
   <!-- Main -->
@@ -111,5 +152,4 @@
 
 <script>require('./')</script>
 <script src="./JQuery.js"></script>
-
 </html>

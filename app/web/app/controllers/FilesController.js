@@ -1,11 +1,13 @@
+const Settings = require('../../../core/Settings');
 const Http = require('../../../http');
+const fs = require('fs');
 
 class GameController {
   /**
    * Host endpoint
    */
   get baseUrl() {
-    return 'https://2.22.22.211'
+    return 'https://ajcontent.akamaized.net'
   }
 
   /**

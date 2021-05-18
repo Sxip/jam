@@ -1,12 +1,16 @@
-const pluginManager = core.pluginManager.instance
+const Settings = require("../core/Settings");
+const Hosts = require("../util/Hosts");
 
+const pluginManager = core.pluginManager.instance
+const settingsInstance = new Settings();
+const hostsInstance = new Hosts();
 /**
  * Handles plugins
  */
 $(function () {
   $('#pluginsModal').on('show.bs.modal', () => {
     if (pluginManager.plugins.size <= 0) {
-      return $('.plugin-container')
+      return $('#pluginContainer')
         .html('<div class="text-center">The plugin directory is empty</div>')
     }
 
@@ -16,7 +20,7 @@ $(function () {
         return 1
       })
       .forEach(plugin => {
-        $('.plugin-container')
+        $('#pluginContainer')
           .append(`
           <div class="card">
             <div class="card-body">
@@ -46,7 +50,7 @@ $(function () {
       })
   })
 
-  $('#pluginsModal').on('hide.bs.modal', () => $('.plugin-container').empty())
+  $('#pluginsModal').on('hide.bs.modal', () => $('#pluginContainer').empty())
 })
 
 /**
@@ -61,6 +65,80 @@ $(function () {
   })
 })
 
+//on radio switch, if you are smort, you get the idea
+$(function () {
+  $('input[type=radio][name=shouldUse]').change(function() {
+    if (this.value == '1') {
+      $('#selectPath').prop('disabled', false);
+      $('#pathToClassic').prop('disabled', false);
+      var input = document.getElementById("pathToClassic").value
+      var flag = core.application.checkPath(input)
+      if(flag){
+        $('#openClassic').prop('disabled', false);
+        hostsInstance.removeAll();
+      }
+      else{
+        $('#openClassic').prop('disabled', true);
+      }
+    }
+    else {
+      $('#selectPath').prop('disabled', true);
+      $('#pathToClassic').prop('disabled', true);
+      $('#openClassic').prop('disabled', true);
+     settingsInstance.update("usingHosts",true)
+     hostsInstance.load();
+    }
+});
+})
+//validates path
+function isValidPath(){
+  var input = document.getElementById("pathToClassic").value
+  if(input.trim().length > 0){
+    var flag = core.application.checkPath(input)
+    if(flag){
+      $('#openClassic').prop('disabled', false);
+    }
+    else{
+      $('#openClassic').prop('disabled', true);
+    }
+  }
+}
+//onload
+async function onLoad(){
+await settingsInstance.load()
+var flag = settingsInstance.get("usingHosts");
+if(flag){
+  $('#useNoAdmin').prop('checked', false);
+  $('#useHosts').prop('checked', true);
+  $('#selectPath').prop('disabled', true);
+  $('#pathToClassic').prop('disabled', true);
+  $('#openClassic').prop('disabled', true);
+  await hostsInstance.load();
+}
+else if(flag == false && (settingsInstance.get("classic_path").trim().length != 0)){
+  $('#selectPath').prop('disabled', false);
+  $('#pathToClassic').prop('disabled', false);
+  $('#useHosts').prop('checked', false);
+  $('#useNoAdmin').prop('checked', true);
+  document.getElementById("pathToClassic").value = settingsInstance.get("classic_path");
+  isValidPath();
+}
+}
+//self explanatory
+function startClassic(){
+  var input = document.getElementById("pathToClassic").value
+  if(input.trim().length > 0){
+   core.application.startAJC(input);
+  }
+}
+//open file dialog to ajc
+ async function openFileDialog(){
+    var response = await core.application.openDialog(); 
+    if(response !== undefined){
+      document.getElementById("pathToClassic").value = response;
+      isValidPath();
+    }    
+  }
 /**
  * Auto complete
  */

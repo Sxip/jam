@@ -1,5 +1,6 @@
 const PluginManager = require('../../core/plugin/PluginManager')
 const TCPServer = require('../../network/TCPServer')
+const Hosts = require('../../util/Hosts')
 const { rootPath } = require('electron-root-path')
 const { ipcRenderer } = require('electron')
 const { EventEmitter } = require('events')
@@ -8,15 +9,17 @@ const electron = require('electron')
 const Console = require('./Console')
 const fs = require('fs')
 const util = require('util')
+const child_process = require('child_process');
 const os = require('os')
 const path = require('path')
+const { response } = require('express')
 
 const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
   .split("\\")
   .join("/")}/AppData/Local/Programs/animal-jam/resources`
 
 class Application extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
 
     /**
@@ -32,8 +35,7 @@ class Application extends EventEmitter {
     /**
      * References the plugin manager instance
      */
-    this.pluginManager = new PluginManager()
-
+    this.pluginManager = new PluginManager();
     /**
      * References the settings instance
      */
@@ -45,6 +47,16 @@ class Application extends EventEmitter {
     this.console = new Console()
 
     /**
+     * References the hosts instance
+     */
+     this.hosts = new Hosts()
+
+    /**
+    * Checks if AJC executable has been found
+    */
+    this.containsAJC = false
+
+    /**
      * Patched check
      */
     this.patched = false
@@ -53,15 +65,32 @@ class Application extends EventEmitter {
   /**
    * bootstraps the application
    */
-  static bootstrap () {
+  static bootstrap() {
     return new Application()
   }
 
   /**
    * Closes the window
    */
-  close () {
+  close() {
     ipcRenderer.send('window-close')
+  }
+
+  async openDialog(){
+    var prom = this.electron.dialog.showOpenDialog(null,{
+      properties: ['openFile'],
+      filters: [
+        { name: 'Executable file', extensions: ['exe'] }
+      ],
+        title: "Select the AJ Classic Executable" 
+    })
+    var result = await prom;
+    if(result[0] !== undefined){
+      return result[0];
+    }      
+    else{
+      return undefined
+    }
   }
 
   /**
@@ -73,7 +102,7 @@ class Application extends EventEmitter {
     try {
       await util.promisify(fs.rename)(`${ANIMAL_JAM_BASE_PATH}/app.asar`, `${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`)
       await util.promisify(fs.copyFile)(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/app.asar`)
-     
+
       this.patched = true
       $("#patch").html('<i class="fal fa-skull"></i> Unpatch')
       this.settings.update('patched', this.patched)
@@ -109,7 +138,7 @@ class Application extends EventEmitter {
       process.noAsar = false;
     }
   }
-  
+
   /**
    * Patch checker
    */
@@ -118,23 +147,74 @@ class Application extends EventEmitter {
   }
 
   /**
+   * Check Path of AJC
+   */
+  checkPath(path) {
+    if (path.includes("\\") || path.includes("/")) {
+      if (path.includes("\\")) {
+        path = path.replace(/\\/g, "/")
+      }
+      if (path.includes(".exe")) {
+        var extentionHack = path.substring(path.lastIndexOf(".") + 1, path.length);
+        if(extentionHack == "exe"){
+          this.containsAJC = fs.existsSync(path)
+         return this.containsAJC
+        }
+        else{
+          return false
+        }
+      }
+      else{
+        return false
+      }     
+    }
+    else{
+      return false
+    }
+  }
+
+  /**
+ * Start AJC with params
+ */
+ startAJC(path) {
+    this.checkPath(path)
+    if (this.containsAJC) {
+      var hostText = this.settings.get("remote").hostDomain
+      if (hostText.trim().length != 0) {
+        hostText = "lb-" + hostText.replace(/\.(stage|prod)\.animaljam\.internal$/, "-$1.animaljam.com")
+        var command = `"${path}" --host-resolver-rules="MAP ${hostText} 127.0.0.1:443"`        
+        child_process.exec(command);
+        this.settings.update("classic_path",path)
+        this.settings.update("usingHosts",false)
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
    * Minimizes the window
    */
-  minimize () {
+  minimize() {
     ipcRenderer.send('window-minimize')
   }
 
   /**
    * Opens a directory
    */
-  directory (path = rootPath) {
+  directory(path = rootPath) {
     ipcRenderer.send('open-directory', path)
   }
 
   /**
    * Initializes the application
    */
-  async initialize () {
+  async initialize() {
     this.console.showMessage({
       message: 'Initializing Jam...',
       withStatus: true,
@@ -143,7 +223,7 @@ class Application extends EventEmitter {
 
     try {
       await this.settings.load()
-      
+
       await Promise.all([
         this.pluginManager.loadAll(),
         this.server.serve()
