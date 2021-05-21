@@ -117,16 +117,24 @@
             <label class="form-check-label" for="useNoAdmin">
               Use Jam without hosts file modification
             </label>
-            <div class="form-inline form-group">
+            <div class="form-inline my-2 my-lg-0 form-group">
               <input class="form-control col-md-10" id="pathToClassic" oninput="isValidPath()" placeholder="Select the AJ Classic executable...">
-              <button class="btn col-md-2" style="font-size: 12px;" id="selectPath" onclick="openFileDialog()"><span class="far fa-fw fa-folder"
-                  aria-hidden="true"></span></button>
-              <button class="form-control col-md-3" style="font-size: 12px;" id="openClassic" onclick="startClassic()" disabled>Open AJ Classic</button>
-            </div>           
+
+              <button class="btn col-md-2 btn-block col-xs-2" style="font-size: 12px;" id="selectPath" onclick="openFileDialog()">
+                <span class="far fa-fw fa-folder" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <button class="form-control col-md-3" style="font-size: 12px;" id="openClassic" onclick="startClassic()" disabled>
+              Open AJ Classic
+            </button>
+
+            <br />
             <input class="form-check-input" id="useHosts" name="shouldUse" value="0" type="radio">
             <label class="form-check-label" for="useHosts">
               Use hosts file
             </label>
+            <p class="warn" style="font-size: 11px;">Note: Using the hosts option require you to restart Jam and run as admin.</p>
           </div>
         </div>
       </div>

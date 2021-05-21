@@ -28,7 +28,6 @@ If you find any bugs regarding the hosts settings feature, please either open an
 https://user-images.githubusercontent.com/38108408/117664603-dfee9680-b199-11eb-9ea5-5700e16ccc1c.mp4
 
 
-
 ## Screenshots
 
 ![](https://i.imgur.com/GWDdXTz.png)
