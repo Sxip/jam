@@ -23,6 +23,11 @@ You may have noticed a small change: A "Hosts Settings" option.
 This option allows you to choose between using the changing the hosts file (which requires admin on windows) or opening the animal jam app without having to modify the hosts file. DON'T FORGET TO UNPATCH AFTER USE!!!!
 If you find any bugs regarding the hosts settings feature, please either open an issue, or email me at authxero@gmail.com
 
+## A modification 2 note by Auth Zero
+
+I have added a feature that allows the replacement of packets in real time!
+If you encounter any bugs regarding this feature, please either email me at authxero@gmail.com or open an issue.
+
 ## How To Use
 
 https://user-images.githubusercontent.com/38108408/117664603-dfee9680-b199-11eb-9ea5-5700e16ccc1c.mp4
