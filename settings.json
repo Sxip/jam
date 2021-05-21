@@ -12,5 +12,6 @@
   "deploy_version": "1617",
   "patched": false,
   "classic_path": "",
-  "usingHosts": true
+  "usingHosts": true,
+  "replacements": {}
 }

@@ -1,6 +1,5 @@
 const PluginManager = require('../../core/plugin/PluginManager')
 const TCPServer = require('../../network/TCPServer')
-const Hosts = require('../../util/Hosts')
 const { rootPath } = require('electron-root-path')
 const { ipcRenderer } = require('electron')
 const { EventEmitter } = require('events')
@@ -47,14 +46,14 @@ class Application extends EventEmitter {
     this.console = new Console()
 
     /**
-     * References the hosts instance
-     */
-     this.hosts = new Hosts()
-
-    /**
     * Checks if AJC executable has been found
     */
     this.containsAJC = false
+
+    /**
+     * References the array of replacements
+     */
+    this.replacements = []
 
     /**
      * Patched check
@@ -90,6 +89,32 @@ class Application extends EventEmitter {
     }      
     else{
       return undefined
+    }
+  }
+
+  /**
+ * Adds to replacements in settings
+ */
+ async addToReplacements(replacementNumber,objectToAdd) {
+    try {
+      this.settings.settings.replacements[replacementNumber] = objectToAdd
+      this.replacements.push(objectToAdd);
+      await util.promisify(fs.writeFile)(this.settings.path, JSON.stringify(this.settings.settings, null, 2))
+    } catch (error) {
+      throw new Error(`Failed to write to settings ${error.message}`)
+    }
+  }
+ /**
+ * Removes replacement in settings
+ */
+ async removeReplacements(replacementNumber) {
+    try {
+      delete this.settings.settings.replacements[replacementNumber]
+      var idx = this.replacements.map(function(obj) { return obj.number; }).indexOf(replacementNumber);
+      this.replacements.splice(idx,1)
+      await util.promisify(fs.writeFile)(this.settings.path, JSON.stringify(this.settings.settings, null, 2))
+    } catch (error) {
+      throw new Error(`Failed to write to settings ${error.message}`)
     }
   }
 

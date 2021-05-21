@@ -258,6 +258,7 @@ main {
 
 .card-body .card-text {
   background-color: #16171f;
+  border: 1px solid #252731;
   border-radius: 5px;
   padding: 7px 8px 22px;
   color: #a5a5a5;

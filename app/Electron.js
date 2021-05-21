@@ -1,5 +1,4 @@
 const { app, shell, globalShortcut, BrowserWindow } = require('electron')
-const Hosts = require('./util/Hosts')
 const Process = require('./process')
 const path = require('path')
 
@@ -57,7 +56,6 @@ class Electron {
     app.on('ready', this.onReady.bind(this))
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') app.quit()
-      this.hosts.removeAll()
     })
     return this
   }
@@ -81,13 +79,10 @@ class Electron {
    */
   onReady () {
     this.window = new BrowserWindow(defaultWindowOptions)
-    this.hosts = new Hosts()
 
     this.window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
     this.window.webContents.on('new-window', this.createWindow.bind(this))
     
-    //Don't load change hosts file on load, Let the end-user decide
-    //this.hosts.load()
     this.shortcut('f11', () => this.window.webContents.openDevTools())
 
     this.process = new Process(path.join(__dirname, 'web', 'index.js'))

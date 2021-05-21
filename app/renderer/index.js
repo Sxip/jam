@@ -12,7 +12,13 @@ const application = Application
  */
 application.initialize()
   .then(() => application.console.showMessage({
-    message: 'Jam console',
+      message: `You are using Jam v${remote.app.getVersion()}.`,
+      withStatus: true,
+      type: 'speech'
+    }))
+
+  .then(() => application.console.showMessage({
+    message: `If you are enjoying using Jam, head over to our <a href="https://discord.link/jam" target="external">Discord</a> server.`,
     withStatus: true,
     type: 'speech'
   }))

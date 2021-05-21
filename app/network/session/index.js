@@ -128,6 +128,10 @@ class Session extends EventEmitter {
    * Handles packet serialization
    */
   onPacket (type, packet) {
+    core.application.replacements.forEach(obj => {
+      if (packet.includes(obj.whatToFind)) packet = packet.replace(new RegExp(obj.whatToFind, "g"), obj.whatToReplace)
+    });
+
     const toPacket = this.packetManager.validate(packet)
 
     if (toPacket) {
