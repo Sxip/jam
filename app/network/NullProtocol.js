@@ -1,4 +1,3 @@
-const { coerceTypes } = require("electron-builder/out/builder")
 
 const NULL_DELIMITER = '\x00'
 
