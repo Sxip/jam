@@ -10,7 +10,8 @@
     "secondary": "lb-iss02-classic-prod.animaljam.com"
   },
   "deploy_version": "1617",
-  "patched": false,
+  "patched": true,
   "classic_path": "",
-  "usingHosts": true
+  "usingHosts": true,
+  "replacements": {}
 }

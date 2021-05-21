@@ -76,7 +76,9 @@ class Session extends EventEmitter {
    * Initializes the session socket events
    */
   _initialize () {
-    this.socket.on('data', data => this._sessionProtocol.chuck(data))
+    this.socket.on('data', data => {
+      this._sessionProtocol.chuck(data)    
+    })
     this.socket.once('close', () => this.disconnect())
   }
 
@@ -128,6 +130,11 @@ class Session extends EventEmitter {
    * Handles packet serialization
    */
   onPacket (type, packet) {
+    core.application.replacements.forEach(obj => {
+      if(packet.includes(obj.whatToFind)){
+        packet = packet.replace(new RegExp(obj.whatToFind, "g"), obj.whatToReplace)
+      }      
+    });
     const toPacket = this.packetManager.validate(packet)
 
     if (toPacket) {

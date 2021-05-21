@@ -13,6 +13,7 @@ const child_process = require('child_process');
 const os = require('os')
 const path = require('path')
 const { response } = require('express')
+const e = require('express')
 
 const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
   .split("\\")
@@ -32,6 +33,10 @@ class Application extends EventEmitter {
      */
     this.server = new TCPServer()
 
+    /**
+     * References the array of replacements
+     */
+       this.replacements = []
     /**
      * References the plugin manager instance
      */
@@ -197,6 +202,32 @@ class Application extends EventEmitter {
     }
   }
 
+
+ /**
+ * Adds to replacements in settings
+ */
+ async addToReplacements(replacementNumber,objectToAdd) {
+  try {
+    this.settings.settings.replacements[replacementNumber] = objectToAdd
+    this.replacements.push(objectToAdd);
+    await util.promisify(fs.writeFile)(this.settings.path, JSON.stringify(this.settings.settings, null, 2))
+  } catch (error) {
+    throw new Error(`Failed to write to settings ${error.message}`)
+  }
+}
+ /**
+ * Removes replacement in settings
+ */
+ async removeReplacements(replacementNumber) {
+  try {
+    delete this.settings.settings.replacements[replacementNumber]
+    var idx = this.replacements.map(function(obj) { return obj.number; }).indexOf(replacementNumber);
+    this.replacements.splice(idx,1)
+    await util.promisify(fs.writeFile)(this.settings.path, JSON.stringify(this.settings.settings, null, 2))
+  } catch (error) {
+    throw new Error(`Failed to write to settings ${error.message}`)
+  }
+    }
   /**
    * Minimizes the window
    */
@@ -223,7 +254,6 @@ class Application extends EventEmitter {
 
     try {
       await this.settings.load()
-
       await Promise.all([
         this.pluginManager.loadAll(),
         this.server.serve()

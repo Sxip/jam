@@ -51,6 +51,9 @@
           <a class="dropdown-item" data-toggle="modal" data-target="#hostSettingsModal">
             <i class="fal fa-cog"></i> Host Settings
           </a>
+          <a class="dropdown-item" data-toggle="modal" data-target="#replacementsModal">
+            <i class="fal fa-reply"></i> Replacements
+          </a>
         </div>
       </div>
     </div>
@@ -90,7 +93,7 @@
             <input class="form-control" id="search" placeholder="Search for a plugin...">
           </div>
 
-          <div id="pluginContainer"class="plugin-container"></div>
+          <div id="pluginContainer" class="plugin-container"></div>
         </div>
       </div>
     </div>
@@ -127,7 +130,32 @@
             <label class="form-check-label" for="useHosts">
               Use hosts file
             </label>
+            <p class="warn" style="font-size: 11px;">Note: Using the hosts option require you to restart Jam and run as admin.</p>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!--Replacements-->
+  <div class="modal fade" id="replacementsModal" tabindex="-1" role="dialog" aria-labelledby="replacementsModal"
+    aria-hidden="true">
+    <div class="modal-dialog mw-100 w-75" role="document">
+
+      <div class="modal-content">
+        <div class="modal-header text-center">
+          <p class="modal-title w-100"><i class="fal fa-reply"></i>Replacements</p>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="container" style="padding: 0 16px 14px;">
+          </div>
+          <button type="button" onclick="addReplacement()" class="form-control col-md-1"><i class="fas mx-auto fa-plus"></i></button>
+          <div class="plugin-container" id="replacementsContainer">     
         </div>
       </div>
     </div>
