@@ -6,7 +6,8 @@
   "version": "0.0.6",
   "scripts": {
     "start:dev": "npx cross-env NODE_ENV=development nodemon",
-    "build:win": "npx electron-builder build -w --x64 --ia32 -p never"
+    "build:win": "npx electron-builder build -w --x64 --ia32 -p never",
+	"build:portableWin": "npx electron-builder build --win portable -p never"
   },
   "devDependencies": {
     "cross-env": "^6.0.3",
@@ -43,7 +44,7 @@
       "output": "build"
     },
     "win": {
-      "requestedExecutionLevel": "highestAvailable"
+      "requestedExecutionLevel": "asInvoker"
     },
     "files": [
       "app/**/*"
