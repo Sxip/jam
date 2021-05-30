@@ -1,8 +1,0 @@
-{
-  "name": "Color",
-  "description": "Changes your avatar color randomly.",
-  "author": "sxip",
-  "main": "index.js",
-  "type": "game",
-  "game": "jam"
-}

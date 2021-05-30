@@ -224,7 +224,7 @@ main {
   color: var(--text-primary) !important;
   background-color: var(--dark-background-lighter) !important;
   outline: none;
-  box-shadow:none !important;
+  box-shadow: none !important;
   border: none !important;
   transition: 0.3s;
 }
@@ -339,6 +339,11 @@ button:focus {
   width: 100%;
 }
 
+.emoji {
+  width: 13px;
+  margin: 1px;
+}
+
 .message {
   word-wrap: break-word;
   padding: 1px;
@@ -346,6 +351,7 @@ button:focus {
 
 .message div {
   display: inline;
+  padding: 1px;
 }
 
 /**

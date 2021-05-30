@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" type="image/png" href="favicon.png" />
+
+  <!-- Emoji -->
+  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Font awesome -->
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.2.0/css/all.css">
+
+  <!-- Style -->
+  <link rel="stylesheet" href="file:///../../../../assets/css/style.css">
+
+  <!-- jQuery -->
+  <script>
+    window.jQuery = window.$ = require('jquery')
+  </script>
+
+  <script src="file:///../../../../assets/javascript/jquery-ui.js"></script>
+  <script src="file:///../../../../assets/javascript/popper.min.js"></script>
+  <script src="file:///../../../../assets/javascript/bootstrap.min.js"></script>
+  <script src="file:///../../../../assets/javascript/moment.js"></script>
+</head>
+
+<body>
+  <!-- Titlebar -->
+  <nav class="titlebar">
+    <div class="title">Jam</div>
+
+    <!-- Menu -->
+    <div class="menu">
+      <div class="dropdown">
+        <a class="toggle-menu icon" role="button" id="sidebarCollapse" data-toggle="dropdown" aria-expanded="false">
+          <i class="fal fa-bars"></i>
+        </a>
+
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="#">
+            <i class="fal fa-share-alt"></i> Plugins
+          </a>
+          <a class="dropdown-item" href="#" modal="modals/settings.html" onclick="jam.application.remoteModal(this, event, '#settings')">
+            <i class="fal fa-cog"></i> Settings
+          </a>
+          <a class="dropdown-item" href="#">
+            <i class="fal fa-question"></i> Help
+          </a>
+        </div>
+      </div>
+    </div>
+
+     <!-- Icons -->
+     <div class="icon-wrap">
+      <div class="icon-group" onclick="jam.application.minimize()">
+        <svg name="TitleBarMinimize" class="title-bar-minimize" width="12" height="12" viewBox="0 0 12 12">
+          <rect fill="#b7b7b7" width="10" height="1" x="1" y="6" />
+        </svg>
+      </div>
+
+      <div class="icon-group">
+        <svg name="TitleBarClose" class="icon-close" width="12" height="12" viewBox="0 0 12 12">
+          <polygon fill="#b7b7b7" fill-rule="evenodd"
+            points="11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1" />
+        </svg>
+      </div>
+    </div>
+  </nav>
+
+   <!-- Main -->
+   <main class="main-wrap">
+    <div class="contain">
+      <div id="messages"></div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-bar">
+      <input class="form-control" id="input" placeholder="Type a command...">
+    </div>
+
+    </div>
+  </main>
+  
+
+  <!-- Modal content -->
+  <div class="modal-content" />
+
+  <script src="index.js"></script>
+</body>
+
+</html>

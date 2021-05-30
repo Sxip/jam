@@ -1,8 +1,0 @@
-{
-  "name": "Item Previewer",
-  "description": "Preview items client-side.",
-  "author": "sxip",
-  "main": "index.html",
-  "type": "window",
-  "game": "jam"
-}

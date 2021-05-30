@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
-<cross-domain-policy>
-<site-control permitted-cross-domain-policies="master-only"/>
-<allow-access-from domain="prod.content.animaljam.com" to-ports="80,443"/>
-<allow-access-from domain="*.akamaized.net" to-ports="80,443"/>
-<allow-access-from domain="*" to-ports="80,443"/>
-</cross-domain-policy>

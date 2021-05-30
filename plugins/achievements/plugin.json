@@ -1,8 +1,0 @@
-{
-  "name": "Achievements",
-  "description": "Gives your character (most) in-game achievements.",
-  "author": "Auth Zero",
-  "type": "game",
-  "game": "jam",
-  "main": "achievements.js"
-}

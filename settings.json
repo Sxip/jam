@@ -1,5 +1,7 @@
 {
-  "game": "jam",
+  "classic_path": "",
+  "patched": false,
+  "usingHosts": true,
   "remote": {
     "host": "44.238.202.176",
     "port": 443,
@@ -8,10 +10,5 @@
   "hosts": {
     "primary": "lb-iss01-classic-prod.animaljam.com",
     "secondary": "lb-iss02-classic-prod.animaljam.com"
-  },
-  "deploy_version": "1617",
-  "patched": false,
-  "classic_path": "",
-  "usingHosts": true,
-  "replacements": {}
+  }
 }
