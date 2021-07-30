@@ -78,6 +78,10 @@ module.exports = class Dispatch {
     this.hooks = { commands: new Map(), connection: new Map(), aj: new Map() }
   }
 
+  get client () {
+    return this._application.server.client
+  }
+
   /**
    * Reads files recursively from a directory.
    * @param {string} directory
@@ -112,8 +116,6 @@ module.exports = class Dispatch {
 
     if (plugin) {
       const { filepath, configuration: { main } } = plugin
-
-      console.log('GOT', `${filepath}\\${main}`)
       window.open(`${filepath}\\${main}`)
     }
   }
@@ -194,9 +196,9 @@ module.exports = class Dispatch {
       case PluginTypes.game: {
         const PluginInstance = require(`${filepath}\\${configuration.main}`)
 
+        console.log(this._application.server)
         const plugin = new PluginInstance({
           application: this._application,
-          client: this._application.server.client,
           dispatch: this
         })
 
@@ -212,6 +214,16 @@ module.exports = class Dispatch {
         this.plugins.set(configuration.name, { configuration, filepath })
         break
     }
+  }
+
+  /**
+   * Promise timeout helper.
+   * @param ms
+   * @returns {Promise<void>}
+   * @public
+   */
+  wait (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   /**

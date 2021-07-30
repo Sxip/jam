@@ -30,10 +30,7 @@ ipcRenderer
   .on('message', (sender, { ...args }) => application.consoleMessage({
     ...args
   }))
-  .on('close', () => {
-    console.log('CLOSING')
-    application.patcher.unpatchApplication()
-  })
+  .on('close', () => application.patcher.unpatchApplication())
 
 /**
  * Application events.

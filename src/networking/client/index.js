@@ -56,6 +56,13 @@ module.exports = class Client {
     }))
 
     /**
+     * Connected indicator.
+     * @type {boolean}
+     * @public
+     */
+    this.connected = false
+
+    /**
      * The connection that instantiated this client.
      * @type {NetifySocket}
      * @private
@@ -104,6 +111,7 @@ module.exports = class Client {
       })
     })
 
+    this.connected = true
     this._beginConnectionEvents()
 
     this._connection.on('data', data => this._connectionBuffer.chuck(data))
@@ -251,5 +259,9 @@ module.exports = class Client {
     const { dispatch } = this._server.application
     for (const interval of dispatch.intervals) dispatch.clearInterval(interval)
     dispatch.intervals.clear()
+
+    this.connected = false
+    this._connection.end()
+    this._aj.end()
   }
 }

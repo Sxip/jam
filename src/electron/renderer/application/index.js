@@ -100,11 +100,33 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
+   * Opens the plugin directory.
+   * @param name
+   * @public
+   */
+  directory (name) {
+    const plugin = this.dispatch.plugins.get(name)
+
+    if (plugin) {
+      const { filepath } = plugin
+      ipcRenderer.send('open-directory', filepath)
+    }
+  }
+
+  /**
    * Minimizes the application.
    * @public
    */
   minimize () {
     ipcRenderer.send('window-minimize')
+  }
+
+  /**
+   * Closes the application.
+   * @public
+   */
+  close () {
+    ipcRenderer.send('window-close')
   }
 
   /**

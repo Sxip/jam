@@ -34,11 +34,6 @@ const createPluginCard = ({ type, name, description, author } = {}) => {
       <p class="card-subtitle mb-2 text-muted">By ${author}</p>
       <p class="card-text">${description}</p>
       <div class="float-right">
-        <button class="btn" style="font-size: 12px;"
-          onClick="jam.application.dispatch.reload('${name}')">
-          <span class="far fa-fw fa-sync-alt" aria-hidden="true"></span>
-          Reload
-        </button>
         <button class="btn" style="font-size: 12px;" 
           onClick="jam.application.directory('${name}')">
           <span class="fal fa-fw fa-folder"></span> Directory

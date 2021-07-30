@@ -47,7 +47,8 @@ module.exports = class Electron {
 
     /**
      * The api backend process.
-     * @type {}
+     * @type {ChildProcess}
+     * @private
      */
     this._apiProcess = null
 
@@ -58,6 +59,7 @@ module.exports = class Electron {
     ipcMain.on('open-directory', this._openItem.bind(this))
     ipcMain.on('window-close', () => this._window.close())
     ipcMain.on('window-minimize', () => this._window.minimize())
+    ipcMain.on('open-directorye', path => shell.openPath(path))
   }
 
   /**
@@ -69,9 +71,6 @@ module.exports = class Electron {
     app.whenReady().then(() => this._onReady())
 
     app.on('window-all-closed', () => {
-      console.log('??')
-      this.messageWindow('close')
-
       if (process.platform !== 'darwin') app.quit()
     })
     return this
@@ -121,6 +120,7 @@ module.exports = class Electron {
             ...Object.assign(defaultWindowOptions, {
               frame: true,
               webPreferences: {
+                autoHideMenuBar: true,
                 preload: path.join(__dirname, 'preload.js'),
                 contextIsolation: false
               }
@@ -179,5 +179,7 @@ module.exports = class Electron {
     // shortcut
     this._shortcut('f11', () => this.window.webContents.openDevTools())
     if (!isDevelopment) this.buildAutoUpdater()
+
+    this._window.on('close', () => this.messageWindow('close'))
   }
 }
