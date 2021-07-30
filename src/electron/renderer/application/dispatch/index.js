@@ -2,22 +2,13 @@ const { rootPath } = require('electron-root-path')
 const { readdir, stat } = require('fs/promises')
 const path = require('path')
 const Ajv = new (require('ajv'))({ useDefaults: true })
-const { ConnectionMessageTypes } = require('../../../../Constants')
+const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
 
 /**
  * The path to the plugins folder.
  * @constant
  */
 const BASE_PATH = path.resolve(rootPath, 'plugins/')
-
-/**
- * Plugin types.
- * @enum
- */
-const PluginType = Object.freeze({
-  ui: 'ui',
-  game: 'game'
-})
 
 /**
  * The default Configuration schema.
@@ -184,7 +175,7 @@ module.exports = class Dispatch {
     }
 
     switch (configuration.type) {
-      case PluginType.game: {
+      case PluginTypes.game: {
         const PluginInstance = require(`${filepath}\\${configuration.main}`)
 
         const plugin = new PluginInstance({
@@ -201,7 +192,7 @@ module.exports = class Dispatch {
       }
         break
 
-      case PluginType.ui:
+      case PluginTypes.ui:
         this.plugins.set(configuration.name, { configuration, path })
         break
     }
@@ -306,7 +297,6 @@ module.exports = class Dispatch {
    * @public
    */
   onMessage (options = {}) {
-    console.log(options)
     return options.type === ConnectionMessageTypes.aj
       ? this._registerAjHook(options)
       : this._registerConnectionHook(options)

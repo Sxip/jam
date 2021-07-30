@@ -1,11 +1,19 @@
 /**
  * Connection message types.
- * @type {Object}
- * @const
+ * @enum
  */
 const ConnectionMessageTypes = Object.freeze({
   connection: 'connection',
   aj: 'aj'
 })
 
-module.exports = { ConnectionMessageTypes }
+/**
+ * Plugin types.
+ * @enum
+ */
+const PluginTypes = Object.freeze({
+  ui: 'ui',
+  game: 'game'
+})
+
+module.exports = { ConnectionMessageTypes, PluginTypes }

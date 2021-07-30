@@ -52,10 +52,7 @@ module.exports = class Electron {
      * @events
      */
     ipcMain.on('open-directory', this._openItem.bind(this))
-    ipcMain.on('window-close', () => {
-      this.messageWindow('close')
-      this._window.close()
-    })
+    ipcMain.on('window-close', () => this._window.close())
     ipcMain.on('window-minimize', () => this._window.minimize())
   }
 
@@ -68,6 +65,9 @@ module.exports = class Electron {
     app.whenReady().then(() => this._onReady())
 
     app.on('window-all-closed', () => {
+      console.log('??')
+      this.messageWindow('close')
+
       if (process.platform !== 'darwin') app.quit()
     })
     return this
@@ -116,6 +116,31 @@ module.exports = class Electron {
     }
   }
 
+  buildAutoUpdater () {
+    autoUpdater.allowDowngrade = false
+    autoUpdater.allowPrerelease = false
+
+    const minutes = 5
+
+    autoUpdater.checkForUpdates()
+
+    setInterval(() => autoUpdater.checkForUpdates(), 1000 * 60 * minutes)
+
+    autoUpdater.on('update-available', () => {
+      this.messageWindow('message', {
+        type: 'notify',
+        message: 'A new update is available.'
+      })
+    })
+
+    autoUpdater.on('update_downloaded', info => {
+      this.messageWindow('message', {
+        type: 'celebrate',
+        message: 'Update Downloaded. It will be installed on restart.'
+      })
+    })
+  }
+
   /**
    * Sends a message to the main window process.
    * @param type
@@ -139,5 +164,6 @@ module.exports = class Electron {
 
     // shortcut
     this._shortcut('f11', () => this.window.webContents.openDevTools())
+    this.buildAutoUpdater()
   }
 }

@@ -2,10 +2,22 @@
   "name": "jam",
   "description": "Jam is a modular man-in-the-middle proxy for classic Animal Jam.",
   "main": "src/index.js",
+  "version": "0.0.1",
   "scripts": {
-    "dev": "npx cross-env NODE_ENV=development nodemon"
+    "dev": "npx cross-env NODE_ENV=development nodemon",
+    "build:win": "npx electron-builder build -w --x64 --ia32 -p never"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sxip/jam.git"
+  },
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
   },
   "devDependencies": {
+    "electron-builder": "^22.11.7",
+    "electron": "^12.0.9",
     "eslint": "^7.18.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
@@ -17,14 +29,29 @@
     "ajv": "^8.6.2",
     "cheerio": "^1.0.0-rc.9",
     "cross-env": "^7.0.3",
-    "electron": "^12.0.9",
     "electron-root-path": "^1.0.16",
     "electron-updater": "^4.3.9",
     "express": "^4.17.1",
     "fkill": "^7.1.1",
     "jquery": "^3.6.0",
-    "netify.js": "sxip/netify.js#tls",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9"
+  },
+  "build": {
+    "productName": "Jam",
+    "appId": "com.jam",
+    "icon": "assets/icon.ico",
+    "directories": {
+      "output": "build"
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "extraFiles": [
+      "plugins/**/*",
+      "assets/**/*",
+      "public/**/*",
+      "settings.json"
+    ]
   }
 }

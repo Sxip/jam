@@ -3,7 +3,6 @@ module.exports = function ({ dispatch }) {
    * Handles the login message.
    */
   const handleLoginMessage = ({ message }) => {
-    console.log(message)
     const { params } = message.value.b.o
     params.accountType = 2
   }

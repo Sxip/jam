@@ -23,6 +23,9 @@ const messageStatus = Object.freeze({
   warn: {
     icon: '⚠️'
   },
+  notify: {
+    icon: '🔔'
+  },
   speech: {
     icon: '💬'
   },
