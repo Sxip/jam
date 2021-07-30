@@ -45,6 +45,7 @@ application.on('ready', () => application.activateAutoComplete())
 */
 window.jam = {
   application,
+  dispatch: application.dispatch,
   settings: application.settings,
   server: application.server
 }

@@ -103,6 +103,22 @@ module.exports = class Dispatch {
   }
 
   /**
+   * Opens the plugin window.
+   * @param name
+   * @public
+   */
+  open (name) {
+    const plugin = this.plugins.get(name)
+
+    if (plugin) {
+      const { filepath, configuration: { main } } = plugin
+
+      console.log('GOT', `${filepath}\\${main}`)
+      window.open(`${filepath}\\${main}`)
+    }
+  }
+
+  /**
    * Loads all of the plugins.
    * @returns {Promise<void>}
    * @public
@@ -186,14 +202,14 @@ module.exports = class Dispatch {
 
         this.plugins.set(configuration.name, {
           configuration,
-          path,
+          filepath,
           plugin
         })
       }
         break
 
       case PluginTypes.ui:
-        this.plugins.set(configuration.name, { configuration, path })
+        this.plugins.set(configuration.name, { configuration, filepath })
         break
     }
   }

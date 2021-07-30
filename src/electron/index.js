@@ -21,9 +21,13 @@ const defaultWindowOptions = {
   protocol: 'file',
   slashes: true,
   webPreferences: {
+    webSecurity: false,
+    enableRemoteModule: true,
     contextIsolation: false,
+    nativeWindowOpen: true,
     nodeIntegration: true,
-    webSecurity: false
+    preload: path.join(__dirname, 'preload.js')
+
   },
   icon: path.join('assets', 'icon.png')
 }
@@ -104,15 +108,25 @@ module.exports = class Electron {
    * @param {Object} options
    * @private
    */
-  _createWindow (event, url, frameName, _, options) {
+  _createWindow ({ url, frameName }) {
     switch (frameName) {
       case 'external':
-        event.preventDefault()
         shell.openExternal(url)
-        break
+        return { action: 'allow' }
 
       default:
-        Object.assign(options, defaultWindowOptions)
+        return {
+          action: 'allow',
+          overrideBrowserWindowOptions: {
+            ...Object.assign(defaultWindowOptions, {
+              frame: true,
+              webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                contextIsolation: false
+              }
+            })
+          }
+        }
     }
   }
 
@@ -159,11 +173,11 @@ module.exports = class Electron {
     this._window = new BrowserWindow(defaultWindowOptions)
     this._window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
 
-    this._window.webContents.setWindowOpenHandler(this._createWindow.bind(this))
+    this._window.webContents.setWindowOpenHandler((...args) => this._createWindow(...args))
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
 
     // shortcut
     this._shortcut('f11', () => this.window.webContents.openDevTools())
-    this.buildAutoUpdater()
+    if (!isDevelopment) this.buildAutoUpdater()
   }
 }

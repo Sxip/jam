@@ -26,7 +26,7 @@ aria-hidden="true">
 /**
  * Creates a new plugin card
  */
-function createPluginCard({ type, name, description, author } = {}) {
+const createPluginCard = ({ type, name, description, author } = {}) => {
   // Todo: Create using JQuery
   return `<div class="card">
       <div class="card-body">
@@ -64,8 +64,7 @@ $(document).on('show.bs.modal','#plugins', () => {
 
   Array.from(plugins.values())
       .sort(({ configuration }) => {
-        if (configuration.type === 'ui') return 0
-        return 1
+        return configuration.type === 'ui' ? 1 : 0
       })
       .forEach(({ configuration }) => {
         const { type, name, description, author } = configuration
