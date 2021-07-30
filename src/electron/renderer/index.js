@@ -1,4 +1,5 @@
 const Application = require('./application')
+const { ipcRenderer } = require('electron')
 
 /**
  * Instantiates the application
@@ -6,16 +7,16 @@ const Application = require('./application')
 const application = new Application()
 
 /**
- * Console message.
- */
+* Console message.
+*/
 application.consoleMessage({
   message: 'Instantiating please wait.',
   type: 'wait'
 })
 
 /**
- * Initializes the application.
- */
+* Initializes the application.
+*/
 application.instantiate()
   .then(() => application.consoleMessage({
     message: 'Jam has successfully instantiated.',
@@ -23,8 +24,25 @@ application.instantiate()
   }))
 
 /**
- * Application window
+  * IPC events.
+  */
+ipcRenderer
+  .on('message', (sender, { ...args }) => application.consoleMessage({
+    ...args
+  }))
+  .on('close', () => {
+    console.log('CLOSING')
+    application.patcher.unpatchApplication()
+  })
+
+/**
+ * Application events.
  */
+application.on('ready', () => application.activateAutoComplete())
+
+/**
+* Application window.
+*/
 window.jam = {
   application,
   settings: application.settings,

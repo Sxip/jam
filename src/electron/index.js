@@ -1,6 +1,9 @@
 const { app, BrowserWindow, globalShortcut, shell, ipcMain } = require('electron')
 const path = require('path')
 const { fork } = require('child_process')
+const { autoUpdater } = require('electron-updater')
+
+const isDevelopment = process.env.NODE_ENV === 'development'
 
 /**
  * The default window options.
@@ -19,7 +22,8 @@ const defaultWindowOptions = {
   slashes: true,
   webPreferences: {
     contextIsolation: false,
-    nodeIntegration: true
+    nodeIntegration: true,
+    webSecurity: false
   },
   icon: path.join('assets', 'icon.png')
 }
@@ -48,7 +52,10 @@ module.exports = class Electron {
      * @events
      */
     ipcMain.on('open-directory', this._openItem.bind(this))
-    ipcMain.on('window-close', () => this._window.close())
+    ipcMain.on('window-close', () => {
+      this.messageWindow('close')
+      this._window.close()
+    })
     ipcMain.on('window-minimize', () => this._window.minimize())
   }
 
@@ -107,6 +114,16 @@ module.exports = class Electron {
       default:
         Object.assign(options, defaultWindowOptions)
     }
+  }
+
+  /**
+   * Sends a message to the main window process.
+   * @param type
+   * @param message
+   * @public
+   */
+  messageWindow (type, message = {}) {
+    this._window.webContents.send(type, message)
   }
 
   /**

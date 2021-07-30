@@ -1,0 +1,86 @@
+<div class="modal fade" id="plugins" tabindex="-1" role="dialog" aria-labelledby="plugins"
+aria-hidden="true">
+<div class="modal-dialog mw-100 w-75" role="document">
+
+  <div class="modal-content">
+    <div class="modal-header text-center">
+      <p class="modal-title w-100"><i class="fal fa-share-alt"></i> Plugins</p>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="container" style="padding: 0 16px 14px;">
+        <input class="form-control" id="search" placeholder="Search for a plugin...">
+      </div>
+
+      <div id="pluginContainer" class="plugin-container"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Model plugin script -->
+<script>
+/**
+ * Creates a new plugin card
+ */
+function createPluginCard({ type, name, description, author } = {}) {
+  // Todo: Create using JQuery
+  return `<div class="card">
+      <div class="card-body">
+      <h6 class="card-title">${name}</h6>
+      <p class="card-subtitle mb-2 text-muted">By ${author}</p>
+      <p class="card-text">${description}</p>
+      <div class="float-right">
+        <button class="btn" style="font-size: 12px;"
+          onClick="jam.application.dispatch.reload('${name}')">
+          <span class="far fa-fw fa-sync-alt" aria-hidden="true"></span>
+          Reload
+        </button>
+        <button class="btn" style="font-size: 12px;" 
+          onClick="jam.application.directory('${name}')">
+          <span class="fal fa-fw fa-folder"></span> Directory
+        </button>
+        
+        <button class="btn" style="font-size: 12px; ${type === 'ui' ? '' : 'display: none'}" 
+          onClick="jam.application.dispatch.open('${name}')">
+          <span class="far fa-fw fa-external-link"></span> View
+        </button>
+      </div>
+    </div>`
+}
+
+/**
+ * Handles modal showing.
+ */
+$(document).on('show.bs.modal','#plugins', () => {
+  const pluginContainer = $('#pluginContainer')
+  const search = $('#search')
+
+  const { plugins } = jam.application.dispatch
+  if (plugins.size <= 0) return pluginContainer.append('<div class="text-center">You have no plugins..</div>')
+
+  Array.from(plugins.values())
+      .sort(({ configuration }) => {
+        if (configuration.type === 'ui') return 0
+        return 1
+      })
+      .forEach(({ configuration }) => {
+        const { type, name, description, author } = configuration
+        const card = createPluginCard({ type, name, description, author })
+        pluginContainer.append(card)
+      })
+
+  // Handles plugin searching
+  search.on('keyup', function () {
+    const value = this.value.toLowerCase().trim()
+    const card = $('.card')
+
+    card.show()
+      .filter(() => $(this).text().toLowerCase().trim().indexOf(value) === -1)
+      .hide()
+  })
+});
+</script>

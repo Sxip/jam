@@ -1,7 +1,7 @@
 const path = require('path')
 const os = require('os')
 const fkill = require('fkill')
-const { exec } = require('child_process')
+const { execFile } = require('child_process')
 const { rootPath } = require('electron-root-path')
 const { unlink, rename, copyFile } = require('fs/promises')
 
@@ -12,7 +12,7 @@ const { unlink, rename, copyFile } = require('fs/promises')
  */
 const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
   .split('\\')
-  .join('/')}/AppData/Local/Programs/animal-jam/resources`
+  .join('/')}/AppData/Local/Programs/animal-jam`
 
 module.exports = class Patcher {
   /**
@@ -33,64 +33,61 @@ module.exports = class Patcher {
      * @private
      */
     this._animalJamProcess = null
+  }
 
-    /**
-     * Patch checker.
-     * @type {boolean}
-     * @private
-     */
-    this._patched = false
+  get status () {
+    return this._application.settings.get('patched')
   }
 
   /**
    * Kills the Animal Jam Classic process.
-   * @param command
    * @returns {Promise<void>}
    * @public
    */
-  async killProcessAndPatch (command) {
+  async killProcessAndPatch () {
     await fkill('AJ Classic.exe', {
       force: true,
       silent: true,
       ignoreCase: true
     })
 
-    await this._patchApplication()
-    this._animalJamProcess = exec(command)
-    this._animalJamProcess.on('close', () => this._unpatchApplication())
+    if (!this.status) await this.patchApplication()
+
+    this._animalJamProcess = execFile(`${ANIMAL_JAM_BASE_PATH}/AJ Classic.exe`)
+    this._animalJamProcess.on('close', () => this.unpatchApplication())
   }
 
   /**
    * Patches Animal Jam Classic.
    * @returns {Promise<void>}
-   * @private
+   * @public
    */
-  async _patchApplication () {
+  async patchApplication () {
+    if (this.status) return
+
     process.noAsar = true
 
-    await rename(`${ANIMAL_JAM_BASE_PATH}/app.asar`, `${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`)
-    await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/app.asar`)
+    await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`)
+    await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
 
-    this._patched = true
     this._application.settings.update('patched', true)
-
     process.noAsar = false
   }
 
   /**
    * Unpatches the application.
    * @returns {Promise<void>}
-   * @private
+   * @public
    */
-  async _unpatchApplication () {
+  async unpatchApplication () {
+    if (!this.status) return
+
     process.noAsar = true
 
-    await unlink(`${ANIMAL_JAM_BASE_PATH}/app.asar`)
-    await rename(`${ANIMAL_JAM_BASE_PATH}/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/app.asar`)
+    await unlink(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
+    await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
 
-    this.patched = false
     this._application.settings.update('patched', false)
-
     process.noAsar = false
   }
 }

@@ -1,14 +1,7 @@
 {
-  "classic_path": "",
-  "patched": false,
-  "usingHosts": true,
   "remote": {
-    "host": "44.238.202.176",
-    "port": 443,
-    "hostDomain": "iss02-classic.prod.animaljam.internal"
+    "host": "44.235.62.170",
+    "port": 443
   },
-  "hosts": {
-    "primary": "lb-iss01-classic-prod.animaljam.com",
-    "secondary": "lb-iss02-classic-prod.animaljam.com"
-  }
+  "patched": false
 }

@@ -32,6 +32,10 @@ label {
   color: var(--text-primary);
 }
 
+.ui-autocomplete {
+  z-index: 100;
+}
+
 select {
   background-color: var(--dark-secondary-color) !important;
   border: transparent !important;

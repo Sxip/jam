@@ -3,6 +3,7 @@ const { EventEmitter } = require('events')
 const Server = require('../../../networking/server')
 const Settings = require('./settings')
 const Patcher = require('./patcher')
+const Dispatch = require('./dispatch')
 
 /**
  * Message status icons.
@@ -60,6 +61,13 @@ module.exports = class Application extends EventEmitter {
     this.patcher = new Patcher(this)
 
     /**
+     * The reference to the dispatch.
+     * @type {Dispatch}
+     * @public
+     */
+    this.dispatch = new Dispatch(this)
+
+    /**
      * The reference to the application input.
      * @type {JQuery<HTMLElement>}
      * @private
@@ -69,7 +77,7 @@ module.exports = class Application extends EventEmitter {
     /**
      * Handles the input events.
      * @type {void}
-     * @public
+     * @private
      */
     this._input.on('keydown', event => {
       const key = event.key
@@ -77,9 +85,11 @@ module.exports = class Application extends EventEmitter {
       if (key === 'Enter') {
         const message = this._input.val().trim()
 
-        // Todo: handle commands
         const parameters = message.split(' ')
         const command = parameters.shift()
+
+        const cmd = this.dispatch.commands.get(command)
+        if (cmd) cmd.callback({ parameters })
 
         this._input.val('')
       }
@@ -105,8 +115,40 @@ module.exports = class Application extends EventEmitter {
     const content = $('.modal-content')
 
     content.load(
-      $(target).attr('modal'), () => $(id).modal('show')
+      $(target).attr('modal'), () => {
+        $(id).modal()
+      }
     )
+  }
+
+  /**
+   * Handles input autocomplete activation.
+   * @type {void}
+   * @public
+   */
+  activateAutoComplete () {
+    /**
+     * Renders the autocomplete items.
+     * @param ul
+     * @param item
+     * @returns
+     */
+    const renderItems = (ul, item) => {
+      return $('<li>')
+        .data('ui-autocomplete-item', item)
+        .append(`<a>${item.value}</a> <a class="float-right description">${item.item}</a>`)
+        .appendTo(ul)
+    }
+
+    this._input.autocomplete({
+      source: Array.from(this.dispatch.commands.values())
+        .map(command => ({
+          value: command.name,
+          item: command.description
+        })),
+      position: { collision: 'flip' }
+    })
+      .data('ui-autocomplete')._renderItem = renderItems
   }
 
   /**
@@ -161,6 +203,8 @@ module.exports = class Application extends EventEmitter {
 
   /**
    * Opens Animal Jam Classic
+   * @returns {Promise<void>}
+   * @public
    */
   openAnimalJam () {
     try {
@@ -181,7 +225,10 @@ module.exports = class Application extends EventEmitter {
   async instantiate () {
     try {
       await this.settings.load()
+      await this.dispatch.load()
       await this.server.serve()
+
+      this.emit('ready')
     } catch (error) {
       this.consoleMessage({
         message: `Unexpected error occurred while trying to instantiate jam. ${error.message}`,
