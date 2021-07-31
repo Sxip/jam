@@ -216,7 +216,6 @@ module.exports = class Dispatch {
       case PluginTypes.game: {
         const PluginInstance = require(`${filepath}\\${configuration.main}`)
 
-        console.log(this._application.server)
         const plugin = new PluginInstance({
           application: this._application,
           dispatch: this
@@ -269,21 +268,37 @@ module.exports = class Dispatch {
    * Sets a state.
    * @param {string} key
    * @param {any} value
+   * @returns {this}
    * @public
    */
   setState (key, value) {
     this.state[key] = value
+    return this
+  }
+
+  /**
+   * Fetches the state.
+   * @param key
+   * @param defaultValue
+   * @returns {any}
+   * @public
+   */
+  getState (key, defaultValue = null) {
+    if (this.state[key]) return this.state[key]
+    return defaultValue
   }
 
   /**
    * Updates a state.
    * @param {string} key
    * @param {any} value
+   * @returns {this}
    * @public
    */
   updateState (key, value) {
     if (this.state[key]) this.state[key] = value
     else throw new Error('Invalid state key.')
+    return this
   }
 
   /**
@@ -345,6 +360,7 @@ module.exports = class Dispatch {
    * @public
    */
   onMessage (options = {}) {
+    console.log(options)
     return options.type === ConnectionMessageTypes.aj
       ? this._registerAjHook(options)
       : this._registerConnectionHook(options)
@@ -372,7 +388,7 @@ module.exports = class Dispatch {
    * @private
    */
   _registerConnectionHook (hook) {
-    if (this.hooks.connection.has(hook.message)) this.hooks.connection.get(hook.packet).push(hook.callback)
+    if (this.hooks.connection.has(hook.message)) this.hooks.connection.get(hook.message).push(hook.callback)
     else this.hooks.connection.set(hook.message, [hook.callback])
   }
 
@@ -382,7 +398,7 @@ module.exports = class Dispatch {
    * @private
    */
   _registerAjHook (hook) {
-    if (this.hooks.aj.has(hook.message)) this.hooks.aj.get(hook.packet).push(hook.callback)
+    if (this.hooks.aj.has(hook.message)) this.hooks.aj.get(hook.message).push(hook.callback)
     else this.hooks.aj.set(hook.message, [hook.callback])
   }
 }

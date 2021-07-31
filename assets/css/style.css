@@ -50,6 +50,18 @@ a {
   transition: 0.3s;
 }
 
+highlight {
+  color: var(--text-link-primary);
+  text-decoration: none;
+  background-color: transparent;
+  transition: 0.3s;
+}
+
+highlight:hover {
+  color: var(--text-link-secondary);
+  text-decoration: none;
+}
+
 a:hover {
   color: var(--text-link-secondary);
   text-decoration: none;
@@ -384,6 +396,10 @@ button:focus {
 
 .success {
   color: #bef8ac;
+}
+
+.celebrate {
+  color: #f8e1ac;
 }
 
 .error {
