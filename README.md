@@ -11,4 +11,5 @@
 
 ## About
 
-**Jam** is a modular man-in-the-middle proxy for Animal Jam.
+**Jam** is a modular man-in-the-middle proxy for [Animal Jam Classic](https://classic.animaljam.com) built with [Node.js](https://nodejs.org) and [Electron](https://www.electronjs.org).
+

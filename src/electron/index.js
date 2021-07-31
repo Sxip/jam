@@ -151,7 +151,7 @@ module.exports = class Electron {
       })
     })
 
-    autoUpdater.on('update_downloaded', info => {
+    autoUpdater.on('update-downloaded', info => {
       this.messageWindow('message', {
         type: 'celebrate',
         message: 'Update Downloaded. It will be installed on restart.'
@@ -181,8 +181,8 @@ module.exports = class Electron {
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
 
     // shortcut
-    this._shortcut('f11', () => this.window.webContents.openDevTools())
-    if (!isDevelopment) this.buildAutoUpdater()
+    this._shortcut('f11', () => this._window.webContents.openDevTools())
+    this.buildAutoUpdater()
 
     this._window.on('close', () => this.messageWindow('close'))
   }
