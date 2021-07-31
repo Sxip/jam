@@ -116,8 +116,28 @@ module.exports = class Dispatch {
 
     if (plugin) {
       const { filepath, configuration: { main } } = plugin
-      window.open(`${filepath}\\${main}`)
+      const popup = window.open(`${filepath}\\${main}`)
+
+      popup.jam = {
+        application: this._application,
+        dispatch: this
+      }
     }
+  }
+
+  /**
+   * Helper function to wait for the jquery preload to finish.
+   * @param {Window} window
+   * @param {Function} callback
+   * @public
+   */
+  waitForJQuery (window, callback) {
+    const wait = this.setInterval(() => {
+      if (typeof window.$ !== 'undefined') {
+        callback()
+        this.clearInterval(wait)
+      }
+    })
   }
 
   /**

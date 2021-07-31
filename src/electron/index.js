@@ -70,9 +70,12 @@ module.exports = class Electron {
   create () {
     app.whenReady().then(() => this._onReady())
 
-    app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') app.quit()
-    })
+    app
+      .on('window-all-closed', () => {
+        if (process.platform !== 'darwin') app.quit()
+      })
+      .on('before-quit', () => this.messageWindow('close'))
+
     return this
   }
 
@@ -111,7 +114,7 @@ module.exports = class Electron {
     switch (frameName) {
       case 'external':
         shell.openExternal(url)
-        return { action: 'allow' }
+        return { action: 'deny' }
 
       default:
         return {
@@ -120,6 +123,7 @@ module.exports = class Electron {
             ...Object.assign(defaultWindowOptions, {
               frame: true,
               webPreferences: {
+                nativeWindowOpen: true,
                 autoHideMenuBar: true,
                 preload: path.join(__dirname, 'preload.js'),
                 contextIsolation: false
