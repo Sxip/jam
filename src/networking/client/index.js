@@ -226,19 +226,25 @@ module.exports = class Client {
   _onMessageReceived ({ type, message, packet }) {
     this._server.application.dispatch.all({ type, message })
 
-    // Cross domain policy checker.
-    if (type === ConnectionMessageTypes.aj && packet.includes('cross-domain-policy')) {
-      const crossDomainMessage = `<?xml version="1.0"?>
-        <!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
-        <cross-domain-policy>
-        <allow-access-from domain="*" to-ports="80,443"/>
-        </cross-domain-policy>`
+    switch (type) {
+      case ConnectionMessageTypes.aj: {
+        if (packet.includes('cross-domain-policy')) {
+          const crossDomainMessage = `<?xml version="1.0"?>
+          <!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
+          <cross-domain-policy>
+          <allow-access-from domain="*" to-ports="80,443"/>
+          </cross-domain-policy>`
 
-      return this.sendConnectionMessage(crossDomainMessage)
-    }
+          return this.sendConnectionMessage(crossDomainMessage)
+        }
+        break
+      }
 
-    if (type === ConnectionMessageTypes.connection && BLACKLIST_MESSAGES.includes(message.type)) {
-      return this.sendRemoteMessage(packet)
+      case ConnectionMessageTypes.connection:
+        if (type === ConnectionMessageTypes.connection && BLACKLIST_MESSAGES.includes(message.type)) {
+          return this.sendRemoteMessage(packet)
+        }
+        break
     }
 
     if (message.send) {

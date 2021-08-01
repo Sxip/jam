@@ -120,11 +120,13 @@ module.exports = class Electron {
         return {
           action: 'allow',
           overrideBrowserWindowOptions: {
+            autoHideMenuBar: true,
             ...Object.assign(defaultWindowOptions, {
               frame: true,
               webPreferences: {
                 nativeWindowOpen: true,
-                autoHideMenuBar: true,
+                webSecurity: false,
+                protocol: 'file',
                 preload: path.join(__dirname, 'preload.js'),
                 contextIsolation: false
               }
@@ -182,7 +184,7 @@ module.exports = class Electron {
 
     // shortcut
     this._shortcut('f11', () => this._window.webContents.openDevTools())
-    this.buildAutoUpdater()
+    if (!isDevelopment) this.buildAutoUpdater()
 
     this._window.on('close', () => this.messageWindow('close'))
   }

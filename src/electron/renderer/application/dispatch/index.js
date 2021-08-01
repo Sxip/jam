@@ -75,7 +75,12 @@ module.exports = class Dispatch {
      * @type {Object}
      * @public
      */
-    this.hooks = { commands: new Map(), connection: new Map(), aj: new Map() }
+    this.hooks = {
+      commands: new Map(),
+      connection: new Map(),
+      aj: new Map(),
+      any: new Map()
+    }
   }
 
   get client () {
@@ -165,16 +170,25 @@ module.exports = class Dispatch {
    */
   async all ({ message, type }) {
     const promises = []
+    let hooks
 
-    const hooks = type === ConnectionMessageTypes.aj
-      ? this.hooks.aj.get(message.type) || []
-      : this.hooks.connection.get(message.type) || []
+    switch (type) {
+      case ConnectionMessageTypes.aj:
+        hooks = this.hooks.aj.get(message.type) || []
+        break
+
+      case ConnectionMessageTypes.connection:
+        hooks = this.hooks.connection.get(message.type) || []
+        break
+    }
+
+    if (this.hooks.any.size > 0) hooks = this.hooks.any
 
     for (const execute of hooks) {
       promises.push(
         (async () => {
           try {
-            execute({ dispatch: this, message })
+            execute({ type, dispatch: this, message })
           } catch (error) {
             return this._application.consoleMessage({
               type: 'error',
@@ -360,10 +374,19 @@ module.exports = class Dispatch {
    * @public
    */
   onMessage (options = {}) {
-    console.log(options)
-    return options.type === ConnectionMessageTypes.aj
-      ? this._registerAjHook(options)
-      : this._registerConnectionHook(options)
+    switch (options.type) {
+      case ConnectionMessageTypes.aj:
+        this._registerAjHook(options)
+        break
+
+      case ConnectionMessageTypes.connection:
+        this._registerConnectionHook(options)
+        break
+
+      case ConnectionMessageTypes.any:
+        this._registerAnyHook(options)
+        break
+    }
   }
 
   /**
@@ -372,11 +395,23 @@ module.exports = class Dispatch {
    * @public
    */
   offMessage (options = {}) {
-    const hook = options.type === ConnectionMessageTypes.aj
-      ? this.hooks.aj.get(options.packet)
-      : this.hooks.connection.get(options.packet)
+    let hook
 
-    if (hook.size > 0) {
+    switch (options.type) {
+      case ConnectionMessageTypes.aj:
+        hook = this.hooks.aj.get(options.type)
+        break
+
+      case ConnectionMessageTypes.connection:
+        hook = this.hooks.connection.get(options.type)
+        break
+
+      case ConnectionMessageTypes.any:
+        hook = this.hooks.any.get(options.type)
+        break
+    }
+
+    if (hook.length > 0) {
       const index = hook.indexOf(options.callback)
       if (index !== -1) hook.splice(index, 1)
     }
@@ -400,5 +435,15 @@ module.exports = class Dispatch {
   _registerAjHook (hook) {
     if (this.hooks.aj.has(hook.message)) this.hooks.aj.get(hook.message).push(hook.callback)
     else this.hooks.aj.set(hook.message, [hook.callback])
+  }
+
+  /**
+   * Registers any message hook.
+   * @param hook
+   * @private
+   */
+  _registerAnyHook (hook) {
+    if (this.hooks.any.has(ConnectionMessageTypes.any)) this.hooks.any.get(hook.message).push(hook.callback)
+    else this.hooks.any.set(ConnectionMessageTypes.any, [hook.callback])
   }
 }

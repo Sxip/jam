@@ -377,7 +377,7 @@ button:focus {
   color: var(--text-link-primary);
 }
 
-.time {
+.time, .type {
   color: #808080d1;
   font-size: 13px;
 }
@@ -414,11 +414,11 @@ button:focus {
   color: #acbff8;
 }
 
-.connection {
+.aj {
   color: var(--text-link-primary);
 }
 
-.local {
+.connection {
   color: #bbf8ac;
 }
 

@@ -4,7 +4,8 @@
  */
 const ConnectionMessageTypes = Object.freeze({
   connection: 'connection',
-  aj: 'aj'
+  aj: 'aj',
+  any: '*'
 })
 
 /**
