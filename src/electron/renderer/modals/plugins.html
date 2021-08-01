@@ -52,7 +52,6 @@ const createPluginCard = ({ type, name, description, author } = {}) => {
  */
 $(document).on('show.bs.modal','#plugins', () => {
   const pluginContainer = $('#pluginContainer')
-  const search = $('#search')
 
   const { plugins } = jam.application.dispatch
   if (plugins.size <= 0) return pluginContainer.append('<div class="text-center">You have no plugins..</div>')
@@ -68,13 +67,12 @@ $(document).on('show.bs.modal','#plugins', () => {
       })
 
   // Handles plugin searching
-  search.on('keyup', function () {
+  $('#search').on('keyup', function () {
     const value = this.value.toLowerCase().trim()
-    const card = $('.card')
-
-    card.show()
-      .filter(() => $(this).text().toLowerCase().trim().indexOf(value) === -1)
-      .hide()
+    
+    $('div.card').show().filter(function () {
+      return $(this).text().toLowerCase().trim().indexOf(value) === -1
+    }).hide()
   })
 });
 </script>
