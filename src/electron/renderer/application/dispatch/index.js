@@ -182,7 +182,7 @@ module.exports = class Dispatch {
         break
     }
 
-    if (this.hooks.any.size > 0) hooks = this.hooks.any
+    if (this.hooks.any.size > 0) hooks = this.hooks.any.get(ConnectionMessageTypes.any)
 
     for (const execute of hooks) {
       promises.push(
@@ -200,6 +200,22 @@ module.exports = class Dispatch {
     }
 
     await Promise.all(promises)
+  }
+
+  /**
+   * Sends multiple messages.
+   * @param messages
+   * @public
+   */
+  sendMultipleMessages ({ type, messages = [] } = {}) {
+    const promises = []
+
+    for (const message of messages) {
+      type === ConnectionMessageTypes.aj
+        ? promises.push(this.sendRemoteMessage(message))
+        : promises.push(this.sendConnectionMessage(message))
+    }
+    return Promise.all(promises)
   }
 
   /**
