@@ -44,7 +44,7 @@ class Spammer {
     content = content || input.value
 
     if (Array.isArray(content)) {
-      return dispatch.sendMultipleMessage({
+      return dispatch.sendMultipleMessages({
         type,
         messages: content
       })
