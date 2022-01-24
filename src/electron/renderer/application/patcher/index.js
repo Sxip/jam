@@ -12,7 +12,7 @@ const { unlink, rename, copyFile } = require('fs/promises')
  */
 const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
   .split('\\')
-  .join('/')}/AppData/Local/Programs/animal-jam`
+  .join('/')}/AppData/Local/Programs/aj-classic`
 
 module.exports = class Patcher {
   /**

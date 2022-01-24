@@ -430,8 +430,6 @@ module.exports = class Dispatch {
     if (hook.length > 0) {
       const index = hook.indexOf(options.callback)
       if (index !== -1) hook.splice(index, 1)
-
-      console.log(hook)
     }
   }
 
@@ -451,7 +449,6 @@ module.exports = class Dispatch {
    * @private
    */
   _registerAjHook (hook) {
-    console.log(this.hooks.aj)
     if (this.hooks.aj.has(hook.message)) this.hooks.aj.get(hook.message).push(hook.callback)
     else this.hooks.aj.set(hook.message, [hook.callback])
   }
