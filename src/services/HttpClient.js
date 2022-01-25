@@ -7,6 +7,19 @@ module.exports = class HttpClient {
   }
 
   /**
+   * Request headers.
+   * @getter
+   * @returns {Object}
+   * @public
+   */
+  static get baseHeaders () {
+    return {
+      Host: 'www.animaljam.com',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) AJClassic/1.5.4 Chrome/87.0.4280.141 Electron/11.5.0 Safari/537.36'
+    }
+  }
+
+  /**
    * Creates a reverse proxy.
    * @param {string} url
    * @returns {Request}
@@ -22,7 +35,8 @@ module.exports = class HttpClient {
    * @returns {Promise<RequestPromise<any>>}
    * @static
    */
-  static get (options) {
+  static get (options = {}) {
+    if (!options.headers) options.headers = this.baseHeaders
     return requestPromise.get(options)
   }
 
@@ -31,7 +45,8 @@ module.exports = class HttpClient {
    * @param {Object} options
    * @returns {Promise<RequestPromise<any>>}
    */
-  static post (options) {
+  static post (options = {}) {
+    if (!options.headers) options.headers = this.baseHeaders
     return requestPromise.post(options)
   }
 }

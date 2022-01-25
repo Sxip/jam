@@ -65,13 +65,18 @@ module.exports = class Patcher {
   async patchApplication () {
     if (this.status) return
 
-    process.noAsar = true
+    try {
+      process.noAsar = true
 
-    await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`)
-    await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-
-    this._application.settings.update('patched', true)
-    process.noAsar = false
+      await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`)
+      await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
+  
+      this._application.settings.update('patched', true)
+    } catch {
+      this._application.settings.update('patched', false)
+    } finally {
+      process.noAsar = false
+    }
   }
 
   /**
@@ -82,12 +87,17 @@ module.exports = class Patcher {
   async unpatchApplication () {
     if (!this.status) return
 
-    process.noAsar = true
+    try {
+      process.noAsar = true
 
-    await unlink(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-    await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-
-    this._application.settings.update('patched', false)
-    process.noAsar = false
+      await unlink(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
+      await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
+  
+      this._application.settings.update('patched', false)
+    } catch {
+      this._application.settings.update('patched', true)
+    } finally {
+      process.noAsar = false
+    }
   }
 }

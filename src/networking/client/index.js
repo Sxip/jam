@@ -103,10 +103,10 @@ module.exports = class Client {
       this._aj.once('error', onError)
       this._aj.once('connect', onConnected)
 
-      const { host, port } = this._server.application.settings.get('remote')
+      const smartfoxServer = this._server.application.settings.get('smartfoxServer')
       this._aj.connect({
-        host,
-        port,
+        host: smartfoxServer,
+        port: 443,
         rejectUnauthorized: false
       })
     })

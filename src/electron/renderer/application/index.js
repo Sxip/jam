@@ -4,6 +4,7 @@ const Server = require('../../../networking/server')
 const Settings = require('./settings')
 const Patcher = require('./patcher')
 const Dispatch = require('./dispatch')
+const HttpClient = require('../../../services/HttpClient')
 
 /**
  * Message status icons.
@@ -100,6 +101,33 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
+   * Checks if the Animal Jam server host has changed.
+   * @returns {Promise<void>}
+   * @privte
+   */
+  async _checkForHostChanges () {
+    const data = await HttpClient.get({
+      url: 'https://www.animaljam.com/flashvars'
+    })
+
+    let { smartfoxServer } = JSON.parse(data) // Request isn't parsing JSON properly.
+
+    smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
+    smartfoxServer = `lb-${smartfoxServer}`
+
+    if (smartfoxServer !== this.settings.get('smartfoxServer')) {
+      this.settings.update('smartfoxServer', smartfoxServer)
+
+      this.consoleMessage({
+        message: 'Server host has changed. The application will now restart.',
+        type: 'notify'
+      })
+
+      this.relaunch()
+    }
+  }
+
+  /**
    * Opens the plugin directory.
    * @param name
    * @public
@@ -127,6 +155,14 @@ module.exports = class Application extends EventEmitter {
    */
   close () {
     ipcRenderer.send('window-close')
+  }
+
+  /**
+   * Relaunches the application.
+   * @public
+   */
+  relaunch () {
+    ipcRenderer.send('application-relaunch')
   }
 
   /**
@@ -249,9 +285,12 @@ module.exports = class Application extends EventEmitter {
    */
   async instantiate () {
     try {
-      await this.settings.load()
-      await this.dispatch.load()
-      await this.server.serve()
+      await Promise.all([
+        this.settings.load(),
+        this.dispatch.load(),
+        this._checkForHostChanges(),
+        this.server.serve()
+      ])
 
       this.emit('ready')
     } catch (error) {
