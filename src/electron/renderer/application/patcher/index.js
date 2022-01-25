@@ -70,7 +70,7 @@ module.exports = class Patcher {
 
       await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`)
       await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-  
+
       this._application.settings.update('patched', true)
     } catch {
       this._application.settings.update('patched', false)
@@ -92,7 +92,7 @@ module.exports = class Patcher {
 
       await unlink(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
       await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-  
+
       this._application.settings.update('patched', false)
     } catch {
       this._application.settings.update('patched', true)
