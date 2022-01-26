@@ -1,3 +1,4 @@
 node_modules/
 build/
 dev-app-update.yml
+plugin_packages/
