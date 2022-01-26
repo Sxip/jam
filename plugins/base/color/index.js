@@ -18,9 +18,9 @@ module.exports = function ({ dispatch }) {
    * Sends the color packet to the server.
    */
   const color = () => {
-    const randomOne = this.random(1019311667, 4348810240)
-    const randomTwo = this.random(1019311667, 4348810240)
-    const randomThree = this.random(1019311667, 4348810240)
+    const randomOne = dispatch.random(1019311667, 4348810240)
+    const randomTwo = dispatch.random(1019311667, 4348810240)
+    const randomThree = dispatch.random(1019311667, 4348810240)
 
     dispatch.sendRemoteMessage(`%xt%o%ap%4203%${randomOne}%${randomTwo}%${randomThree}%0%`)
   }

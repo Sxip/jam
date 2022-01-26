@@ -1,6 +1,8 @@
 const { rootPath } = require('electron-root-path')
 const { readdir, stat } = require('fs/promises')
 const path = require('path')
+const { PluginManager: PM } = require('live-plugin-manager')
+
 const Ajv = new (require('ajv'))({ useDefaults: true })
 const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
 
@@ -22,14 +24,16 @@ const ConfigurationSchema = {
     main: { type: 'string', default: 'index.js' },
     description: { type: 'string', default: '' },
     author: { type: 'string', default: 'Sxip' },
-    type: { type: 'string', default: 'game' }
+    type: { type: 'string', default: 'game' },
+    dependencies: { type: 'object', default: {} }
   },
   required: [
     'name',
     'main',
     'description',
     'author',
-    'type'
+    'type',
+    'dependencies'
   ]
 }
 
@@ -48,6 +52,13 @@ module.exports = class Dispatch {
      * @public
      */
     this.plugins = new Map()
+
+    /**
+     * Dependency manager plugin manager.
+     * @type {PluginManager}
+     * @public
+     */
+    this.dependencyManager = new PM()
 
     /**
      * Stores all of the commands
@@ -128,6 +139,40 @@ module.exports = class Dispatch {
         dispatch: this
       }
     }
+  }
+
+  /**
+   * Installs plugin dependencies..
+   * @param {object} configuration
+   * @public
+   */
+  async installDepencies (configuration) {
+    const { dependencies } = configuration
+
+    const promises = []
+    if (Object.keys(configuration.dependencies).length > 0) {
+      console.log(configuration.dependencies)
+      for (const dependency in dependencies) {
+        const module = dependency
+        const version = dependencies[dependency]
+
+        promises.push(this.dependencyManager.install(module, version))
+      }
+
+      await Promise.all(promises)
+      return this._application.consoleMessage({
+        type: 'celebrate',
+        message: 'All of the plugin dependencies have been installed.'
+      })
+    }
+  }
+
+  /**
+   * Requires a plugin dependency.
+   * @param {string} name
+   */
+  require (name) {
+    return this.dependencyManager.require(name)
   }
 
   /**
@@ -224,14 +269,14 @@ module.exports = class Dispatch {
    * @param configuration
    * @private
    */
-  _storeAndValidate (filepath, configuration) {
+  async _storeAndValidate (filepath, configuration) {
     const validate = Ajv.compile(ConfigurationSchema)
 
     const valid = validate(configuration)
     if (!valid) {
       return this._application.consoleMessage({
         type: 'error',
-        message: `Failed validating the configuration for the plugin ${path}. ${validate.errors[0].message}.`
+        message: `Failed validating the configuration for the plugin ${filepath}. ${validate.errors[0].message}.`
       })
     }
 
@@ -241,10 +286,12 @@ module.exports = class Dispatch {
         message: `Plugin with the name ${configuration.name} already exists.`
       })
     }
-
     switch (configuration.type) {
       case PluginTypes.game: {
         const PluginInstance = require(`${filepath}\\${configuration.main}`)
+
+        console.log(configuration.dependencies)
+        await this.installDepencies(configuration)
 
         const plugin = new PluginInstance({
           application: this._application,
@@ -260,6 +307,7 @@ module.exports = class Dispatch {
         break
 
       case PluginTypes.ui:
+        await this.installDepencies(configuration)
         this.plugins.set(configuration.name, { configuration, filepath })
         break
     }
