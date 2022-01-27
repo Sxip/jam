@@ -151,7 +151,6 @@ module.exports = class Dispatch {
 
     const promises = []
     if (Object.keys(configuration.dependencies).length > 0) {
-      console.log(configuration.dependencies)
       for (const dependency in dependencies) {
         const module = dependency
         const version = dependencies[dependency]
@@ -290,7 +289,6 @@ module.exports = class Dispatch {
       case PluginTypes.game: {
         const PluginInstance = require(`${filepath}\\${configuration.main}`)
 
-        console.log(configuration.dependencies)
         await this.installDepencies(configuration)
 
         const plugin = new PluginInstance({
