@@ -241,7 +241,7 @@ module.exports = class Client {
       }
 
       case ConnectionMessageTypes.connection:
-        if (type === ConnectionMessageTypes.connection && BLACKLIST_MESSAGES.includes(message.type)) {
+        if (BLACKLIST_MESSAGES.includes(message.type)) {
           return this.sendRemoteMessage(packet)
         }
         break
@@ -269,5 +269,7 @@ module.exports = class Client {
     this.connected = false
     this._connection.end()
     this._aj.end()
+
+    this._server.client = null
   }
 }
