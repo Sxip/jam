@@ -2,5 +2,7 @@
   "ext": "html,css,js",
   "exec": "npx electron .",
   "ignore": [
+    "./node_modules",
+    "./plugin_packages"
   ]
 }

@@ -54,7 +54,6 @@ module.exports = class Patcher {
     if (!this.status) await this.patchApplication()
 
     this._animalJamProcess = execFile(`${ANIMAL_JAM_BASE_PATH}/AJ Classic.exe`)
-    this._animalJamProcess.on('close', () => this.unpatchApplication())
   }
 
   /**
@@ -72,8 +71,6 @@ module.exports = class Patcher {
       await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
 
       this._application.settings.update('patched', true)
-    } catch {
-      this._application.settings.update('patched', false)
     } finally {
       process.noAsar = false
     }
@@ -86,18 +83,6 @@ module.exports = class Patcher {
    */
   async unpatchApplication () {
     if (!this.status) return
-
-    try {
-      process.noAsar = true
-
-      await unlink(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-      await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
-
-      this._application.settings.update('patched', false)
-    } catch {
-      this._application.settings.update('patched', true)
-    } finally {
-      process.noAsar = false
-    }
+    this._application.settings.update('patched', false)
   }
 }

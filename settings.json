@@ -1,4 +1,4 @@
 {
-  "smartfoxServer": "lb-iss02-classic-prod.animaljam.com",
-  "patched": true
+  "smartfoxServer": "lb-iss03-classic-prod.animaljam.com",
+  "patched": false
 }
