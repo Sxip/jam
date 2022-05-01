@@ -402,6 +402,10 @@ button:focus {
   color: #f8e1ac;
 }
 
+.logger {
+  color: #c6acf8;
+}
+
 .error {
   color: var(--text-red);
 }

@@ -327,7 +327,7 @@ module.exports = class Dispatch {
     await this.load()
     this._application.consoleMessage({
       type: 'success',
-      message: `Sucsefully refreshed the plugin ${name}`
+      message: `Successfully refreshed the plugin ${name}`
     })
   }
 

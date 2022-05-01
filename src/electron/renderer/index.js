@@ -38,6 +38,20 @@ ipcRenderer
 application.on('ready', () => application.activateAutoComplete())
 
 /**
+ * Logger
+ */
+console.log = message => {
+  if (typeof message === 'object') {
+    message = JSON.stringify(message)
+  }
+
+  application.consoleMessage({
+    type: 'logger',
+    message: `<highlight>Debugger</highlight>: ${message}`
+  })
+}
+
+/**
 * Application window.
 */
 window.jam = {

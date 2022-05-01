@@ -15,6 +15,9 @@ const messageStatus = Object.freeze({
   success: {
     icon: '✔️'
   },
+  logger: {
+    icon: '🏴󠁡󠁦󠁬󠁯󠁧󠁿'
+  },
   wait: {
     icon: '⏳'
   },
