@@ -35,7 +35,9 @@ ipcRenderer
 /**
  * Application events.
  */
-application.on('ready', () => application.activateAutoComplete())
+application
+  .on('ready', () => application.activateAutoComplete())
+  .on('refresh:plugins', () => application.refreshAutoComplete())
 
 /**
  * Logger

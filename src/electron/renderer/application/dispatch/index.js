@@ -325,6 +325,8 @@ module.exports = class Dispatch {
 
     this._clearHooks()
     await this.load()
+
+    this._application.emit('refresh:plugins')
     this._application.consoleMessage({
       type: 'success',
       message: `Successfully refreshed the plugin ${name}`

@@ -216,6 +216,21 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
+   * Refreshes the autocomplete source.
+   * @public
+   */
+  refreshAutoComplete () {
+    this._input.autocomplete('option', {
+      source:
+      Array.from(this.dispatch.commands.values())
+        .map(command => ({
+          value: command.name,
+          item: command.description
+        }))
+    })
+  }
+
+  /**
    * Displays a new console message.
    * @param message
    * @public
