@@ -87,7 +87,6 @@ module.exports = class Dispatch {
      * @public
      */
     this.hooks = {
-      commands: new Map(),
       connection: new Map(),
       aj: new Map(),
       any: new Map()
@@ -312,6 +311,27 @@ module.exports = class Dispatch {
   }
 
   /**
+   * Refreshes a plugin
+   * @param {string} The plugin name
+   * @returns {Promise<void>}
+   */
+  async refresh () {
+    for (const plugin of this.plugins.values()) {
+      const { filepath, configuration: { main } } = plugin
+
+      if (path.extname(main) === '.js') delete require.cache[require.resolve(`${filepath}\\${main}`)]
+      delete require.cache[require.resolve(`${filepath}\\plugin.json`)]
+    }
+
+    this._clearHooks()
+    await this.load()
+    this._application.consoleMessage({
+      type: 'success',
+      message: `Sucsefully refreshed the plugin ${name}`
+    })
+  }
+
+  /**
    * Promise timeout helper.
    * @param ms
    * @returns {Promise<void>}
@@ -431,6 +451,22 @@ module.exports = class Dispatch {
   }
 
   /**
+   * Off command, removes the command.
+   * @param command
+   * @public
+   */
+  offCommand ({ name, callback }) {
+    const command = this.commands.has(name)
+
+    if (command) {
+      if (command.length > 0) {
+        const index = command.indexOf(callback)
+        if (index !== -1) command.splice(index, 1)
+      }
+    }
+  }
+
+  /**
    * Hooks a message by the type.
    * @param options
    * @public
@@ -507,5 +543,14 @@ module.exports = class Dispatch {
   _registerAnyHook (hook) {
     if (this.hooks.any.has(ConnectionMessageTypes.any)) this.hooks.any.get(ConnectionMessageTypes.any).push(hook.callback)
     else this.hooks.any.set(ConnectionMessageTypes.any, [hook.callback])
+  }
+
+  _clearHooks () {
+    this.plugins.clear()
+    this.commands.clear()
+
+    this.hooks.connection.clear()
+    this.hooks.aj.clear()
+    this.hooks.any.clear()
   }
 }
