@@ -22,6 +22,10 @@ module.exports = class Settings {
     this.settings = {}
   }
 
+  get path () {
+    return BASE_PATH
+  }
+
   /**
    * Loads the settings file.
    * @returns {Promise<void>}

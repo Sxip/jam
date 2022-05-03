@@ -145,6 +145,14 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
+   * Opens the settings json file.
+   * @public
+   */
+  openSettings () {
+    ipcRenderer.send('open-settings', this.settings.path)
+  }
+
+  /**
    * Minimizes the application.
    * @public
    */

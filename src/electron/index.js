@@ -59,7 +59,8 @@ module.exports = class Electron {
     ipcMain.on('open-directory', this._openItem.bind(this))
     ipcMain.on('window-close', () => this._window.close())
     ipcMain.on('window-minimize', () => this._window.minimize())
-    ipcMain.on('open-directorye', path => shell.openPath(path))
+    ipcMain.on('open-directory', path => shell.openPath(path))
+    ipcMain.on('open-settings', (_, path) => shell.openExternal(path))
     ipcMain.on('application-relaunch', () => {
       setTimeout(() => {
         app.relaunch()
