@@ -52,8 +52,8 @@ module.exports = class Patcher {
     })
 
     if (!this.status) await this.patchApplication()
-
     this._animalJamProcess = execFile(`${ANIMAL_JAM_BASE_PATH}/AJ Classic.exe`)
+    this._animalJamProcess.on('close', () => this.unpatchApplication())
   }
 
   /**
