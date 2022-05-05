@@ -19,7 +19,7 @@ application.consoleMessage({
 */
 application.instantiate()
   .then(() => application.consoleMessage({
-    message: 'Jam has successfully instantiated.',
+    message: 'Successfully instantiated.',
     type: 'success'
   }))
 
