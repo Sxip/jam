@@ -1,7 +1,8 @@
-const { TLSSocket } = require('tls')
 const AnimalJamProtocol = require('../messages/protocol')
 const Message = require('../messages')
-const { ConnectionMessageTypes } = require('../../Constants')
+const { GameType, ConnectionMessageTypes } = require('../../Constants')
+const { Socket } = require('net')
+const { TLSSocket } = require('tls')
 
 /**
  * Connection messaage blacklist types.
@@ -21,6 +22,8 @@ module.exports = class Client {
    * @constructor
    */
   constructor (connection, server) {
+    const game = server.application.settings.get('game')
+
     /**
      * The server that instantiated this client.
      * @type {Server}
@@ -33,7 +36,7 @@ module.exports = class Client {
      * @type {TLSSocket}
      * @private
      */
-    this._aj = new TLSSocket()
+    this._aj = game === GameType.animalJamClassic ? new TLSSocket() : new Socket()
 
     /**
      * The message buffer for Animal Jam messages.

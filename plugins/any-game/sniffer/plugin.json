@@ -1,0 +1,7 @@
+{
+  "name": "Packet Sniffer",
+  "description": "Sniff for game packets.",
+  "main": "index.html",
+  "type": "ui",
+  "game": "*"
+}

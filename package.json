@@ -2,7 +2,7 @@
   "name": "jam",
   "description": "Jam is a modular man-in-the-middle proxy for Animal Jam classic.",
   "main": "src/index.js",
-  "version": "1.0.0",
+  "version": "2.0.3",
   "scripts": {
     "dev": "npx cross-env NODE_ENV=development nodemon",
     "build:win": "npx electron-builder build -w --x64 --ia32 -p never"
@@ -33,6 +33,8 @@
     "electron-updater": "^4.3.9",
     "express": "^4.17.1",
     "fkill": "^7.1.1",
+    "hostile": "^1.3.3",
+    "is-reachable": "^5.2.1",
     "jquery": "^3.6.0",
     "live-plugin-manager": "^0.17.1",
     "node-gyp": "^8.4.1",
@@ -45,6 +47,9 @@
     "icon": "assets/icon.ico",
     "directories": {
       "output": "build"
+    },
+    "win": {
+      "requestedExecutionLevel": "highestAvailable"
     },
     "files": [
       "src/**/*"

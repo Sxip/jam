@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const { ipcRenderer } = require('electron')
 const { EventEmitter } = require('events')
 const Server = require('../../../networking/server')
@@ -5,6 +6,9 @@ const Settings = require('./settings')
 const Patcher = require('./patcher')
 const Dispatch = require('./dispatch')
 const HttpClient = require('../../../services/HttpClient')
+const { GameType } = require('../../../Constants')
+const isReachable = require('is-reachable')
+const { lookup } = require('dns')
 
 /**
  * Message status icons.
@@ -109,24 +113,67 @@ module.exports = class Application extends EventEmitter {
    * @privte
    */
   async _checkForHostChanges () {
-    const data = await HttpClient.get({
-      url: 'https://www.animaljam.com/flashvars'
-    })
+    switch (this.settings.get('game')) {
+      /**
+       * Host change check for Animal Jam Classic
+       */
+      case GameType.animalJamClassic: {
+        const data = await HttpClient.get({
+          url: 'https://www.animaljam.com/flashvars'
+        })
 
-    let { smartfoxServer } = JSON.parse(data) // Request isn't parsing JSON properly.
+        let { smartfoxServer } = JSON.parse(data) // Request isn't parsing JSON properly.
 
-    smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
-    smartfoxServer = `lb-${smartfoxServer}`
+        smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
+        smartfoxServer = `lb-${smartfoxServer}`
 
-    if (smartfoxServer !== this.settings.get('smartfoxServer')) {
-      this.settings.update('smartfoxServer', smartfoxServer)
+        if (smartfoxServer !== this.settings.get('smartfoxServer')) {
+          this.settings.update('smartfoxServer', smartfoxServer)
 
-      this.consoleMessage({
-        message: 'Server host has changed. The application will now restart.',
-        type: 'notify'
-      })
+          this.consoleMessage({
+            message: 'Server host has changed. The application will now restart.',
+            type: 'notify'
+          })
 
-      this.relaunch()
+          this.relaunch()
+        }
+        break
+      }
+      /**
+       * Host change check for Animal Jam
+       */
+      case GameType.animalJam: {
+        const { aws_1, aws_2 } = this.settings.get('defaultAnimalJamServers')
+
+        const smartfoxServer = await Promise.race([
+          (async () => {
+            const result = await isReachable(`${aws_1}:443`)
+            if (result) {
+              const address = await this.lookupPromise(`${aws_1}`)
+              return address
+            }
+          })(),
+          (async () => {
+            const result = await isReachable(`${aws_2}:443`)
+            if (result) {
+              const address = await this.lookupPromise(`${aws_2}`)
+              return address
+            }
+          })()
+        ])
+
+        if (smartfoxServer !== this.settings.get('smartfoxServer')) {
+          this.settings.update('smartfoxServer', smartfoxServer)
+
+          this.consoleMessage({
+            message: 'Server host has changed. The application will now restart.',
+            type: 'notify'
+          })
+
+          this.relaunch()
+        }
+      }
+        break
     }
   }
 
@@ -142,6 +189,15 @@ module.exports = class Application extends EventEmitter {
       const { filepath } = plugin
       ipcRenderer.send('open-directory', filepath)
     }
+  }
+
+  async lookupPromise (host) {
+    return new Promise((resolve, reject) => {
+      lookup(host, (err, address, family) => {
+        if (err) reject(err)
+        resolve(address)
+      })
+    })
   }
 
   /**
@@ -313,10 +369,11 @@ module.exports = class Application extends EventEmitter {
     try {
       await Promise.all([
         this.settings.load(),
-        this.dispatch.load(),
-        this._checkForHostChanges(),
-        this.server.serve()
+        this.dispatch.load()
       ])
+
+      await this._checkForHostChanges(),
+      await this.server.serve()
 
       this.emit('ready')
     } catch (error) {

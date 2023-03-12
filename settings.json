@@ -1,4 +1,10 @@
 {
-  "smartfoxServer": "lb-iss02-classic-prod.animaljam.com",
-  "patched": false
+  "game": "animal-jam-classic",
+  "patched": false,
+  "discordClientId": "1076234424628301966",
+  "smartfoxServer": "44.242.126.165",
+  "defaultAnimalJamServers": {
+    "aws_1": "aws-or-prod-iss01-mobile.animaljam.com",
+    "aws_2": "aws-or-prod-iss02-mobile.animaljam.com"
+  }
 }

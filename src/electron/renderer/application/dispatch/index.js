@@ -4,7 +4,7 @@ const path = require('path')
 const { PluginManager: PM } = require('live-plugin-manager')
 
 const Ajv = new (require('ajv'))({ useDefaults: true })
-const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
+const { ConnectionMessageTypes, PluginTypes, GameType } = require('../../../../Constants')
 
 /**
  * The path to the plugins folder.
@@ -25,6 +25,7 @@ const ConfigurationSchema = {
     description: { type: 'string', default: '' },
     author: { type: 'string', default: 'Sxip' },
     type: { type: 'string', default: 'game' },
+    game: { type: 'string', default: 'animal-jam-classic' },
     dependencies: { type: 'object', default: {} }
   },
   required: [
@@ -95,6 +96,10 @@ module.exports = class Dispatch {
 
   get client () {
     return this._application.server.client
+  }
+
+  get settings () {
+    return this._application.settings
   }
 
   /**
@@ -278,35 +283,37 @@ module.exports = class Dispatch {
       })
     }
 
-    if (this.plugins.has(configuration.name)) {
-      return this._application.consoleMessage({
-        type: 'error',
-        message: `Plugin with the name ${configuration.name} already exists.`
-      })
-    }
-    switch (configuration.type) {
-      case PluginTypes.game: {
-        const PluginInstance = require(`${filepath}\\${configuration.main}`)
-
-        await this.installDepencies(configuration)
-
-        const plugin = new PluginInstance({
-          application: this._application,
-          dispatch: this
-        })
-
-        this.plugins.set(configuration.name, {
-          configuration,
-          filepath,
-          plugin
+    if (configuration.game === this.settings.get('game') || configuration.game === GameType.any) {
+      if (this.plugins.has(configuration.name)) {
+        return this._application.consoleMessage({
+          type: 'error',
+          message: `Plugin with the name ${configuration.name} already exists.`
         })
       }
-        break
+      switch (configuration.type) {
+        case PluginTypes.game: {
+          const PluginInstance = require(`${filepath}\\${configuration.main}`)
 
-      case PluginTypes.ui:
-        await this.installDepencies(configuration)
-        this.plugins.set(configuration.name, { configuration, filepath })
-        break
+          await this.installDepencies(configuration)
+
+          const plugin = new PluginInstance({
+            application: this._application,
+            dispatch: this
+          })
+
+          this.plugins.set(configuration.name, {
+            configuration,
+            filepath,
+            plugin
+          })
+        }
+          break
+
+        case PluginTypes.ui:
+          await this.installDepencies(configuration)
+          this.plugins.set(configuration.name, { configuration, filepath })
+          break
+      }
     }
   }
 

@@ -17,4 +17,10 @@ const PluginTypes = Object.freeze({
   game: 'game'
 })
 
-module.exports = { ConnectionMessageTypes, PluginTypes }
+const GameType = Object.freeze({
+  animalJamClassic: 'animal-jam-classic',
+  animalJam: 'animal-jam',
+  any: '*'
+})
+
+module.exports = { ConnectionMessageTypes, PluginTypes, GameType }

@@ -1,18 +1,33 @@
 const path = require('path')
 const os = require('os')
-const fkill = require('fkill')
-const { execFile } = require('child_process')
 const { rootPath } = require('electron-root-path')
-const { unlink, rename, copyFile } = require('fs/promises')
+const { rename, copyFile } = require('fs/promises')
+const { GameType } = require('../../../../Constants')
+const hostile = require('hostile')
+const { promisify } = require('util')
+const { execFile } = require('child_process')
+
+const execFilePromise = promisify(execFile)
 
 /**
  * Animal Jam Classic base path.
  * @type {String}
  * @constant
  */
-const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
+const ANIMAL_JAM_CLASSIC_BASE_PATH = `${path.join(os.homedir())
   .split('\\')
   .join('/')}/AppData/Local/Programs/aj-classic`
+
+/**
+ * Animal Jam base path.
+ * @type {String}
+ * @constant
+ */
+const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
+  .split('\\')
+  .join('/')}/AppData/Local/Programs/WildWorks/Animal Jam`
+
+const BASE_HOST = '127.0.0.1'
 
 module.exports = class Patcher {
   /**
@@ -39,21 +54,31 @@ module.exports = class Patcher {
     return this._application.settings.get('patched')
   }
 
+  get game () {
+    return this._application.settings.get('game')
+  }
+
   /**
    * Kills the Animal Jam Classic process.
    * @returns {Promise<void>}
    * @public
    */
   async killProcessAndPatch () {
-    await fkill('AJ Classic.exe', {
-      force: true,
-      silent: true,
-      ignoreCase: true
-    })
+    switch (this.game) {
+      case GameType.animalJamClassic:
+        if (!this.status) await this.patchApplication()
 
-    if (!this.status) await this.patchApplication()
-    this._animalJamProcess = execFile(`${ANIMAL_JAM_BASE_PATH}/AJ Classic.exe`)
-    this._animalJamProcess.on('exit', () => this.unpatchApplication())
+        this._animalJamProcess = execFile(`${ANIMAL_JAM_CLASSIC_BASE_PATH}/AJ Classic.exe`)
+        this._animalJamProcess.on('exit', () => this.unpatchApplication())
+        break
+
+      case GameType.animalJam:
+        if (!this.status) this.patchApplication()
+
+        this._animalJamProcess = await execFilePromise(`${ANIMAL_JAM_BASE_PATH}/Data/build/Play Wild.exe`, [], { killSignal: 'SIGKILL' })
+        this.unpatchApplication()
+        break
+    }
   }
 
   /**
@@ -64,15 +89,33 @@ module.exports = class Patcher {
   async patchApplication () {
     if (this.status) return
 
-    try {
-      process.noAsar = true
+    switch (this.game) {
+      case GameType.animalJamClassic:
+        try {
+          process.noAsar = true
 
-      await rename(`${ANIMAL_JAM_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_BASE_PATH}/resources/app.asar.unpatched`)
-      await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_BASE_PATH}/resources/app.asar`)
+          await rename(`${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar.unpatched`)
+          await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`)
 
-      this._application.settings.update('patched', true)
-    } finally {
-      process.noAsar = false
+          this._application.settings.update('patched', true)
+        } finally {
+          process.noAsar = false
+        }
+        break
+
+      case GameType.animalJam:
+        // eslint-disable-next-line no-case-declarations, camelcase
+        const { aws_1, aws_2 } = this._application.settings.get('defaultAnimalJamServers')
+
+        try {
+          await this.setWindowsHostLine(aws_1)
+          await this.setWindowsHostLine(aws_2)
+
+          this._application.settings.update('patched', true)
+        } catch (e) {
+          console.log('Failed patching windows hosts')
+        }
+        break
     }
   }
 
@@ -83,6 +126,41 @@ module.exports = class Patcher {
    */
   async unpatchApplication () {
     if (!this.status) return
+
+    // eslint-disable-next-line camelcase
+    const { aws_1, aws_2 } = this._application.settings.get('defaultAnimalJamServers')
+    if (this.game === GameType.animalJam) {
+      try {
+        await this.removeWindowsHostLine(aws_1)
+        await this.removeWindowsHostLine(aws_2)
+      } catch (e) {
+        console.log('Failed unpatching Animal Jam servers.. please do it manually.')
+      }
+    }
+
     this._application.settings.update('patched', false)
+  }
+
+  /**
+   * Adds a new line to the windows hosts fille.
+   * @returns {Promise<void>}
+   * @public
+   */
+  async setWindowsHostLine (replace) {
+    return new Promise((resolve, reject) => {
+      hostile.set(BASE_HOST, replace, (e) => {
+        if (e) reject(e)
+        else resolve()
+      })
+    })
+  }
+
+  async removeWindowsHostLine (replace) {
+    return new Promise((resolve, reject) => {
+      hostile.remove(BASE_HOST, replace, (e) => {
+        if (e) reject(e)
+        else resolve()
+      })
+    })
   }
 }
