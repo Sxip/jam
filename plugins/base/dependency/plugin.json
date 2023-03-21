@@ -1,7 +1,0 @@
-{
-  "name": "Dependency testing",
-  "description": "Testing npm dependencies.",
-  "dependencies": {
-    "moment": "^2.10.6"
-  }
-}

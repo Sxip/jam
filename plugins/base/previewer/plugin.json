@@ -1,6 +1,0 @@
-{
-  "name": "Item Previewer",
-  "description": "Preview items client-side.",
-  "main": "index.html",
-  "type": "ui"
-}
