@@ -1,7 +1,7 @@
 const path = require('path')
 const os = require('os')
 const { rootPath } = require('electron-root-path')
-const { rename, copyFile, rmdir, mkdir } = require('fs/promises')
+const { rename, copyFile, rm, mkdir } = require('fs/promises')
 const { GameType } = require('../../../../Constants')
 const hostile = require('hostile')
 const { promisify } = require('util')
@@ -44,7 +44,7 @@ module.exports = class Patcher {
    * Constructor.
    * @constructor
    */
-  constructor (application) {
+  constructor(application) {
     /**
      * The application that instantiated this patcher.
      * @type {Settings}
@@ -60,11 +60,11 @@ module.exports = class Patcher {
     this._animalJamProcess = null
   }
 
-  get status () {
+  get status() {
     return this._application.settings.get('patched')
   }
 
-  get game () {
+  get game() {
     return this._application.settings.get('game')
   }
 
@@ -73,7 +73,7 @@ module.exports = class Patcher {
    * @returns {Promise<void>}
    * @public
    */
-  async killProcessAndPatch () {
+  async killProcessAndPatch() {
     switch (this.game) {
       case GameType.animalJamClassic:
         if (!this.status) await this.patchApplication()
@@ -96,7 +96,7 @@ module.exports = class Patcher {
    * @returns {Promise<void>}
    * @public
    */
-  async patchApplication () {
+  async patchApplication() {
     if (this.status) return
 
     switch (this.game) {
@@ -106,9 +106,9 @@ module.exports = class Patcher {
 
           await rename(`${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar.unpatched`)
           await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`)
-          await rmdir(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`)
+          await rm(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`, { recursive: true })
           await mkdir(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`)
-          
+
           this._application.settings.update('patched', true)
         } finally {
           process.noAsar = false
@@ -136,7 +136,7 @@ module.exports = class Patcher {
    * @returns {Promise<void>}
    * @public
    */
-  async unpatchApplication () {
+  async unpatchApplication() {
     if (!this.status) return
 
     // eslint-disable-next-line camelcase
@@ -158,7 +158,7 @@ module.exports = class Patcher {
    * @returns {Promise<void>}
    * @public
    */
-  async setWindowsHostLine (replace) {
+  async setWindowsHostLine(replace) {
     return new Promise((resolve, reject) => {
       hostile.set(BASE_HOST, replace, (e) => {
         if (e) reject(e)
@@ -167,7 +167,7 @@ module.exports = class Patcher {
     })
   }
 
-  async removeWindowsHostLine (replace) {
+  async removeWindowsHostLine(replace) {
     return new Promise((resolve, reject) => {
       hostile.remove(BASE_HOST, replace, (e) => {
         if (e) reject(e)
