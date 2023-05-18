@@ -1,7 +1,7 @@
 const path = require('path')
 const os = require('os')
 const { rootPath } = require('electron-root-path')
-const { rename, copyFile } = require('fs/promises')
+const { rename, copyFile, rmdir, mkdir } = require('fs/promises')
 const { GameType } = require('../../../../Constants')
 const hostile = require('hostile')
 const { promisify } = require('util')
@@ -26,6 +26,16 @@ const ANIMAL_JAM_CLASSIC_BASE_PATH = `${path.join(os.homedir())
 const ANIMAL_JAM_BASE_PATH = `${path.join(os.homedir())
   .split('\\')
   .join('/')}/AppData/Local/Programs/WildWorks/Animal Jam`
+
+/**
+ * Animal Jam ROAMING path. (for clearing cache automatically)
+ * @type {String}
+ * @constant
+ */
+const ANIMAL_JAM_CLASSIC_ROAMING_PATH = `${path.join(os.homedir())
+  .split('\\')
+  .join('/')}/AppData/Roaming/AJ Classic`
+
 
 const BASE_HOST = '127.0.0.1'
 
@@ -96,7 +106,9 @@ module.exports = class Patcher {
 
           await rename(`${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar.unpatched`)
           await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`)
-
+          await rmdir(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`)
+          await mkdir(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`)
+          
           this._application.settings.update('patched', true)
         } finally {
           process.noAsar = false
