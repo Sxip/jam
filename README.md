@@ -3,7 +3,7 @@
   <p>
     Jam is a modular man-in-the-middle proxy for <a href="https://classic.animaljam.com">Animal Jam Classic<a/> built with <a href="https://nodejs.org">Node.js</a> and  <a href="https://www.electronjs.org">Electron</a>.
   </p>
-      <a href="https://discord.gg/ZNgRbVU4"><img src="https://img.shields.io/discord/936382385078042723?color=5865F2&logo=discord&logoColor=white" alt=" NEW Discord server" /></a>
+      <a href="https://discord.gg/ZNgRbVU4"><img src="https://img.shields.io/discord/1225189243949682799?color=5865F2&logo=discord&logoColor=white" alt=" NEW Discord server" /></a>
 </div>
 <br/>
 <div align="center">
