@@ -1,4 +1,5 @@
 const HTTPClient = require('../../services/HttpClient')
+const path = require('path')
 
 module.exports = new class FilesController {
   /**
@@ -22,6 +23,17 @@ module.exports = new class FilesController {
       Host: 'ajcontent.akamaized.net',
       Referer: 'https://desktop.animaljam.com/gameClient/game/index.html'
     }
+  }
+
+  /**
+   * Renders the animal jam swf file.
+   * @param {Request} request
+   * @param {Response} response
+   * @retuns {void}
+   * @public
+   */
+  game (request, response) {
+    return response.sendFile(path.join(__dirname, '..', '..', '..', 'assets', 'ajclient.swf'))
   }
 
   /**

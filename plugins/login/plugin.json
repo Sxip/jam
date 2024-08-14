@@ -1,0 +1,5 @@
+{
+  "name": "Login",
+  "description": "Handles login state. (DO NOT REMOVE)",
+  "game": "*"
+}

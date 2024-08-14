@@ -1,0 +1,7 @@
+{
+  "name": "Packet Spammer",
+  "description": "Spam packets like a boss!",
+  "main": "index.html",
+  "type": "ui",
+  "game": "*"
+}

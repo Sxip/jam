@@ -251,6 +251,7 @@ main {
 .modal-header {
   background-color: var(--dark-background-lighter);
   border-bottom: none;
+  padding: 1px 8px 3px !important;
 }
 
 .modal-content {
@@ -362,7 +363,7 @@ button:focus {
 
 .message {
   word-wrap: break-word;
-  padding: 1px;
+  padding: 3px 2px 3px;
 }
 
 .message div {
@@ -380,6 +381,12 @@ button:focus {
 .time, .type {
   color: #808080d1;
   font-size: 13px;
+}
+
+.time {
+  background-color: var(--dark-background-lighter);
+  border-radius: 6px;
+  margin: 4px !important
 }
 
 .jam {

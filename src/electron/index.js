@@ -1,7 +1,7 @@
 const { app, BrowserWindow, globalShortcut, shell, ipcMain } = require('electron')
 const path = require('path')
 const { fork } = require('child_process')
-const { autoUpdater } = require('electron-updater')
+const { autoUpdater, AppUpdater } = require('electron-updater')
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -155,7 +155,14 @@ module.exports = class Electron {
     autoUpdater.on('update-available', () => {
       this.messageWindow('message', {
         type: 'notify',
-        message: 'A new update is available.'
+        message: 'A new update is available. Downloading now...'
+      })
+    })
+
+    autoUpdater.on('update-not-available', () => {
+      this.messageWindow('message', {
+        type: 'celebrate',
+        message: 'No updates available.'
       })
     })
 
@@ -186,6 +193,10 @@ module.exports = class Electron {
     this._window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
 
     this._window.webContents.setWindowOpenHandler((...args) => this._createWindow(...args))
+
+    /**
+     * Spawns the api process.
+     */
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
 
     // shortcut

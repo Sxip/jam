@@ -15,7 +15,6 @@ const app = express()
 /**
  * Middleware
  */
-app.use(express.static(path.resolve('public')))
 app.use(urlencoded({ extended: true }))
 app.use(json())
 
