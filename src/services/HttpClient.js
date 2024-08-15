@@ -49,4 +49,16 @@ module.exports = class HttpClient {
     if (!options.headers) options.headers = this.baseHeaders
     return requestPromise.post(options)
   }
+
+  /**
+   * Fetches the animal jam classic flashvars.
+   * @returns {Promise<object>}
+   */
+  static async fetchFlashvars () {
+    const data = await this.get({
+      url: 'https://www.animaljam.com/flashvars'
+    })
+
+    return JSON.parse(data)
+  }
 }

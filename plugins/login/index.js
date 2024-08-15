@@ -9,7 +9,7 @@ module.exports = function ({ application, dispatch }) {
 
     application.consoleMessage({
       message: `Successfully logged in as <highlight>${params.userName}</highlight>`,
-      type: 'celebrate'
+      type: 'action'
     })
   }
 

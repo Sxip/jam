@@ -18,6 +18,9 @@ const messageStatus = Object.freeze({
   logger: {
     icon: 'logger.png'
   },
+  action: {
+    icon: 'action.png'
+  },
   wait: {
     icon: 'wait.png'
   },
@@ -109,11 +112,8 @@ module.exports = class Application extends EventEmitter {
    * @privte
    */
   async _checkForHostChanges () {
-    const data = await HttpClient.get({
-      url: 'https://www.animaljam.com/flashvars'
-    })
-
-    let { smartfoxServer } = JSON.parse(data) // Request isn't parsing JSON properly.
+    const data = await HttpClient.fetchFlashvars()
+    let { smartfoxServer } = data
 
     smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
     smartfoxServer = `lb-${smartfoxServer}`
@@ -316,7 +316,7 @@ module.exports = class Application extends EventEmitter {
         this.dispatch.load()
       ])
 
-      await this._checkForHostChanges(),
+      await this._checkForHostChanges()
       await this.server.serve()
 
       this.emit('ready')

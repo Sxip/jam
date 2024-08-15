@@ -2,6 +2,7 @@ const path = require('path')
 const os = require('os')
 const { rootPath } = require('electron-root-path')
 const { rename, copyFile, rm, mkdir } = require('fs/promises')
+const { existsSync } = require('fs')
 const { execFile } = require('child_process')
 
 /**
@@ -14,13 +15,13 @@ const ANIMAL_JAM_CLASSIC_BASE_PATH = `${path.join(os.homedir())
   .join('/')}/AppData/Local/Programs/aj-classic`
 
 /**
- * Animal Jam ROAMING path. (for clearing cache automatically)
+ * Animal Jam cache path.
  * @type {String}
  * @constant
  */
-const ANIMAL_JAM_CLASSIC_ROAMING_PATH = `${path.join(os.homedir())
+const ANIMAL_JAM_CLASSIC_CACHE_PATH = `${path.join(os.homedir())
   .split('\\')
-  .join('/')}/AppData/Roaming/AJ Classic`
+  .join('/')}/AppData/Roaming/AJ Classic/Cache`
 
 module.exports = class Patcher {
   /**
@@ -56,7 +57,7 @@ module.exports = class Patcher {
     if (!this.status) await this.patchApplication()
 
     this._animalJamProcess = execFile(`${ANIMAL_JAM_CLASSIC_BASE_PATH}/AJ Classic.exe`)
-    this._animalJamProcess.on('exit', () => this._application.settings.update('patched', false))
+    this._animalJamProcess.on('exit', () => this.unpatchApplication())
   }
 
   /**
@@ -72,14 +73,25 @@ module.exports = class Patcher {
 
       await rename(`${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`, `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar.unpatched`)
       await copyFile(path.join(rootPath, 'assets', 'app.asar'), `${ANIMAL_JAM_CLASSIC_BASE_PATH}/resources/app.asar`)
-      await rm(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`, { recursive: true })
-      await mkdir(`${ANIMAL_JAM_CLASSIC_ROAMING_PATH}/Cache`)
+
+      // Clears the cache if it exists.
+      if (existsSync(ANIMAL_JAM_CLASSIC_CACHE_PATH)) {
+        await rm(ANIMAL_JAM_CLASSIC_CACHE_PATH, { recursive: true })
+        await mkdir(ANIMAL_JAM_CLASSIC_CACHE_PATH)
+      }
 
       this._application.settings.update('patched', true)
     } catch (e) {
-      console.log('Failed patching Animal Jam Classic')
+      console.log(`Failed patching Animal Jam Classic. ${e.message}`)
     } finally {
       process.noAsar = false
     }
+  }
+
+  /**
+   * Unpatches Animal Jam Classic.
+   */
+  unpatchApplication () {
+    if (this.status) this._application.settings.update('patched', false)
   }
 }
