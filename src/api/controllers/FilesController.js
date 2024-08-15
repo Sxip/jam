@@ -1,4 +1,5 @@
 const HTTPClient = require('../../services/HttpClient')
+const { rootPath } = require('electron-root-path')
 const path = require('path')
 
 module.exports = new class FilesController {
@@ -33,7 +34,7 @@ module.exports = new class FilesController {
    * @public
    */
   game (request, response) {
-    return response.sendFile(path.join(__dirname, '..', '..', '..', 'assets', 'ajclient.swf'))
+    return response.sendFile(path.join(rootPath, 'assets', 'ajclient.swf'))
   }
 
   /**

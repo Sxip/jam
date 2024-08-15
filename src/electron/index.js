@@ -159,13 +159,6 @@ module.exports = class Electron {
       })
     })
 
-    autoUpdater.on('update-not-available', () => {
-      this.messageWindow('message', {
-        type: 'celebrate',
-        message: 'No updates available.'
-      })
-    })
-
     autoUpdater.on('update-downloaded', info => {
       this.messageWindow('message', {
         type: 'celebrate',
