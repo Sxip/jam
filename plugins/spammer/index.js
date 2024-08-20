@@ -169,6 +169,74 @@ class Spammer {
       table.rows[i].classList.remove('rowSelected')
     }
   }
+
+  /**
+   * Saves the current table contents and text box to a file
+   */
+  saveToFile () {
+    const packets = [];
+    for (let i = 1; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        const type = row.cells[0].innerText;
+        const content = row.cells[1].innerText;
+        const delay = row.cells[2].innerText;
+        packets.push({ type, content, delay });
+    }
+
+    const data = {
+        input: input.value,
+        packets: packets
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'packets.txt';
+    a.click();
+  }
+
+  /**
+   * Loads the contents from a file into the table and text box
+   */
+  loadFromFile () {
+    const inputElement = document.createElement('input');
+    inputElement.type = 'file';
+
+    inputElement.onchange = async (event) => {
+        const file = event.target.files[0];
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        input.value = data.input;
+        table.innerHTML = `
+            <thead>
+                <tr class="clickable-row">
+                    <th scope="col">Type</th>
+                    <th scope="col">Content</th>
+                    <th scope="col">Delay</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        `;
+
+        data.packets.forEach(packet => {
+            const row = table.insertRow();
+            const typeCell = row.insertCell(0);
+            const contentCell = row.insertCell(1);
+            const delayCell = row.insertCell(2);
+            const removeCell = row.insertCell(3);
+
+            typeCell.innerText = packet.type;
+            contentCell.innerText = packet.content;
+            delayCell.innerText = packet.delay;
+            removeCell.innerHTML = '<button type="button" class="btn btn-add" onclick="spammer.deleteRow(this)">Remove</button>';
+        });
+    };
+
+    inputElement.click();
+  }
 }
 
 const spammer = new Spammer()

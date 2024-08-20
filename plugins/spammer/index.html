@@ -72,15 +72,21 @@
     <br />
 
     <div class="text-center">
-      <div class="px-1">
-
-        <select id="inputRunType" style="margin: 6px;">
-          <option value="loop">Loop</option>
-          <option value="once">Once</option>
-        </select>
-
-        <button type="button" class="btn btn-send" onclick="spammer.stopClick()" id="stopButton">Stop</button>
-        <button type="button" class="btn btn-add" onclick="spammer.runClick()" id="runButton">Start</button>
+      <div class="row justify-content-center">
+        <div class="px-1">
+          <button type="button" class="btn btn-save" onclick="spammer.saveToFile()">Save</button>
+          <button type="button" class="btn btn-load" onclick="spammer.loadFromFile()">Load</button>
+        </div>
+        <div class="px-1">
+          <select id="inputRunType" style="margin: 6px;">
+            <option value="loop">Loop</option>
+            <option value="once">Once</option>
+          </select>
+        </div>
+        <div class="px-1">
+          <button type="button" class="btn btn-send" onclick="spammer.stopClick()" id="stopButton">Stop</button>
+          <button type="button" class="btn btn-add" onclick="spammer.runClick()" id="runButton">Start</button>
+        </div>
       </div>
     </div>
   </div>
