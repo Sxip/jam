@@ -1,6 +1,6 @@
 {
   "ext": "html,css,js",
-  "exec": "npx electron .",
+  "exec": "npx tailwindcss -i ./src/styles/app.css -o ./assets/css/style.css && npx electron .",
   "ignore": [
     "./plugins",
     "./node_modules",

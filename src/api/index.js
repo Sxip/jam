@@ -1,6 +1,5 @@
 const { urlencoded, json } = require('body-parser')
 const express = require('express')
-const path = require('path')
 
 /**
  * Routes

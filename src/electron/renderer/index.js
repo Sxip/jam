@@ -1,61 +1,67 @@
 const Application = require('./application')
 const { ipcRenderer } = require('electron')
 
-/**
- * Instantiates the application
- */
 const application = new Application()
 
-/**
-* Console message.
-*/
-application.consoleMessage({
-  message: 'Instantiating please wait.',
-  type: 'wait'
-})
+const initializeApp = async () => {
+  application.consoleMessage({
+    message: 'Instantiating please wait.',
+    type: 'wait'
+  })
 
-/**
-* Initializes the application.
-*/
-application.instantiate()
-  .then(() => application.consoleMessage({
-    message: 'Successfully instantiated.',
-    type: 'success'
-  }))
+  try {
+    await application.instantiate()
 
-/**
-  * IPC events.
-  */
-ipcRenderer
-  .on('message', (sender, { ...args }) => application.consoleMessage({
-    ...args
-  }))
-  .on('close', () => application.patcher.unpatchApplication())
+    application.consoleMessage({
+      message: 'Successfully instantiated.',
+      type: 'success'
+    })
 
-/**
- * Application events.
- */
-application
-  .on('ready', () => application.activateAutoComplete())
-  .on('refresh:plugins', () => application.refreshAutoComplete())
-
-/**
- * Logger
- */
-console.log = message => {
-  if (typeof message === 'object') {
-    message = JSON.stringify(message)
+    application.dispatch.onMessage({
+      type: '*',
+      callback: ({ message, type }) => {
+        application.consoleMessage({
+          type: 'speech',
+          isPacket: true,
+          isIncoming: type === 'aj',
+          message: message.toMessage()
+        })
+      }
+    })
+  } catch (error) {
+    application.consoleMessage({
+      message: `Error during instantiation: ${error.message}`,
+      type: 'error'
+    })
   }
+}
+
+const setupIpcEvents = () => {
+  ipcRenderer
+    .on('message', (sender, args) => application.consoleMessage({ ...args }))
+}
+
+const setupAppEvents = () => {
+  application
+    .on('ready', () => application.activateAutoComplete())
+    .on('refresh:plugins', () => application.refreshAutoComplete())
+}
+
+console.log = (message) => {
+  const formattedMessage = typeof message === 'object'
+    ? JSON.stringify(message)
+    : message
 
   application.consoleMessage({
     type: 'logger',
-    message: `<highlight>Debugger</highlight>: ${message}`
+    message: formattedMessage
   })
 }
 
-/**
-* Application window.
-*/
+initializeApp()
+setupIpcEvents()
+setupAppEvents()
+
 window.jam = {
   application,
   dispatch: application.dispatch,

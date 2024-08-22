@@ -1,0 +1,86 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#header {
+  cursor: move !important;
+  -webkit-app-region: drag !important;
+}
+
+#header i,
+#header button {
+  -webkit-app-region: no-drag !important;
+}
+
+.tab-button.active {
+  --tw-bg-opacity: 1;
+  background-color: rgb(28 30 38 / var(--tw-bg-opacity));
+  border: none;
+}
+
+button:focus,
+select:focus,
+input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  border-color: none;
+}
+
+.ui-autocomplete {
+  @apply bg-secondary-bg border border-sidebar-border rounded-lg shadow-lg z-50;
+  position: absolute;
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ui-autocomplete .autocomplete-item {
+  @apply cursor-pointer;
+}
+
+.ui-autocomplete .autocomplete-item:hover {
+  @apply bg-tertiary-bg;
+}
+
+.ui-autocomplete .autocomplete-item-content {
+  @apply flex items-center justify-between px-4 py-2;
+}
+
+.ui-autocomplete .autocomplete-item-name {
+  @apply text-text-primary;
+}
+
+.ui-autocomplete .autocomplete-item-description {
+  @apply text-gray-500;
+}
+
+.ui-helper-hidden-accessible {
+  position: absolute;
+  left: -9999px;
+}
+
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1C1E26;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3A3D4D;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5A5F6D;
+}

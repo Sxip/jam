@@ -7,7 +7,7 @@ module.exports = class JsonMessage extends Message {
    */
   parse () {
     this.value = JSON.parse(this.value)
-    this.type = this.value.b.o._cmd
+    this.type = this.value?.b?.o?._cmd || null
   }
 
   /**

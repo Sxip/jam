@@ -34,7 +34,7 @@ module.exports = new class FilesController {
    * @public
    */
   game (request, response) {
-    return response.sendFile(path.join(rootPath, 'assets', 'ajclient.swf'))
+    return response.sendFile(path.join(rootPath, 'assets', 'flash', 'ajclient.swf'))
   }
 
   /**

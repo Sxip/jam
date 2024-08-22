@@ -2,90 +2,157 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="shortcut icon" type="image/png" href="favicon.png" />
-
-  <!-- Font awesome -->
-  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.2.0/css/all.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jam</title>
 
   <!-- jQuery -->
   <script>
     window.jQuery = window.$ = require('jquery')
   </script>
 
-  <script src="file:///../../../../assets/javascript/jquery-ui.js"></script>
-  <script src="file:///../../../../assets/javascript/popper.min.js"></script>
-  <script src="file:///../../../../assets/javascript/bootstrap.min.js"></script>
+  <!-- Auto complete -->
+  <script src="file:///../../../../assets/javascript/jquery-ui.js" async></script>
+  <script src="file:///../../../../assets/javascript/popper.min.js" async></script>
 </head>
 
-<body>
-  <!-- Titlebar -->
-  <nav class="titlebar">
-    <div class="title">
-      <img src="file:///../../../../assets/icon.png" width="33" height="33" />
+<body class="bg-primary-bg text-sidebar-text h-screen flex">
+  <div class="flex flex-1">
+    <!-- Sidebar -->
+    <div id="sidebar"
+      class="w-64 h-full bg-sidebar-bg p-4 fixed top-0 left-0 transform -translate-x-full transition-transform duration-300 border-r border-sidebar-border z-30 flex flex-col">
+
+      <!-- Main Navigation -->
+      <ul class="space-y-2 mb-4">
+        <span class="text-xs text-gray-300">Main Navigation</span>
+        <li><a href="#" class="block text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded"
+            onclick="jam.application.openAnimalJam()">Play</a></li>
+        <li><a href="#" class="block text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded"
+            onclick="jam.dispatch.refresh()">Reload</a></li>
+        <li><a href="#" class="block text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded"
+            modal="modals/settings.html" onclick="jam.application.openSettings()">Settings</a>
+        </li>
+      </ul>
+
+      <!-- Plugins Section -->
+      <span class="text-xs text-gray-300">Plugins</span>
+      <div class="flex-1 overflow-y-auto">
+        <ul id="pluginList" class="space-y-2 mt-2">
+          <!-- List items will be dynamically added here -->
+        </ul>
+      </div>
     </div>
 
-    <!-- Menu -->
-    <div class="menu">
-      <div class="dropdown">
-        <a class="toggle-menu icon" role="button" id="sidebarCollapse" data-toggle="dropdown" aria-expanded="false">
-          <i class="fal fa-bars"></i> 
-        </a>
+    <!-- Main Content -->
+    <div id="mainContent" class="flex-1 ml-0 transition-margin duration-300 flex flex-col bg-primary-bg">
 
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="#" onclick="jam.application.openAnimalJam()">
-            <i class="fal fa-gamepad"></i> Play
-          </a>
-          <a class="dropdown-item" href="#" modal="modals/plugins.html" onclick="jam.application.remoteModal(this, event, '#plugins')">
-            <i class="fal fa-share-alt"></i> Plugins
-          </a>
-          <a class="dropdown-item" href="#" onclick="jam.dispatch.refresh()">
-            <i class="fal fa-plug"></i> Reload
-          </a>
-          <a class="dropdown-item" href="#" onclick="jam.application.openSettings()">
-            <i class="fal fa-cog"></i> Settings
-          </a>
+      <!-- Header -->
+      <header id="header" class="flex items-center p-4 bg-secondary-bg border-b border-sidebar-border">
+        <button id="menuButton" class="text-lg text-white focus:outline-none">
+          <i id="menuIcon" class="fas fa-bars"></i>
+        </button>
+
+        <img class="h-10 mx-auto" src="file:///../../../../assets/icon.png" />
+
+        <button id="closeButton" class="text-lg text-white focus:outline-none">
+          <i class="fas fa-times" onclick="jam.application.close()"></i>
+        </button>
+      </header>
+
+      <!-- Tab Navigation -->
+      <div class="tabs w-full grid grid-cols-2 border-b border-gray-700 bg-tertiary-bg">
+        <button id="consoleTab" class="tab-button active" data-tab="console">Console</button>
+        <button id="packetLoggingTab" class="tab-button" data-tab="packet-logging">Network</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div id="console" class="tab-content flex-1 p-4 overflow-auto">
+        <div id="messages" class="flex flex-col overflow-x-auto"></div>
+      </div>
+
+      <div id="packet-logging" class="tab-content flex-1 p-4 overflow-auto hidden w-full">
+        <div id="message-log" class="flex flex-col overflow-x-auto">
         </div>
       </div>
-    </div>
 
-     <!-- Icons -->
-     <div class="icon-wrap">
-      <div class="icon-group" onclick="jam.application.minimize()">
-        <svg name="TitleBarMinimize" class="title-bar-minimize" width="12" height="12" viewBox="0 0 12 12">
-          <rect fill="#b7b7b7" width="10" height="1" x="1" y="6" />
-        </svg>
-      </div>
+      <!-- Footer -->
+      <footer class="bg-secondary-bg border-t border-sidebar-border p-4 mt-auto">
+        <input id="input" type="text"
+          class="bg-transparent text-text-primary placeholder-text-primary focus:outline-none w-full"
+          placeholder="Type a command...">
 
-      <div class="icon-group" onclick="jam.application.close()">
-        <svg name="TitleBarClose" class="icon-close" width="12" height="12" viewBox="0 0 12 12">
-          <polygon fill="#b7b7b7" fill-rule="evenodd"
-            points="11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1" />
-        </svg>
-      </div>
-    </div>
-  </nav>
-
-   <!-- Main -->
-   <main class="main-wrap">
-    <div class="contain">
-      <div id="messages"></div>
-    </div>
-
-    <!-- Input -->
-    <div class="input-bar">
-      <input class="form-control" id="input" placeholder="Type a command...">
-    </div>
+        <input id="packetSearch" type="text"
+          class="bg-transparent text-text-primary placeholder-text-primary focus:outline-none w-full hidden"
+          placeholder="Search packets...">
+      </footer>
 
     </div>
-  </main>
-  
+  </div>
 
-  <!-- Modal content -->
-  <div class="modal-content" />
+  <!-- UI helper scripts -->
+  <script>
+    $(document).ready(function () {
+      const $menuButton = $('#menuButton')
+      const $sidebar = $('#sidebar')
+      const $mainContent = $('#mainContent')
+      const $menuIcon = $('#menuIcon')
+      const $commandInput = $('#input')
+      const $packetSearch = $('#packetSearch')
 
-  <script src="index.js"></script>
+      function toggleSidebar() {
+        const isOpen = !$sidebar.hasClass('-translate-x-full')
+        if (isOpen) {
+          $sidebar.addClass('-translate-x-full')
+          $mainContent.removeClass('ml-64')
+          $menuIcon.removeClass('fa-bars-staggered').addClass('fa-bars')
+        } else {
+          $sidebar.removeClass('-translate-x-full')
+          $mainContent.addClass('ml-64')
+          $menuIcon.removeClass('fa-bars').addClass('fa-bars-staggered')
+        }
+      }
+
+      $menuButton.on('click', toggleSidebar)
+
+      const openTab = (tabId) => {
+        if (tabId === 'packet-logging') {
+          $commandInput.addClass('hidden')
+          $packetSearch.removeClass('hidden')
+        } else {
+          $commandInput.removeClass('hidden')
+          $packetSearch.addClass('hidden')
+        }
+
+        $('.tab-content').removeClass('active').addClass('hidden')
+        $(`#${tabId}`).removeClass('hidden').addClass('active')
+
+        $('.tab-button').removeClass('active')
+        $(`.tab-button[data-tab="${tabId}"]`).addClass('active')
+      }
+
+      $('.tab-content').first().removeClass('hidden').addClass('active')
+
+      $('.tab-button').on('click', function () {
+        const tabId = $(this).data('tab')
+        openTab(tabId)
+      })
+
+      window.openTab = openTab
+
+      // Add search functionality (example)
+      $packetSearch.on('input', function () {
+        const query = $(this).val().toLowerCase()
+        $('#message-log div').each(function () {
+          const text = $(this).text().toLowerCase()
+          $(this).toggle(text.includes(query))
+        })
+      })
+    })
+
+  </script>
+
+  <!-- Jam -->
+  <script src="index.js" async></script>
 </body>
 
 </html>

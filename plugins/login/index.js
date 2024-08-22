@@ -8,7 +8,7 @@ module.exports = function ({ application, dispatch }) {
     dispatch.setState('player', params)
 
     application.consoleMessage({
-      message: `Successfully logged in as <highlight>${params.userName}</highlight>`,
+      message: 'Successfully logged in!',
       type: 'action'
     })
   }

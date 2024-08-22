@@ -4,7 +4,7 @@ const path = require('path')
 const { PluginManager: PM } = require('live-plugin-manager')
 
 const Ajv = new (require('ajv'))({ useDefaults: true })
-const { ConnectionMessageTypes, PluginTypes, GameType } = require('../../../../Constants')
+const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
 
 /**
  * The path to the plugins folder.
@@ -213,19 +213,21 @@ module.exports = class Dispatch {
    */
   async all ({ message, type }) {
     const promises = []
-    let hooks
+    const hooks = []
 
     switch (type) {
       case ConnectionMessageTypes.aj:
-        hooks = this.hooks.aj.get(message.type) || []
+        hooks.push(...this.hooks.aj.get(message.type) || [])
         break
 
       case ConnectionMessageTypes.connection:
-        hooks = this.hooks.connection.get(message.type) || []
+        hooks.push(...this.hooks.connection.get(message.type) || [])
         break
     }
 
-    if (this.hooks.any.size > 0) hooks = this.hooks.any.get(ConnectionMessageTypes.any)
+    if (this.hooks.any.size > 0) {
+      hooks.push(...this.hooks.any.get(ConnectionMessageTypes.any))
+    }
 
     for (const execute of hooks) {
       promises.push(
@@ -308,6 +310,9 @@ module.exports = class Dispatch {
         this.plugins.set(configuration.name, { configuration, filepath })
         break
     }
+
+    // Render the plugin items
+    this._application.renderPluginItems(configuration)
   }
 
   /**
@@ -316,6 +321,8 @@ module.exports = class Dispatch {
    * @returns {Promise<void>}
    */
   async refresh () {
+    this._application.$pluginList.empty()
+
     for (const plugin of this.plugins.values()) {
       const { filepath, configuration: { main } } = plugin
 
@@ -329,7 +336,7 @@ module.exports = class Dispatch {
     this._application.emit('refresh:plugins')
     this._application.consoleMessage({
       type: 'success',
-      message: `Successfully refreshed the plugin ${name}`
+      message: 'Successfully refreshed plugins.'
     })
   }
 

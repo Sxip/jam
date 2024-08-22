@@ -127,16 +127,12 @@ module.exports = class Electron {
           action: 'allow',
           overrideBrowserWindowOptions: {
             autoHideMenuBar: true,
-            ...Object.assign(defaultWindowOptions, {
-              frame: true,
-              webPreferences: {
-                nativeWindowOpen: true,
-                webSecurity: false,
-                protocol: 'file',
-                preload: path.join(__dirname, 'preload.js'),
-                contextIsolation: false
-              }
-            })
+            frame: true,
+            webPreferences: {
+              nativeWindowOpen: true,
+              webSecurity: false,
+              contextIsolation: false
+            }
           }
         }
     }

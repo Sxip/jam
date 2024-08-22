@@ -6,6 +6,7 @@ const Settings = require('./settings')
 const Patcher = require('./patcher')
 const Dispatch = require('./dispatch')
 const HttpClient = require('../../../services/HttpClient')
+
 /**
  * Message status icons.
  * @type {Object}
@@ -82,18 +83,32 @@ module.exports = class Application extends EventEmitter {
      * @type {JQuery<HTMLElement>}
      * @private
      */
-    this._input = $('#input')
+    this.$input = $('#input')
+
+    /**
+     * The reference to the plugin list.
+     * @type {JQuery<HTMLElement>}
+     * @private
+     */
+    this.$pluginList = $('#pluginList')
+
+    /**
+     * The reference to the realtime server.
+     * @type {Realtime}
+     * @public
+     */
+    this.realtime = null
 
     /**
      * Handles the input events.
      * @type {void}
      * @private
      */
-    this._input.on('keydown', event => {
+    this.$input.on('keydown', event => {
       const key = event.key
 
       if (key === 'Enter') {
-        const message = this._input.val().trim()
+        const message = this.$input.val().trim()
 
         const parameters = message.split(' ')
         const command = parameters.shift()
@@ -101,7 +116,7 @@ module.exports = class Application extends EventEmitter {
         const cmd = this.dispatch.commands.get(command)
         if (cmd) cmd.callback({ parameters })
 
-        this._input.val('')
+        this.$input.val('')
       }
     })
   }
@@ -112,22 +127,29 @@ module.exports = class Application extends EventEmitter {
    * @privte
    */
   async _checkForHostChanges () {
-    const data = await HttpClient.fetchFlashvars()
-    let { smartfoxServer } = data
+    // eslint-disable-next-line no-async-promise-executor
+    await new Promise(async (resolve, reject) => {
+      try {
+        const data = await HttpClient.fetchFlashvars()
+        let { smartfoxServer } = data
 
-    smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
-    smartfoxServer = `lb-${smartfoxServer}`
+        smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
+        smartfoxServer = `lb-${smartfoxServer}`
 
-    if (smartfoxServer !== this.settings.get('smartfoxServer')) {
-      this.settings.update('smartfoxServer', smartfoxServer)
+        if (smartfoxServer !== this.settings.get('smartfoxServer')) {
+          this.settings.update('smartfoxServer', smartfoxServer)
 
-      this.consoleMessage({
-        message: 'Server host has changed. The application will now restart.',
-        type: 'notify'
-      })
+          this.consoleMessage({
+            message: 'Server host has changed. Changes are now being applied.',
+            type: 'notify'
+          })
+        }
 
-      this.relaunch()
-    }
+        resolve()
+      } catch (error) {
+        reject(new Error(`Unexpected error occurred while trying to check for host changes. ${error.message}`))
+      }
+    })
   }
 
   /**
@@ -177,23 +199,6 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
-   * Shows a remote modal.
-   * @param {string} id
-   * @public
-   */
-  remoteModal (target, event, id) {
-    event.preventDefault()
-
-    const content = $('.modal-content')
-
-    content.load(
-      $(target).attr('modal'), () => {
-        $(id).modal()
-      }
-    )
-  }
-
-  /**
    * Handles input autocomplete activation.
    * @type {void}
    * @public
@@ -207,20 +212,33 @@ module.exports = class Application extends EventEmitter {
      */
     const renderItems = (ul, item) => {
       return $('<li>')
+        .addClass('autocomplete-item ui-menu-item')
         .data('ui-autocomplete-item', item)
-        .append(`<a>${item.value}</a> <a class="float-right description">${item.item}</a>`)
+        .append(`
+          <div class="autocomplete-item-content">
+            <span class="autocomplete-item-name">${item.value}</span>
+            <span class="autocomplete-item-description">${item.item}</span>
+          </div>
+        `)
         .appendTo(ul)
     }
 
-    this._input.autocomplete({
-      source: Array.from(this.dispatch.commands.values())
-        .map(command => ({
-          value: command.name,
-          item: command.description
-        })),
-      position: { collision: 'flip' }
-    })
-      .data('ui-autocomplete')._renderItem = renderItems
+    this.$input.autocomplete({
+      source: Array.from(this.dispatch.commands.values()).map(command => ({
+        value: command.name,
+        item: command.description
+      })),
+      position: { my: 'left top', at: 'left bottom', collision: 'flip' },
+      classes: {
+        'ui-autocomplete': 'bg-secondary-bg border border-sidebar-border rounded-lg shadow-lg z-50'
+      },
+      _renderItem: function (ul, item) {
+        return renderItems(ul, item)
+      }
+    }).data('ui-autocomplete')._resizeMenu = function () {
+      const inputWidth = this.element.outerWidth()
+      this.menu.element.css({ width: inputWidth + 'px' })
+    }
   }
 
   /**
@@ -228,7 +246,7 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   refreshAutoComplete () {
-    this._input.autocomplete('option', {
+    this.$input.autocomplete('option', {
       source:
         Array.from(this.dispatch.commands.values())
           .map(command => ({
@@ -243,49 +261,72 @@ module.exports = class Application extends EventEmitter {
    * @param message
    * @public
    */
-  consoleMessage ({ message, type = 'success', withStatus = true, time = true } = {}) {
-    const container = $('<div>')
-    const timeContainer = $('<div>')
-    const messageContainer = $('<div>')
+  consoleMessage ({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false } = {}) {
+    const createElement = (tag, classes = '', content = '') => {
+      return $('<' + tag + '>').addClass(classes).html(content)
+    }
 
-    /**
-     * Displays the message with the status type.
-     * @function
-     */
     const status = (type, message) => {
-      const status = messageStatus[type]
-      if (!status) throw new Error('Invalid Status Type.')
-
-      return `<img src="file:///../../../../assets/icons/${status.icon}" style="width: 20px; height: 20px; margin-right: 3px; padding: 2px;" /> ${message || ''}`
+      const statusInfo = messageStatus[type]
+      if (!statusInfo) throw new Error('Invalid Status Type.')
+      return `<img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 mr-2 opacity-80 align-middle" /> ${message || ''}`
     }
 
-    /**
-     * Gets the current timestamp.
-     * @function
-     */
     const getTime = () => {
-      const time = new Date()
-      const hour = time.getHours()
-      const minute = time.getMinutes()
-      const timeString = `${hour}:${minute}`
-
-      return timeString
+      const now = new Date()
+      const hour = String(now.getHours()).padStart(2, '0')
+      const minute = String(now.getMinutes()).padStart(2, '0')
+      return `${hour}:${minute}`
     }
+
+    // Define base type classes
+    const baseTypeClasses = {
+      success: 'bg-highlight-green bg-opacity-20 border-highlight-green text-highlight-green',
+      error: 'bg-error-red bg-opacity-20 border-error-red text-white',
+      info: 'bg-primary-bg bg-opacity-20 border-primary-bg text-text-primary',
+      warning: 'bg-highlight-yellow bg-opacity-20 border-highlight-yellow text-primary-bg'
+    }
+
+    const packetTypeClasses = {
+      incoming: 'bg-tertiary-bg bg-opacity-20 border-tertiary-bg text-text-primary',
+      outgoing: 'bg-highlight-green bg-opacity-20 border-highlight-green text-highlight-green'
+    }
+
+    const $container = createElement('div', 'flex items-center p-3 rounded-lg border mb-2 max-w-full w-full')
 
     if (time) {
-      timeContainer.addClass('time')
-      timeContainer.text(getTime())
-      container.append(timeContainer)
+      const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-2', getTime())
+      $container.append($timeContainer)
     }
 
-    container.addClass(`message ${type || ''}`)
+    if (isPacket) {
+      $container.addClass(packetTypeClasses[isIncoming ? 'incoming' : 'outgoing'])
+    } else {
+      $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg bg-opacity-20 border-tertiary-bg text-text-primary')
+    }
 
-    if (withStatus) messageContainer.append(status(type, message))
-    else messageContainer.append(message)
+    const $messageContainer = createElement('div', 'flex-1 text-sm flex items-center')
 
-    messageContainer.addClass('message-content')
-    container.append(messageContainer)
-    $('#messages').append(container)
+    if (withStatus && !isPacket) {
+      $messageContainer.html(status(type, message))
+    } else {
+      $messageContainer.text(message)
+    }
+
+    $messageContainer.css({
+      overflow: 'hidden',
+      'text-overflow': 'clip',
+      'white-space': 'normal',
+      'word-break': 'break-word'
+    })
+
+    $container.append($messageContainer)
+
+    if (isPacket) {
+      $('#message-log').append($container)
+    } else {
+      $('#messages').append($container)
+    }
   }
 
   /**
@@ -305,26 +346,51 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
+   * Renders a plugin item
+   * @param {Object} plugin
+   * @returns {JQuery<HTMLElement>}
+   */
+  renderPluginItems ({ name, type, description, author } = {}) {
+    const iconClass = type === 'ui' ? 'fas fa-desktop' : type === 'game' ? 'fas fa-gamepad' : ''
+
+    const badge = iconClass
+      ? $('<span>', {
+        class: 'badge bg-custom-pink text-white-200 rounded-full text-xs px-2 py-1 ml-2 flex items-center'
+      }).append($('<i>', { class: iconClass }))
+      : null
+
+    const hoverClass = type === 'ui' ? 'hover:bg-sidebar-hover cursor-pointer' : ''
+    const onClickEvent = type === 'ui' ? `jam.application.dispatch.open('${name}')` : ''
+
+    const $listItem = $('<li>', {
+      class: `flex flex-col p-2 border-b border-sidebar-border bg-secondary-bg ${hoverClass}`,
+      click: onClickEvent ? () => eval(onClickEvent) : null
+    })
+
+    const $title = $('<div>', { class: 'flex items-center' })
+      .append($('<span>', { class: 'text-text-primary font-semibold', text: name }))
+      .append(badge)
+
+    const $description = $('<span>', { class: 'text-gray-400 text-sm mt-1', text: description })
+    const $author = $('<span>', { class: 'text-gray-500 text-xs mt-1', text: `Author: ${author}` })
+
+    $listItem.append($title, $description, $author)
+    this.$pluginList.prepend($listItem)
+  }
+
+  /**
    * Instantiates the application.
    * @returns {Promise<void>}
    * @public
    */
   async instantiate () {
-    try {
-      await Promise.all([
-        this.settings.load(),
-        this.dispatch.load()
-      ])
+    await Promise.all([
+      this.settings.load(),
+      this.dispatch.load(),
+      this._checkForHostChanges()
+    ])
 
-      await this._checkForHostChanges()
-      await this.server.serve()
-
-      this.emit('ready')
-    } catch (error) {
-      this.consoleMessage({
-        message: `Unexpected error occurred while trying to instantiate jam. ${error.message}`,
-        type: 'error'
-      })
-    }
+    await this.server.serve()
+    this.emit('ready')
   }
 }

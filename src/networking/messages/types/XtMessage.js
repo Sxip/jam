@@ -6,8 +6,9 @@ module.exports = class XtMessage extends Message {
    * @public
    */
   parse () {
-    this.value = this.value.split('%')
-    this.type = this.value[2] === 'o' ? this.value[3] : this.value[2]
+    const parts = this.value.split('%')
+    this.type = parts[2] === 'o' ? parts[3] : parts[2]
+    this.value = parts
   }
 
   /**

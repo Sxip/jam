@@ -31,7 +31,7 @@ module.exports = class Server {
 
   /**
    * Handles new incoming connections.
-   * @param {NetifySocket} connection
+   * @param {net.Socket} connection
    * @private
    */
   async _onConnection (connection) {
@@ -52,36 +52,22 @@ module.exports = class Server {
    * @public
    */
   async serve () {
+    if (this.server) throw new Error('The server has already been instantiated.')
+
+    this.server = net.createServer(this._onConnection.bind(this))
+
     await new Promise((resolve, reject) => {
-      if (this.server) reject(new Error('The server has already been instantiated.'))
-
-      this.server = net.Server()
-
-      const dispose = () => {
-        this.server.off('listening', onceListening)
-        this.server.off('error', onceError)
-        this.server.off('close', onceClose)
-      }
-
-      const onceListening = () => {
-        resolve()
-      }
-
-      const onceClose = error => {
-        dispose()
-        reject(error)
-      }
-
-      const onceError = () => {
-        dispose()
-      }
-
-      this.server.once('listening', onceListening)
-      this.server.once('error', onceError)
+      this.server.once('listening', resolve)
+      this.server.once('error', reject)
 
       this.server.listen(443, '127.0.0.1')
     })
 
-    this.server.on('connection', this._onConnection.bind(this))
+    this.server.on('error', (error) => {
+      this.application.consoleMessage({
+        message: `Server encountered an error: ${error.message}`,
+        type: 'error'
+      })
+    })
   }
 }

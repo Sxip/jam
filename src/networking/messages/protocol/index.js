@@ -2,72 +2,62 @@ const XmlMessage = require('../types/XmlMessage')
 const XtMessage = require('../types/XtMessage')
 const JsonMessage = require('../types/JsonMessage')
 
-/**
- * The message delimiter.
- * @constant
- */
-const NULL_DELIMITER = '\x00'
+const NULL_DELIMITER = 0x00
 
 module.exports = class AnimalJamProtocol {
   constructor (callback) {
-    /**
-     * The callbaack that is called once a message is received.
-     * @type {Function}
-     * @private
-     */
     this._callback = callback
-
-    /**
-     * Message buffer
-     * @type {?string}
-     * @private
-     */
-    this._buffer = ''
+    this._buffer = Buffer.alloc(0)
   }
 
   /**
-   * Validates a packet before turning it into a message.
-   * @param packet
-   * @returns {Message}
-   * @public
+   * Validates and returns the appropriate message type.
+   * @param {string} packetString
+   * @returns {Message|null}
+   * @private
    */
-  static validate (packet) {
-    if (packet.indexOf('<') !== -1 && packet.lastIndexOf('>') !== -1) return new XmlMessage(packet)
-    if (packet.indexOf('%') !== -1 && packet.lastIndexOf('%') !== -1) return new XtMessage(packet)
-    if (packet.indexOf('{') !== -1 && packet.lastIndexOf('}') !== -1) return new JsonMessage(packet)
+  static validate (packetString) {
+    if (packetString[0] === '<' && packetString[packetString.length - 1] === '>') return new XmlMessage(packetString)
+    if (packetString[0] === '%' && packetString[packetString.length - 1] === '%') return new XtMessage(packetString)
+    if (packetString[0] === '{' && packetString[packetString.length - 1] === '}') return new JsonMessage(packetString)
     return null
   }
 
   /**
-   * Adds chuck of the packet data to the buffer.
-   * @param {string} data
+   * Adds a chunk of the packet data to the buffer.
+   * @param {Buffer} data
    * @public
    */
-  chuck (data) {
-    this._buffer += data
-    this._next()
+  chunk (data) {
+    this._buffer = Buffer.concat([this._buffer, data], this._buffer.length + data.length)
+    this._processBuffer()
   }
 
   /**
-   * Handles parsing the packets into packets,
+   * Processes the buffer to extract and handle complete messages.
    * @private
    */
-  _next () {
-    if (this._buffer[this._buffer.length - 1] === NULL_DELIMITER) {
-      const messages = this._buffer.split(NULL_DELIMITER)
+  _processBuffer () {
+    let startIdx = 0
+    let endIdx
 
-      for (let i = 0; i < messages.length - 1; i++) {
-        const message = this.constructor.validate(messages[i])
-        if (message) {
-          message.parse()
+    while ((endIdx = this._buffer.indexOf(NULL_DELIMITER, startIdx)) !== -1) {
+      const packet = this._buffer.slice(startIdx, endIdx)
+      const packetString = packet.toString('utf-8')
 
-          this._callback({
-            packet: messages[i],
-            message
-          })
-        }
+      const message = this.constructor.validate(packetString)
+      if (message) {
+        message.parse()
+        this._callback({ packet, message })
       }
-      this._buffer = ''
+
+      startIdx = endIdx + 1
+    }
+
+    if (startIdx < this._buffer.length) {
+      this._buffer = this._buffer.slice(startIdx)
+    } else {
+      this._buffer = Buffer.alloc(0)
     }
   }
 }
