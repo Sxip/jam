@@ -1,4 +1,5 @@
 {
   "discordClientId": "1076234424628301966",
-  "smartfoxServer": "lb-iss02-classic-prod.animaljam.com"
+  "smartfoxServer": "lb-iss02-classic-prod.animaljam.com",
+  "secureConnection": true
 }

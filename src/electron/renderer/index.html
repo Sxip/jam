@@ -29,15 +29,12 @@
             onclick="jam.application.openAnimalJam()">Play</a></li>
         <li><a href="#" class="block text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded"
             onclick="jam.dispatch.refresh()">Reload</a></li>
-        <li><a href="#" class="block text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded"
-            modal="modals/settings.html" onclick="jam.application.openSettings()">Settings</a>
-        </li>
       </ul>
 
       <!-- Plugins Section -->
       <span class="text-xs text-gray-300">Plugins</span>
       <div class="flex-1 overflow-y-auto">
-        <ul id="pluginList" class="space-y-2 mt-2">
+        <ul id="pluginList" class="space-y-2 mt-3">
           <!-- List items will be dynamically added here -->
         </ul>
       </div>
@@ -139,7 +136,6 @@
 
       window.openTab = openTab
 
-      // Add search functionality (example)
       $packetSearch.on('input', function () {
         const query = $(this).val().toLowerCase()
         $('#message-log div').each(function () {

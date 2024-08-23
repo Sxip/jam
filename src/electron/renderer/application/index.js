@@ -384,10 +384,12 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   async instantiate () {
+    const secureConnection = this.settings.get('secureConnection')
+
     await Promise.all([
       this.settings.load(),
       this.dispatch.load(),
-      this._checkForHostChanges()
+      secureConnection ? this._checkForHostChanges() : null
     ])
 
     await this.server.serve()

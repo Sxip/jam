@@ -2,6 +2,7 @@ const AnimalJamProtocol = require('../messages/protocol')
 const Message = require('../messages')
 const { ConnectionMessageTypes } = require('../../Constants')
 const { TLSSocket } = require('tls')
+const { Socket } = require('net')
 
 /**
  * Connection message blacklist types.
@@ -25,10 +26,11 @@ module.exports = class Client {
 
     /**
      * The remote connection to Animal Jam.
-     * @type {TLSSocket}
+     * @type {TLSSocket | Socket}
      * @private
      */
-    this._aj = new TLSSocket()
+    const secureConnection = this._server.application.settings.get('secureConnection')
+    this._aj = secureConnection ? new TLSSocket() : new Socket()
 
     /**
      * The message buffer for Animal Jam messages.
