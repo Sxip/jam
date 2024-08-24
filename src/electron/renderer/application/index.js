@@ -384,13 +384,16 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   async instantiate () {
-    const secureConnection = this.settings.get('secureConnection')
-
     await Promise.all([
       this.settings.load(),
-      this.dispatch.load(),
-      secureConnection ? this._checkForHostChanges() : null
+      this.dispatch.load()
     ])
+
+    /**
+     * Simple check for the host changes for animal jam classic.
+     */
+    const secureConnection = this.settings.get('secureConnection')
+    if (secureConnection) await this._checkForHostChanges()
 
     await this.server.serve()
     this.emit('ready')
