@@ -12,8 +12,8 @@ This guide will help you modify **Animal Jam Play Wild** to connect to **Jam**.
 2. **Open `settings.json` in a Text Editor** 🖊️  
    Right-click the file and select "Open with" -> "Notepad" or another text editor of your choice.
 
-3. **Edit the `securesocket` Setting** 🔒  
-   Find the line: `"securesocket": true,` and change it to: `"securesocket": false,`.
+3. **Edit the `secureConnection` Setting** 🔒  
+   Find the line: `"secureConnection": true,` and change it to: `"secureConnection": false,`.
 
 4. **Update the Server IP Address** 🌐  
    Look for the `smartfoxserver` entry and replace it with the new server IP:  
