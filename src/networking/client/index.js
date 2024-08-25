@@ -1,15 +1,28 @@
-const AnimalJamProtocol = require('../messages/protocol')
-const Message = require('../messages')
 const { ConnectionMessageTypes } = require('../../Constants')
 const { TLSSocket } = require('tls')
+const DelimiterTransform = require('../transform')
 const { Socket } = require('net')
 
 /**
- * Connection message blacklist types.
- * @type {Array<string>}
+ * Messages.
  * @constant
  */
-const BLACKLIST_MESSAGES = ['apiOK', 'verChk', 'rndK', 'login']
+const Message = require('../messages')
+const XmlMessage = require('../messages/XmlMessage')
+const XtMessage = require('../messages/XtMessage')
+const JsonMessage = require('../messages/JsonMessage')
+
+/**
+ * Connection message blacklist types.
+ * @type {Set<string>}
+ * @constant
+ */
+const BLACKLIST_MESSAGES = new Set([
+  'apiOK',
+  'verChk',
+  'rndK',
+  'login'
+])
 
 module.exports = class Client {
   /**
@@ -33,24 +46,6 @@ module.exports = class Client {
     this._aj = secureConnection ? new TLSSocket() : new Socket()
 
     /**
-     * The message buffer for Animal Jam messages.
-     * @type {AnimalJamProtocol}
-     * @private
-     */
-    this._ajBuffer = new AnimalJamProtocol(({ ...args }) =>
-      this._onMessageReceived({ type: ConnectionMessageTypes.aj, ...args })
-    )
-
-    /**
-     * The message buffer for connection messages.
-     * @type {AnimalJamProtocol}
-     * @private
-     */
-    this._connectionBuffer = new AnimalJamProtocol(({ ...args }) =>
-      this._onMessageReceived({ type: ConnectionMessageTypes.connection, ...args })
-    )
-
-    /**
      * Connected indicator.
      * @type {boolean}
      * @public
@@ -63,59 +58,111 @@ module.exports = class Client {
      * @private
      */
     this._connection = connection
-
-    // Begin listening for connection events
-    this._beginConnectionEvents()
   }
 
   /**
-   * Begins listening for the server events.
+   * Validates and returns the appropriate message type.
+   * @param {string} packetString
+   * @returns {Message|null}
    * @private
    */
-  _beginConnectionEvents () {
-    this._aj.on('data', (data) => this._ajBuffer.chunk(data))
-      .once('close', this.disconnect.bind(this))
+  static validate (message) {
+    if (message[0] === '<' && message[message.length - 1] === '>') return new XmlMessage(message)
+    if (message[0] === '%' && message[message.length - 1] === '%') return new XtMessage(message)
+    if (message[0] === '{' && message[message.length - 1] === '}') return new JsonMessage(message)
+    return null
   }
 
   /**
-   * Attempts to create a socket connection.
-   * @returns {Promise<void>}
-   * @public
-   */
+ * Attempts to create a socket connection.
+ * @returns {Promise<void>}
+ * @public
+ */
   async connect () {
     if (this._aj.destroyed) throw new Error('The socket is destroyed.')
 
-    return new Promise((resolve, reject) => {
-      const onError = (err) => {
-        this._aj.off('error', onError)
-        this._aj.off('connect', onConnected)
-        reject(err)
-      }
+    try {
+      await new Promise((resolve, reject) => {
+        const onError = (err) => {
+          cleanupListeners()
+          reject(err)
+        }
 
-      const onConnected = () => {
-        this._aj.off('error', onError)
-        this.connected = true
-        resolve()
-      }
+        const onConnected = () => {
+          cleanupListeners()
+          this.connected = true
+          resolve()
+        }
 
-      this._aj.once('error', onError)
-      this._aj.once('connect', onConnected)
+        const cleanupListeners = () => {
+          this._aj.off('error', onError)
+          this._aj.off('connect', onConnected)
+        }
 
-      const smartfoxServer = this._server.application.settings.get('smartfoxServer')
-      this._aj.connect({
-        host: smartfoxServer,
-        port: 443,
-        rejectUnauthorized: false
+        this._aj.once('error', onError)
+        this._aj.once('connect', onConnected)
+
+        const smartfoxServer = this._server.application.settings.get('smartfoxServer')
+        this._aj.connect({
+          host: smartfoxServer,
+          port: 443,
+          rejectUnauthorized: false
+        })
       })
-    }).then(() => {
-      this._connection.on('data', (data) => this._connectionBuffer.chunk(data))
-      this._connection.once('close', this.disconnect.bind(this))
-    }).catch((error) => {
+
+      // Set up the transforms
+      this._setupTransforms()
+    } catch (error) {
       this._server.application.consoleMessage({
         message: `Connection error: ${error.message}`,
         type: 'error'
       })
-    })
+    }
+  }
+
+  /**
+ * Sets up the necessary transforms for socket connections.
+ * @private
+ */
+  _setupTransforms () {
+    const ajTransform = new DelimiterTransform(0x00)
+    const connectionTransform = new DelimiterTransform(0x00)
+
+    this._aj
+      .pipe(ajTransform)
+      .on('data', (message) => {
+        message = message.toString()
+
+        const validatedMessage = this.constructor.validate(message)
+        if (validatedMessage) {
+          validatedMessage.parse()
+
+          this._onMessageReceived({
+            type: ConnectionMessageTypes.aj,
+            message: validatedMessage,
+            packet: message
+          })
+        }
+      })
+      .once('close', this.disconnect.bind(this))
+
+    this._connection
+      .pipe(connectionTransform)
+      .on('data', (message) => {
+        message = message.toString()
+
+        const validatedMessage = this.constructor.validate(message)
+        if (validatedMessage) {
+          validatedMessage.parse()
+
+          this._onMessageReceived({
+            type: ConnectionMessageTypes.connection,
+            message: validatedMessage,
+            packet: message
+          })
+        }
+      })
+      .once('close', this.disconnect.bind(this))
   }
 
   /**
@@ -145,25 +192,45 @@ module.exports = class Client {
    * @returns {Promise<number>}
    * @private
    */
-  _sendMessage (socket, message) {
-    message = message instanceof Message ? message.toMessage() : message
+  async _sendMessage (socket, message) {
+    if (message instanceof Message) {
+      message = message.toMessage()
+    }
 
     if (!socket.writable || socket.destroyed) {
-      return Promise.reject(new Error('Failed to write to socket after end!'))
+      throw new Error('Failed to write to socket after end!')
     }
 
     return new Promise((resolve, reject) => {
-      const onceError = (err) => reject(err)
-      const onceClose = () => resolve(message.length)
-      const onceDrain = () => resolve(message.length)
+      const onError = (err) => {
+        cleanup()
+        reject(err)
+      }
 
-      socket.once('error', onceError)
-      socket.once('close', onceClose)
-      socket.once('drain', onceDrain)
+      const onDrain = () => {
+        cleanup()
+        resolve(message.length)
+      }
+
+      const onClose = () => {
+        cleanup()
+        reject(new Error('Socket closed before the message could be sent'))
+      }
+
+      const cleanup = () => {
+        socket.off('error', onError)
+        socket.off('drain', onDrain)
+        socket.off('close', onClose)
+      }
+
+      socket.once('error', onError)
+      socket.once('drain', onDrain)
+      socket.once('close', onClose)
 
       const writable = socket.write(message) && socket.write('\x00')
+
       if (writable) {
-        socket.off('error', onceError)
+        cleanup()
         resolve(message.length)
       }
     }).catch((error) => {
@@ -180,9 +247,13 @@ module.exports = class Client {
    * @param message
    * @private
    */
-  _onMessageReceived ({ type, message, packet }) {
+  async _onMessageReceived ({ type, message, packet }) {
+    // Dispatch the message
     this._server.application.dispatch.all({ type, message })
 
+    console.log('RECEIVED', message)
+
+    // Handle cross-domain policy response
     if (type === ConnectionMessageTypes.aj && packet.includes('cross-domain-policy')) {
       const crossDomainMessage = `<?xml version="1.0"?>
         <!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
@@ -190,17 +261,23 @@ module.exports = class Client {
         <allow-access-from domain="*" to-ports="80,443"/>
         </cross-domain-policy>`
 
-      return this.sendConnectionMessage(crossDomainMessage)
+      await this.sendConnectionMessage(crossDomainMessage)
+      return
     }
 
-    if (type === ConnectionMessageTypes.connection && BLACKLIST_MESSAGES.includes(message.type)) {
-      return this.sendRemoteMessage(packet)
+    // Handle blacklisted messages
+    if (type === ConnectionMessageTypes.connection && BLACKLIST_MESSAGES.has(message.type)) {
+      await this.sendRemoteMessage(packet)
+      return
     }
 
+    // Handle messages based on the type
     if (message.send) {
-      return type === ConnectionMessageTypes.connection
-        ? this.sendRemoteMessage(message)
-        : this.sendConnectionMessage(message)
+      if (type === ConnectionMessageTypes.connection) {
+        await this.sendRemoteMessage(message)
+      } else {
+        await this.sendConnectionMessage(message)
+      }
     }
   }
 

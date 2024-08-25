@@ -1,12 +1,12 @@
 const { app, BrowserWindow, globalShortcut, shell, ipcMain } = require('electron')
 const path = require('path')
 const { fork } = require('child_process')
-const { autoUpdater, AppUpdater } = require('electron-updater')
+const { autoUpdater } = require('electron-updater')
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 /**
- * The default window options.
+ * Default window options.
  * @type {Object}
  * @constant
  */
@@ -18,48 +18,35 @@ const defaultWindowOptions = {
   width: 840,
   height: 545,
   frame: false,
-  protocol: 'file',
-  slashes: true,
   webPreferences: {
     webSecurity: false,
-    enableRemoteModule: true,
     contextIsolation: false,
-    nativeWindowOpen: true,
     nodeIntegration: true,
-    preload: path.join(__dirname, 'preload.js')
-
+    preload: path.resolve(__dirname, 'preload.js')
   },
   icon: path.join('assets', 'icon.png')
 }
 
-module.exports = class Electron {
+class Electron {
   /**
    * Constructor.
    * @constructor
    */
   constructor () {
-    /**
-     * The main electron window.
-     * @type {?BrowserWindow}
-     * @private
-     */
     this._window = null
-
-    /**
-     * The api backend process.
-     * @type {ChildProcess}
-     * @private
-     */
     this._apiProcess = null
+    this._setupIPC()
+  }
 
-    /**
-     * Handles the IPC main events.
-     * @events
-     */
-    ipcMain.on('open-directory', this._openItem.bind(this))
+  /**
+   * Sets up IPC event handlers.
+   * @private
+   */
+  _setupIPC () {
+    ipcMain.on('open-directory', (event, filePath) => shell.openExternal(`file://${filePath}`))
     ipcMain.on('window-close', () => this._window.close())
     ipcMain.on('window-minimize', () => this._window.minimize())
-    ipcMain.on('open-settings', (_, path) => shell.openExternal(path))
+    ipcMain.on('open-settings', (_, url) => shell.openExternal(url))
     ipcMain.on('application-relaunch', () => {
       setTimeout(() => {
         app.relaunch()
@@ -69,84 +56,70 @@ module.exports = class Electron {
   }
 
   /**
-   * Creates the main window.
+   * Creates the main window and sets up event handlers.
    * @returns {this}
    * @public
    */
   create () {
     app.whenReady().then(() => this._onReady())
-
-    app
-      .on('window-all-closed', () => {
-        if (process.platform !== 'darwin') app.quit()
-      })
-      .on('before-quit', () => this.messageWindow('close'))
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') app.quit()
+    })
+    app.on('before-quit', () => this.messageWindow('close'))
 
     return this
   }
 
   /**
-   * Opens a item.
-   * @param {Event} event
-   * @param {string} path
-   * @returns {Promise<void>}
-   * @private
-   */
-  _openItem (event, path) {
-    return shell.openExternal(`file://${path}`)
-  }
-
-  /**
    * Registers a global shortcut.
-   * @param {string} key
-   * @param {Function} callback
-   * @returns {void}
+   * @param {string} key - The shortcut key.
+   * @param {Function} callback - The callback function.
    * @private
    */
-  _shortcut (key, callback) {
-    return globalShortcut.register(key, callback)
+  _registerShortcut (key, callback) {
+    globalShortcut.register(key, callback)
   }
 
   /**
-   * Creates a new browser window.
-   * @param {Event} event
-   * @param {string} url
-   * @param {string} frameName
-   * @param {any} _
-   * @param {Object} options
+   * Creates a new browser window based on the frame name.
+   * @param {Object} options - Options for creating the window.
+   * @param {string} options.url - The URL to open.
+   * @param {string} options.frameName - The name of the frame.
    * @private
    */
   _createWindow ({ url, frameName }) {
-    switch (frameName) {
-      case 'external':
-        shell.openExternal(url)
-        return { action: 'deny' }
+    if (frameName === 'external') {
+      shell.openExternal(url)
+      return { action: 'deny' }
+    }
 
-      default:
-        return {
-          action: 'allow',
-          overrideBrowserWindowOptions: {
-            autoHideMenuBar: true,
-            frame: true,
-            webPreferences: {
-              nativeWindowOpen: true,
-              webSecurity: false,
-              contextIsolation: false
-            }
-          }
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        ...defaultWindowOptions,
+        autoHideMenuBar: true,
+        frame: true,
+        webPreferences: {
+          ...defaultWindowOptions.webPreferences,
+          nativeWindowOpen: true,
+          webSecurity: false,
+          contextIsolation: false
         }
+      }
     }
   }
 
-  buildAutoUpdater () {
+  /**
+   * Initializes the auto-updater and sets up update checks.
+   * @private
+   */
+  _initAutoUpdater () {
     autoUpdater.allowDowngrade = false
     autoUpdater.allowPrerelease = false
 
-    const minutes = 5
-
+    const checkInterval = 1000 * 60 * 5 // 5 minutes
     autoUpdater.checkForUpdates()
-
-    setInterval(() => autoUpdater.checkForUpdates(), 1000 * 60 * minutes)
+    setInterval(() => autoUpdater.checkForUpdates(), checkInterval)
 
     autoUpdater.on('update-available', () => {
       this.messageWindow('message', {
@@ -155,7 +128,7 @@ module.exports = class Electron {
       })
     })
 
-    autoUpdater.on('update-downloaded', info => {
+    autoUpdater.on('update-downloaded', () => {
       this.messageWindow('message', {
         type: 'celebrate',
         message: 'Update Downloaded. It will be installed on restart.'
@@ -165,33 +138,35 @@ module.exports = class Electron {
 
   /**
    * Sends a message to the main window process.
-   * @param type
-   * @param message
+   * @param {string} type - The message type.
+   * @param {Object} [message={}] - The message payload.
    * @public
    */
   messageWindow (type, message = {}) {
-    this._window.webContents.send(type, message)
+    if (this._window && this._window.webContents) {
+      this._window.webContents.send(type, message)
+    }
   }
 
   /**
-   * Handles the ready event.
+   * Handles the ready event, creates the main window and spawns the API process.
    * @private
    */
   _onReady () {
     this._window = new BrowserWindow(defaultWindowOptions)
     this._window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
+    this._window.webContents.setWindowOpenHandler((details) => this._createWindow(details))
 
-    this._window.webContents.setWindowOpenHandler((...args) => this._createWindow(...args))
-
-    /**
-     * Spawns the api process.
-     */
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
 
-    // shortcut
-    this._shortcut('f11', () => this._window.webContents.openDevTools())
-    if (!isDevelopment) this.buildAutoUpdater()
+    this._registerShortcut('F11', () => this._window.webContents.openDevTools())
+
+    if (!isDevelopment) {
+      this._initAutoUpdater()
+    }
 
     this._window.on('close', () => this.messageWindow('close'))
   }
 }
+
+module.exports = Electron

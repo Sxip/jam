@@ -1,10 +1,9 @@
-const { rootPath } = require('electron-root-path')
 const { readFile, writeFile } = require('fs/promises')
 const { watch } = require('fs')
 const path = require('path')
 const { debounce } = require('lodash')
 
-const BASE_PATH = path.resolve(rootPath, 'settings.json')
+const BASE_PATH = path.resolve('settings.json')
 
 module.exports = class Settings {
   constructor () {

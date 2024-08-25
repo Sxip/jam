@@ -1,8 +1,6 @@
-const { rootPath } = require('electron-root-path')
-const { readdir, stat } = require('fs/promises')
 const path = require('path')
 const { PluginManager: PM } = require('live-plugin-manager')
-
+const fs = require('fs').promises
 const Ajv = new (require('ajv'))({ useDefaults: true })
 const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
 
@@ -10,7 +8,7 @@ const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
  * The path to the plugins folder.
  * @constant
  */
-const BASE_PATH = path.resolve(rootPath, 'plugins/')
+const BASE_PATH = path.resolve('plugins/')
 
 /**
  * The default Configuration schema.
@@ -111,14 +109,19 @@ module.exports = class Dispatch {
     const result = []
 
     const read = async (dir) => {
-      const files = await readdir(dir)
+      const entries = await fs.readdir(dir, { withFileTypes: true })
 
-      for (const file of files) {
-        const filepath = path.join(dir, file)
+      const promises = entries.map(async (entry) => {
+        const filepath = path.join(dir, entry.name)
 
-        if (((await stat(filepath)).isDirectory())) await read(filepath)
-        else result.push(filepath)
-      }
+        if (entry.isDirectory()) {
+          await read(filepath)
+        } else {
+          result.push(filepath)
+        }
+      })
+
+      await Promise.all(promises)
     }
 
     await read(directory)
@@ -135,12 +138,21 @@ module.exports = class Dispatch {
 
     if (plugin) {
       const { filepath, configuration: { main } } = plugin
-      const popup = window.open(`${filepath}\\${main}`)
+      const url = `file://${path.join(filepath, main)}`
 
-      popup.jam = {
-        application: this._application,
-        dispatch: this
+      const popup = window.open(url, '_blank', 'noopener,noreferrer')
+
+      if (popup) {
+        popup.jam = {
+          application: this._application,
+          dispatch: this
+        }
       }
+    } else {
+      this._application.consoleMessage({
+        type: 'error',
+        message: `Plugin "${name}" not found.`
+      })
     }
   }
 
@@ -149,20 +161,18 @@ module.exports = class Dispatch {
    * @param {object} configuration
    * @public
    */
-  async installDepencies (configuration) {
+  async installDependencies (configuration) {
     const { dependencies } = configuration
 
-    const promises = []
-    if (Object.keys(configuration.dependencies).length > 0) {
-      for (const dependency in dependencies) {
-        const module = dependency
-        const version = dependencies[dependency]
-
-        promises.push(this.dependencyManager.install(module, version))
-      }
-
-      await Promise.all(promises)
+    if (!dependencies || Object.keys(dependencies).length === 0) {
+      return
     }
+
+    const installPromises = Object.entries(dependencies).map(
+      ([module, version]) => this.dependencyManager.install(module, version)
+    )
+
+    await Promise.all(installPromises)
   }
 
   /**
@@ -180,11 +190,27 @@ module.exports = class Dispatch {
    * @public
    */
   waitForJQuery (window, callback) {
-    const wait = this.setInterval(() => {
-      if (typeof window.$ !== 'undefined') {
-        callback()
-        this.clearInterval(wait)
-      }
+    return new Promise((resolve, reject) => {
+      const checkInterval = 100
+      const maxRetries = 100
+      let retries = 0
+
+      const intervalId = setInterval(() => {
+        if (typeof window.$ !== 'undefined') {
+          clearInterval(intervalId)
+          try {
+            callback()
+            resolve()
+          } catch (error) {
+            reject(error)
+          }
+        } else if (retries >= maxRetries) {
+          clearInterval(intervalId)
+          reject(new Error('jQuery was not found within the expected time.'))
+        } else {
+          retries++
+        }
+      }, checkInterval)
     })
   }
 
@@ -194,15 +220,27 @@ module.exports = class Dispatch {
    * @public
    */
   async load (filter = file => path.basename(file) === 'plugin.json') {
-    const filepaths = await this.constructor.readdirRecursive(BASE_PATH)
+    try {
+      const filepaths = await this.constructor.readdirRecursive(BASE_PATH)
 
-    for (let filepath of filepaths) {
-      filepath = path.resolve(filepath)
-
-      if (filter(filepath)) {
-        const configuration = require(filepath)
-        this._storeAndValidate(path.dirname(filepath), configuration)
-      }
+      await Promise.all(filepaths.map(async filepath => {
+        if (filter(filepath)) {
+          try {
+            const configuration = require(filepath)
+            await this._storeAndValidate(path.dirname(filepath), configuration.default || configuration)
+          } catch (error) {
+            this._application.consoleMessage({
+              type: 'error',
+              message: `Error loading plugin ${filepath}: ${error.message}`
+            })
+          }
+        }
+      }))
+    } catch (error) {
+      this._application.consoleMessage({
+        type: 'error',
+        message: `Error loading plugins: ${error.message}`
+      })
     }
   }
 
@@ -212,37 +250,22 @@ module.exports = class Dispatch {
    * @public
    */
   async all ({ message, type }) {
-    const promises = []
-    const hooks = []
+    const hooks = [
+      ...(type === ConnectionMessageTypes.aj ? this.hooks.aj.get(message.type) || [] : []),
+      ...(type === ConnectionMessageTypes.connection ? this.hooks.connection.get(message.type) || [] : []),
+      ...(this.hooks.any.get(ConnectionMessageTypes.any) || [])
+    ]
 
-    switch (type) {
-      case ConnectionMessageTypes.aj:
-        hooks.push(...this.hooks.aj.get(message.type) || [])
-        break
-
-      case ConnectionMessageTypes.connection:
-        hooks.push(...this.hooks.connection.get(message.type) || [])
-        break
-    }
-
-    if (this.hooks.any.size > 0) {
-      hooks.push(...this.hooks.any.get(ConnectionMessageTypes.any))
-    }
-
-    for (const execute of hooks) {
-      promises.push(
-        (async () => {
-          try {
-            execute({ type, dispatch: this, message })
-          } catch (error) {
-            return this._application.consoleMessage({
-              type: 'error',
-              message: `Failed hooking packet ${message.type}. ${error.message}`
-            })
-          }
-        })()
-      )
-    }
+    const promises = hooks.map(async (hook) => {
+      try {
+        await hook({ type, dispatch: this, message })
+      } catch (error) {
+        this._application.consoleMessage({
+          type: 'error',
+          message: `Failed hooking packet ${message.type}. ${error.message}`
+        })
+      }
+    })
 
     await Promise.all(promises)
   }
@@ -252,15 +275,23 @@ module.exports = class Dispatch {
    * @param messages
    * @public
    */
-  sendMultipleMessages ({ type, messages = [] } = {}) {
-    const promises = []
-
-    for (const message of messages) {
-      type === ConnectionMessageTypes.aj
-        ? promises.push(this.sendRemoteMessage(message))
-        : promises.push(this.sendConnectionMessage(message))
+  async sendMultipleMessages ({ type, messages = [] } = {}) {
+    if (messages.length === 0) {
+      return Promise.resolve()
     }
-    return Promise.all(promises)
+
+    const sendFunction = type === ConnectionMessageTypes.aj
+      ? this.sendRemoteMessage.bind(this)
+      : this.sendConnectionMessage.bind(this)
+
+    try {
+      await Promise.all(messages.map(sendFunction))
+    } catch (error) {
+      this._application.consoleMessage({
+        type: 'error',
+        message: `Error sending messages: ${error.message}`
+      })
+    }
   }
 
   /**
@@ -272,47 +303,57 @@ module.exports = class Dispatch {
   async _storeAndValidate (filepath, configuration) {
     const validate = Ajv.compile(ConfigurationSchema)
 
-    const valid = validate(configuration)
-    if (!valid) {
-      return this._application.consoleMessage({
+    if (!validate(configuration)) {
+      this._application.consoleMessage({
         type: 'error',
         message: `Failed validating the configuration for the plugin ${filepath}. ${validate.errors[0].message}.`
       })
+      return
     }
 
+    // Check if the plugin name already exists
     if (this.plugins.has(configuration.name)) {
-      return this._application.consoleMessage({
+      this._application.consoleMessage({
         type: 'error',
         message: `Plugin with the name ${configuration.name} already exists.`
       })
+      return
     }
-    switch (configuration.type) {
-      case PluginTypes.game: {
-        const PluginInstance = require(`${filepath}\\${configuration.main}`)
 
-        await this.installDepencies(configuration)
+    try {
+      await this.installDependencies(configuration)
 
-        const plugin = new PluginInstance({
-          application: this._application,
-          dispatch: this
-        })
+      switch (configuration.type) {
+        case PluginTypes.game: {
+          const PluginInstance = require(path.join(filepath, configuration.main))
+          const plugin = new PluginInstance({
+            application: this._application,
+            dispatch: this
+          })
 
-        this.plugins.set(configuration.name, {
-          configuration,
-          filepath,
-          plugin
-        })
+          this.plugins.set(configuration.name, {
+            configuration,
+            filepath,
+            plugin
+          })
+          break
+        }
+
+        case PluginTypes.ui:
+          this.plugins.set(configuration.name, { configuration, filepath })
+          break
+
+        default:
+          throw new Error(`Unsupported plugin type: ${configuration.type}`)
       }
-        break
 
-      case PluginTypes.ui:
-        await this.installDepencies(configuration)
-        this.plugins.set(configuration.name, { configuration, filepath })
-        break
+      this._application.renderPluginItems(configuration)
+    } catch (error) {
+      this._application.consoleMessage({
+        type: 'error',
+        message: `Error processing the plugin ${filepath}: ${error.message}`
+      })
     }
-
-    // Render the plugin items
-    this._application.renderPluginItems(configuration)
   }
 
   /**
@@ -321,20 +362,27 @@ module.exports = class Dispatch {
    * @returns {Promise<void>}
    */
   async refresh () {
-    this._application.$pluginList.empty()
+    const { $pluginList, emit, consoleMessage } = this._application
 
-    for (const plugin of this.plugins.values()) {
-      const { filepath, configuration: { main } } = plugin
+    $pluginList.empty()
 
-      if (path.extname(main) === '.js') delete require.cache[require.resolve(`${filepath}\\${main}`)]
-      delete require.cache[require.resolve(`${filepath}\\plugin.json`)]
+    const pluginPaths = [...this.plugins.values()].map(({ filepath, configuration: { main } }) => ({
+      jsPath: path.resolve(filepath, main),
+      jsonPath: path.resolve(filepath, 'plugin.json')
+    }))
+
+    for (const { jsPath, jsonPath } of pluginPaths) {
+      const jsCacheKey = require.resolve(jsPath)
+      const jsonCacheKey = require.resolve(jsonPath)
+      if (require.cache[jsCacheKey]) delete require.cache[jsCacheKey]
+      if (require.cache[jsonCacheKey]) delete require.cache[jsonCacheKey]
     }
 
     this._clearHooks()
     await this.load()
 
-    this._application.emit('refresh:plugins')
-    this._application.consoleMessage({
+    emit('refresh:plugins')
+    consoleMessage({
       type: 'success',
       message: 'Successfully refreshed plugins.'
     })
@@ -455,8 +503,11 @@ module.exports = class Dispatch {
    * @param command
    * @public
    */
-  onCommand ({ name, description, callback } = {}) {
-    if (!this.commands.has(name)) this.commands.set(name, { name, description, callback })
+  onCommand ({ name, description = '', callback } = {}) {
+    if (typeof name !== 'string' || typeof callback !== 'function') return
+
+    if (this.commands.has(name)) return
+    this.commands.set(name, { name, description, callback })
   }
 
   /**
@@ -464,15 +515,13 @@ module.exports = class Dispatch {
    * @param command
    * @public
    */
-  offCommand ({ name, callback }) {
-    const command = this.commands.has(name)
+  offCommand ({ name, callback } = {}) {
+    if (!this.commands.has(name)) return
 
-    if (command) {
-      if (command.length > 0) {
-        const index = command.indexOf(callback)
-        if (index !== -1) command.splice(index, 1)
-      }
-    }
+    const commandCallbacks = this.commands.get(name)
+
+    const index = commandCallbacks.indexOf(callback)
+    if (index !== -1) commandCallbacks.splice(index, 1)
   }
 
   /**
@@ -480,20 +529,15 @@ module.exports = class Dispatch {
    * @param options
    * @public
    */
-  onMessage (options = {}) {
-    switch (options.type) {
-      case ConnectionMessageTypes.aj:
-        this._registerAjHook(options)
-        break
-
-      case ConnectionMessageTypes.connection:
-        this._registerConnectionHook(options)
-        break
-
-      case ConnectionMessageTypes.any:
-        this._registerAnyHook(options)
-        break
+  onMessage ({ type, callback } = {}) {
+    const registrationMap = {
+      [ConnectionMessageTypes.aj]: this._registerAjHook.bind(this),
+      [ConnectionMessageTypes.connection]: this._registerConnectionHook.bind(this),
+      [ConnectionMessageTypes.any]: this._registerAnyHook.bind(this)
     }
+
+    const registerHook = registrationMap[type]
+    if (registerHook) registerHook({ message: type, callback })
   }
 
   /**
@@ -501,65 +545,76 @@ module.exports = class Dispatch {
    * @param options
    * @public
    */
-  offMessage (options = {}) {
-    let hook
-
-    switch (options.type) {
-      case ConnectionMessageTypes.aj:
-        hook = this.hooks.aj.get(options.type)
-        break
-
-      case ConnectionMessageTypes.connection:
-        hook = this.hooks.connection.get(options.type)
-        break
-
-      case ConnectionMessageTypes.any:
-        hook = this.hooks.any.get(options.type)
-        break
+  offMessage ({ type, callback } = {}) {
+    const hooksMap = {
+      [ConnectionMessageTypes.aj]: this.hooks.aj,
+      [ConnectionMessageTypes.connection]: this.hooks.connection,
+      [ConnectionMessageTypes.any]: this.hooks.any
     }
 
-    if (hook.length > 0) {
-      const index = hook.indexOf(options.callback)
-      if (index !== -1) hook.splice(index, 1)
+    const hooks = hooksMap[type]
+
+    if (hooks) {
+      const hookList = hooks.get(type)
+      if (hookList) {
+        const index = hookList.indexOf(callback)
+        if (index !== -1) {
+          hookList.splice(index, 1)
+        }
+      }
     }
   }
 
   /**
-   * Registers a local message hook.
-   * @param hook
-   * @private
-   */
+ * Registers a message hook for the specified type.
+ * @param {string} type - The type of hook to register.
+ * @param {object} hook - The hook object containing message and callback.
+ * @private
+ */
+  _registerHook (type, hook) {
+    const hooksMap = this.hooks[type]
+    if (hooksMap.has(hook.message)) {
+      hooksMap.get(hook.message).push(hook.callback)
+    } else {
+      hooksMap.set(hook.message, [hook.callback])
+    }
+  }
+
+  /**
+ * Registers a local message hook.
+ * @param {object} hook - The hook object.
+ * @private
+ */
   _registerConnectionHook (hook) {
-    if (this.hooks.connection.has(hook.message)) this.hooks.connection.get(hook.message).push(hook.callback)
-    else this.hooks.connection.set(hook.message, [hook.callback])
+    this._registerHook('connection', hook)
   }
 
   /**
-   * Registers a remote message hook.
-   * @param hook
-   * @private
-   */
+ * Registers a remote message hook.
+ * @param {object} hook - The hook object.
+ * @private
+ */
   _registerAjHook (hook) {
-    if (this.hooks.aj.has(hook.message)) this.hooks.aj.get(hook.message).push(hook.callback)
-    else this.hooks.aj.set(hook.message, [hook.callback])
+    this._registerHook('aj', hook)
   }
 
   /**
-   * Registers any message hook.
-   * @param hook
-   * @private
-   */
+ * Registers any message hook.
+ * @param {object} hook - The hook object.
+ * @private
+ */
   _registerAnyHook (hook) {
-    if (this.hooks.any.has(ConnectionMessageTypes.any)) this.hooks.any.get(ConnectionMessageTypes.any).push(hook.callback)
-    else this.hooks.any.set(ConnectionMessageTypes.any, [hook.callback])
+    this._registerHook('any', { message: ConnectionMessageTypes.any, callback: hook.callback })
   }
 
-  _clearHooks () {
+  clearAll () {
     this.plugins.clear()
     this.commands.clear()
 
-    this.hooks.connection.clear()
-    this.hooks.aj.clear()
-    this.hooks.any.clear()
+    const { connection, aj, any } = this.hooks
+
+    connection.clear()
+    aj.clear()
+    any.clear()
   }
 }

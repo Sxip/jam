@@ -1,6 +1,5 @@
 const path = require('path')
 const os = require('os')
-const { rootPath } = require('electron-root-path')
 const { rename, copyFile, rm, mkdir } = require('fs/promises')
 const { existsSync } = require('fs')
 const { execFile } = require('child_process')
@@ -58,7 +57,7 @@ module.exports = class Patcher {
 
       // Backup and replace app.asar
       if (existsSync(asarPath)) await rename(asarPath, backupAsarPath)
-      const sourceAsarPath = path.join(rootPath, 'assets', 'app.asar')
+      const sourceAsarPath = path.join('assets', 'app.asar')
       await copyFile(sourceAsarPath, asarPath)
 
       // Clear and recreate cache directory

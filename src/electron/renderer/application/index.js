@@ -359,7 +359,7 @@ module.exports = class Application extends EventEmitter {
       }).append($('<i>', { class: iconClass }))
       : null
 
-    const hoverClass = type === 'ui' ? 'hover:bg-sidebar-hover cursor-pointer' : ''
+    const hoverClass = type === 'ui' ? 'hover:bg-tertiary-bg cursor-pointer' : ''
     const onClickEvent = type === 'ui' ? `jam.application.dispatch.open('${name}')` : ''
 
     const $listItem = $('<li>', {

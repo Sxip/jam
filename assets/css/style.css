@@ -1088,9 +1088,9 @@ input:focus-visible {
   background: #5A5F6D;
 }
 
-.hover\:bg-sidebar-hover:hover{
+.hover\:bg-tertiary-bg:hover{
   --tw-bg-opacity: 1;
-  background-color: rgb(44 46 52 / var(--tw-bg-opacity));
+  background-color: rgb(58 61 77 / var(--tw-bg-opacity));
 }
 
 .focus\:outline-none:focus{
