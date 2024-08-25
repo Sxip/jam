@@ -47,16 +47,16 @@ const setupAppEvents = () => {
     .on('refresh:plugins', () => application.refreshAutoComplete())
 }
 
-// console.log = (message) => {
-//   const formattedMessage = typeof message === 'object'
-//     ? JSON.stringify(message)
-//     : message
+console.log = (message) => {
+  const formattedMessage = typeof message === 'object'
+    ? JSON.stringify(message)
+    : message
 
-//   application.consoleMessage({
-//     type: 'logger',
-//     message: formattedMessage
-//   })
-// }
+  application.consoleMessage({
+    type: 'logger',
+    message: formattedMessage
+  })
+}
 
 initializeApp()
 setupIpcEvents()

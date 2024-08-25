@@ -164,8 +164,6 @@ class Electron {
     if (!isDevelopment) {
       this._initAutoUpdater()
     }
-
-    this._window.on('close', () => this.messageWindow('close'))
   }
 }
 
