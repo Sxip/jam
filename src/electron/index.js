@@ -65,7 +65,6 @@ class Electron {
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') app.quit()
     })
-    app.on('before-quit', () => this.messageWindow('close'))
 
     return this
   }
