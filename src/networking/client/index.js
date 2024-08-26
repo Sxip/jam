@@ -248,12 +248,8 @@ module.exports = class Client {
    * @private
    */
   async _onMessageReceived ({ type, message, packet }) {
-    // Dispatch the message
     this._server.application.dispatch.all({ type, message })
 
-    console.log('RECEIVED', message)
-
-    // Handle cross-domain policy response
     if (type === ConnectionMessageTypes.aj && packet.includes('cross-domain-policy')) {
       const crossDomainMessage = `<?xml version="1.0"?>
         <!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
