@@ -1,5 +1,5 @@
 const Application = require('./application')
-const { ipcRenderer } = require('electron')
+const { ipcRenderer, app } = require('electron')
 
 const application = new Application()
 
@@ -17,17 +17,7 @@ const initializeApp = async () => {
       type: 'success'
     })
 
-    application.dispatch.onMessage({
-      type: '*',
-      callback: ({ message, type }) => {
-        application.consoleMessage({
-          type: 'speech',
-          isPacket: true,
-          isIncoming: type === 'aj',
-          message: message.toMessage()
-        })
-      }
-    })
+    application.attachNetworkingEvents()
   } catch (error) {
     application.consoleMessage({
       message: `Error during instantiation: ${error.message}`,
@@ -44,7 +34,10 @@ const setupIpcEvents = () => {
 const setupAppEvents = () => {
   application
     .on('ready', () => application.activateAutoComplete())
-    .on('refresh:plugins', () => application.refreshAutoComplete())
+    .on('refresh:plugins', () => {
+      application.refreshAutoComplete()
+      application.attachNetworkingEvents()
+    })
 }
 
 console.log = (message) => {

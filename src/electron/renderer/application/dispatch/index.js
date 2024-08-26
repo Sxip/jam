@@ -249,11 +249,11 @@ module.exports = class Dispatch {
    * @returns {Promise<void>}
    * @public
    */
-  async all ({ message, type }) {
+  async all ({ type, message }) {
     const hooks = [
-      ...(type === ConnectionMessageTypes.aj ? this.hooks.aj.get(message.type) || [] : []),
-      ...(type === ConnectionMessageTypes.connection ? this.hooks.connection.get(message.type) || [] : []),
-      ...(this.hooks.any.get(ConnectionMessageTypes.any) || [])
+      ...type === ConnectionMessageTypes.aj ? this.hooks.aj.get(message.type) || [] : [],
+      ...type === ConnectionMessageTypes.connection ? this.hooks.connection.get(message.type) || [] : [],
+      ...this.hooks.any.get(ConnectionMessageTypes.any) || []
     ]
 
     const promises = hooks.map(async (hook) => {
@@ -362,7 +362,7 @@ module.exports = class Dispatch {
    * @returns {Promise<void>}
    */
   async refresh () {
-    const { $pluginList, emit, consoleMessage } = this._application
+    const { $pluginList, consoleMessage } = this._application
 
     $pluginList.empty()
 
@@ -378,10 +378,10 @@ module.exports = class Dispatch {
       if (require.cache[jsonCacheKey]) delete require.cache[jsonCacheKey]
     }
 
-    this._clearHooks()
+    this.clearAll()
     await this.load()
 
-    emit('refresh:plugins')
+    this._application.emit('refresh:plugins')
     consoleMessage({
       type: 'success',
       message: 'Successfully refreshed plugins.'
@@ -529,7 +529,7 @@ module.exports = class Dispatch {
    * @param options
    * @public
    */
-  onMessage ({ type, callback } = {}) {
+  onMessage ({ type, message, callback } = {}) {
     const registrationMap = {
       [ConnectionMessageTypes.aj]: this._registerAjHook.bind(this),
       [ConnectionMessageTypes.connection]: this._registerConnectionHook.bind(this),
@@ -537,7 +537,9 @@ module.exports = class Dispatch {
     }
 
     const registerHook = registrationMap[type]
-    if (registerHook) registerHook({ message: type, callback })
+    if (registerHook) {
+      registerHook({ type, message, callback })
+    }
   }
 
   /**
@@ -571,12 +573,19 @@ module.exports = class Dispatch {
  * @param {object} hook - The hook object containing message and callback.
  * @private
  */
-  _registerHook (type, hook) {
+  _registerHook (type, { message, callback }) {
+    if (!this.hooks[type]) {
+      return this._application.consoleMessage({
+        type: 'error',
+        message: `Invalid hook type: ${type}`
+      })
+    }
+
     const hooksMap = this.hooks[type]
-    if (hooksMap.has(hook.message)) {
-      hooksMap.get(hook.message).push(hook.callback)
+    if (hooksMap.has(message)) {
+      hooksMap.get(message).push(callback)
     } else {
-      hooksMap.set(hook.message, [hook.callback])
+      hooksMap.set(message, [callback])
     }
   }
 

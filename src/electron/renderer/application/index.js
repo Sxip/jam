@@ -199,6 +199,24 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
+   * Attaches networking events.
+   * @public
+   */
+  attachNetworkingEvents () {
+    this.dispatch.onMessage({
+      type: '*',
+      callback: ({ message, type }) => {
+        this.consoleMessage({
+          type: 'speech',
+          isPacket: true,
+          isIncoming: type === 'aj',
+          message: message.toMessage()
+        })
+      }
+    })
+  }
+
+  /**
    * Handles input autocomplete activation.
    * @type {void}
    * @public

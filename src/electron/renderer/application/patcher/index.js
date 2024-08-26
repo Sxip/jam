@@ -41,6 +41,8 @@ module.exports = class Patcher {
       this._animalJamProcess = await execFileAsync(exePath)
     } catch (error) {
       console.error(`Failed to start Animal Jam Classic process: ${error.message}`)
+    } finally {
+      await this.restoreOriginalAsar()
     }
   }
 
@@ -51,16 +53,17 @@ module.exports = class Patcher {
   async patchApplication () {
     const asarPath = path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, 'resources', 'app.asar')
     const backupAsarPath = `${asarPath}.unpatched`
+    const customAsarPath = path.join('assets', 'app.asar')
 
     try {
       process.noAsar = true
 
-      // Backup and replace app.asar
-      if (existsSync(asarPath)) await rename(asarPath, backupAsarPath)
-      const sourceAsarPath = path.join('assets', 'app.asar')
-      await copyFile(sourceAsarPath, asarPath)
+      if (!existsSync(backupAsarPath) && existsSync(asarPath)) {
+        await rename(asarPath, backupAsarPath)
+      }
 
-      // Clear and recreate cache directory
+      await copyFile(customAsarPath, asarPath)
+
       if (existsSync(ANIMAL_JAM_CLASSIC_CACHE_PATH)) {
         await rm(ANIMAL_JAM_CLASSIC_CACHE_PATH, { recursive: true })
         await mkdir(ANIMAL_JAM_CLASSIC_CACHE_PATH, { recursive: true })
@@ -69,6 +72,23 @@ module.exports = class Patcher {
       console.error(`Failed to patch Animal Jam Classic: ${error.message}`)
     } finally {
       process.noAsar = false
+    }
+  }
+
+  /**
+   * Restores the original app.asar file.
+   * @returns {Promise<void>}
+   */
+  async restoreOriginalAsar () {
+    const asarPath = path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, 'resources', 'app.asar')
+    const backupAsarPath = `${asarPath}.unpatched`
+
+    try {
+      if (existsSync(backupAsarPath)) {
+        await rename(backupAsarPath, asarPath)
+      }
+    } catch (error) {
+      console.error(`Failed to restore original app.asar: ${error.message}`)
     }
   }
 }
