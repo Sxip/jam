@@ -126,15 +126,12 @@ module.exports = class Application extends EventEmitter {
    */
   async _checkForHostChanges () {
     try {
-      // Fetch the data using HttpClient
       const data = await HttpClient.fetchFlashvars()
       let { smartfoxServer } = data
 
-      // Modify the smartfoxServer string
       smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
       smartfoxServer = `lb-${smartfoxServer}`
 
-      // Update settings if there is a change
       if (smartfoxServer !== this.settings.get('smartfoxServer')) {
         this.settings.update('smartfoxServer', smartfoxServer)
 
