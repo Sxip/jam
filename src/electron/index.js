@@ -20,6 +20,7 @@ const defaultWindowOptions = {
   frame: false,
   webPreferences: {
     webSecurity: false,
+    nativeWindowOpen: true,
     contextIsolation: false,
     nodeIntegration: true,
     preload: path.resolve(__dirname, 'preload.js')
@@ -99,10 +100,7 @@ class Electron {
         autoHideMenuBar: true,
         frame: true,
         webPreferences: {
-          ...defaultWindowOptions.webPreferences,
-          nativeWindowOpen: true,
-          webSecurity: false,
-          contextIsolation: false
+          ...defaultWindowOptions.webPreferences
         }
       }
     }

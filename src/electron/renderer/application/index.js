@@ -104,17 +104,15 @@ module.exports = class Application extends EventEmitter {
      * @type {void}
      * @private
      */
-    this.$input.on('keydown', event => {
-      const key = event.key
-
-      if (key === 'Enter') {
+    this.$input.on('keydown', (event) => {
+      if (event.key === 'Enter') {
         const message = this.$input.val().trim()
-
-        const parameters = message.split(' ')
-        const command = parameters.shift()
+        const [command, ...parameters] = message.split(' ')
 
         const cmd = this.dispatch.commands.get(command)
-        if (cmd) cmd.callback({ parameters })
+        if (cmd) {
+          cmd.callback({ parameters })
+        }
 
         this.$input.val('')
       }
@@ -127,29 +125,27 @@ module.exports = class Application extends EventEmitter {
    * @privte
    */
   async _checkForHostChanges () {
-    // eslint-disable-next-line no-async-promise-executor
-    await new Promise(async (resolve, reject) => {
-      try {
-        const data = await HttpClient.fetchFlashvars()
-        let { smartfoxServer } = data
+    try {
+      // Fetch the data using HttpClient
+      const data = await HttpClient.fetchFlashvars()
+      let { smartfoxServer } = data
 
-        smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
-        smartfoxServer = `lb-${smartfoxServer}`
+      // Modify the smartfoxServer string
+      smartfoxServer = smartfoxServer.replace(/\.(stage|prod)\.animaljam\.internal$/, '-$1.animaljam.com')
+      smartfoxServer = `lb-${smartfoxServer}`
 
-        if (smartfoxServer !== this.settings.get('smartfoxServer')) {
-          this.settings.update('smartfoxServer', smartfoxServer)
+      // Update settings if there is a change
+      if (smartfoxServer !== this.settings.get('smartfoxServer')) {
+        this.settings.update('smartfoxServer', smartfoxServer)
 
-          this.consoleMessage({
-            message: 'Server host has changed. Changes are now being applied.',
-            type: 'notify'
-          })
-        }
-
-        resolve()
-      } catch (error) {
-        reject(new Error(`Unexpected error occurred while trying to check for host changes. ${error.message}`))
+        this.consoleMessage({
+          message: 'Server host has changed. Changes are now being applied.',
+          type: 'notify'
+        })
       }
-    })
+    } catch (error) {
+      console.error(`Unexpected error occurred while trying to check for host changes: ${error.message}`)
+    }
   }
 
   /**

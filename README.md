@@ -31,7 +31,7 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 ## Run from source
 
 1. Clone the repository.
-2. Install dependencies with `npm install --force`.
+2. Install dependencies with `npm install`.
 3. Run `npm run dev` to start the application.
 
 

@@ -140,7 +140,7 @@ module.exports = class Dispatch {
       const { filepath, configuration: { main } } = plugin
       const url = `file://${path.join(filepath, main)}`
 
-      const popup = window.open(url, '_blank', 'noopener,noreferrer')
+      const popup = window.open(url)
 
       if (popup) {
         popup.jam = {
