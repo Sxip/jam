@@ -139,7 +139,7 @@ class Spammer {
 
     type = row.cells[0].innerText
     content = row.cells[1].innerText
-    delay = parseInt(row.cells[2].innerText)
+    delay = parseFloat(row.cells[2].innerText)
 
     switch (type) {
       case 'aj':
