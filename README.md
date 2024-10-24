@@ -33,11 +33,3 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 1. Clone the repository.
 2. Install dependencies with `npm install`.
 3. Run `npm run dev` to start the application.
-
-
-## Join the Community
-
-Connect with us on Discord for support, updates, and discussions:
-
-[![Discord Server](https://img.shields.io/discord/1208534012801323089?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/eTj4rJGNc2)
-
