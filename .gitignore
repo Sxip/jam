@@ -3,3 +3,5 @@ build/
 dev-app-update.yml
 plugin_packages/
 .DS_Store
+assets/winapp/
+assets/osxapp/
