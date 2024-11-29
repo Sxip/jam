@@ -3,7 +3,11 @@ const { watch } = require('fs')
 const path = require('path')
 const { debounce } = require('lodash')
 
-const BASE_PATH = path.resolve('settings.json')
+const BASE_PATH = process.platform == 'win32'
+  ? path.resolve('settings.json')
+  : process.platform == 'darwin'
+  ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..','settings.json')
+  : undefined
 
 module.exports = class Settings {
   constructor () {

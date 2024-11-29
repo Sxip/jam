@@ -5,7 +5,9 @@
   "version": "3.0.2",
   "scripts": {
     "dev": "npx cross-env NODE_ENV=development nodemon",
-    "build:win": "npx electron-builder build -w --x64 --ia32 -p never"
+    "build:win": "npx electron-builder build -w --x64 --ia32 -p never",
+    "build:mac": "npx electron-builder build -m --arm64 -p never",
+    "build:winmac": "npx electron-builder build -mw"
   },
   "repository": {
     "type": "git",
@@ -49,6 +51,9 @@
     },
     "win": {
       "requestedExecutionLevel": "highestAvailable"
+    },
+    "mac": {
+      "identity": null
     },
     "files": [
       "src/**/*"

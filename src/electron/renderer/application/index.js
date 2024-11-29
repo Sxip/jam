@@ -280,7 +280,7 @@ module.exports = class Application extends EventEmitter {
     const status = (type, message) => {
       const statusInfo = messageStatus[type]
       if (!statusInfo) throw new Error('Invalid Status Type.')
-      return `<img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 mr-2 opacity-80 align-middle" /> ${message || ''}`
+      return `<img src="../../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 mr-2 opacity-80 align-middle" /> ${message || ''}`
     }
 
     const getTime = () => {
