@@ -8,7 +8,11 @@ const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
  * The path to the plugins folder.
  * @constant
  */
-const BASE_PATH = path.resolve('plugins/')
+const BASE_PATH = process.platform == 'win32'
+  ? path.resolve('plugins/')
+  : process.platform == 'darwin'
+  ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..','plugins/')
+  : undefined
 
 /**
  * The default Configuration schema.
@@ -56,7 +60,10 @@ module.exports = class Dispatch {
      * @type {PluginManager}
      * @public
      */
-    this.dependencyManager = new PM()
+    this.dependencyManager = new PM(process.platform == 'darwin'
+      ? {pluginsPath: path.join(__dirname, '..', '..', '..', '..', '..', '..', '..', 'plugin_packages')}
+      : {}
+    )
 
     /**
      * Stores all of the commands

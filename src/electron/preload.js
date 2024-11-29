@@ -4,8 +4,8 @@ const __init__ = () => {
   const link = document.createElement('link')
   link.setAttribute('rel', 'stylesheet')
   link.setAttribute('href', isPluginPage
-    ? 'file:///../../../../assets/css/plugins/style.css'
-    : 'file:///../../../../assets/css/style.css')
+    ? '../../../../../assets/css/plugins/style.css'
+    : '../../../../../assets/css/style.css')
 
   document.head.appendChild(link)
 

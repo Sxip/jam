@@ -11,13 +11,21 @@ const execFileAsync = promisify(execFile)
  * Animal Jam Classic base path.
  * @constant
  */
-const ANIMAL_JAM_CLASSIC_BASE_PATH = path.join(os.homedir(), 'AppData', 'Local', 'Programs', 'aj-classic')
+const ANIMAL_JAM_CLASSIC_BASE_PATH = process.platform == 'win32' 
+  ? path.join(os.homedir(), 'AppData', 'Local', 'Programs', 'aj-classic') 
+  : process.platform == 'darwin' 
+  ? path.join('/', 'Applications', 'AJ Classic.app', 'Contents') 
+  : undefined
 
 /**
  * Animal Jam cache path.
  * @constant
  */
-const ANIMAL_JAM_CLASSIC_CACHE_PATH = path.join(os.homedir(), 'AppData', 'Roaming', 'AJ Classic', 'Cache')
+const ANIMAL_JAM_CLASSIC_CACHE_PATH = process.platform == 'win32'
+  ? path.join(os.homedir(), 'AppData', 'Roaming', 'AJ Classic', 'Cache') 
+  : process.platform == 'darwin' 
+  ? path.join(os.homedir(), 'Library', 'Application Support', 'AJ Classic', 'Cache') 
+  : undefined
 
 module.exports = class Patcher {
   /**
@@ -37,7 +45,12 @@ module.exports = class Patcher {
     try {
       await this.patchApplication()
 
-      const exePath = path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, 'AJ Classic.exe')
+      const exePath = process.platform == 'win32' 
+        ? path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, 'AJ Classic.exe') 
+        : process.platform == 'darwin' 
+        ? path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, "MacOS", 'AJ Classic') 
+        : undefined
+
       this._animalJamProcess = await execFileAsync(exePath)
     } catch (error) {
       console.error(`Failed to start Animal Jam Classic process: ${error.message}`)
@@ -53,7 +66,11 @@ module.exports = class Patcher {
   async patchApplication () {
     const asarPath = path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, 'resources', 'app.asar')
     const backupAsarPath = `${asarPath}.unpatched`
-    const customAsarPath = path.join('assets', 'app.asar')
+    const customAsarPath = process.platform == 'win32' 
+      ? path.join('assets', 'app.asar')
+      : process.platform == 'darwin'
+      ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..', 'assets', 'app.asar')
+      : undefined
 
     try {
       process.noAsar = true
