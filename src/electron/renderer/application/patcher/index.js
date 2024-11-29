@@ -67,9 +67,9 @@ module.exports = class Patcher {
     const asarPath = path.join(ANIMAL_JAM_CLASSIC_BASE_PATH, 'resources', 'app.asar')
     const backupAsarPath = `${asarPath}.unpatched`
     const customAsarPath = process.platform == 'win32' 
-      ? path.join('assets', 'app.asar')
+      ? path.join('assets', 'winapp.asar')
       : process.platform == 'darwin'
-      ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..', 'assets', 'app.asar')
+      ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..', 'assets', 'osxapp.asar')
       : undefined
 
     try {
