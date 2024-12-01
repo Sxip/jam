@@ -30,7 +30,7 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 
 ### MacOS
 
-1. Download the latest version of [Jam-arm64.dmg](https://github.com/sxip/jam/releases/latest).
+1. Download the latest version of [Jam.dmg](https://github.com/sxip/jam/releases/latest).
 2. Mount the downloaded file.
 3. Install `Jam` by moving it to the Applications folder
 4. Run `sudo /Applications/Jam.app/Contents/MacOS/Jam` to start the application.
