@@ -18,6 +18,7 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
   - [Run from source](#run-from-source)
 - [Guides](#guides)
   - [Playing Animal Jam Play Wild with Jam](docs/play-wild.md)
+  - [Running and Troubleshooting Jam on macOS](docs/macos-guide.md)
 
 
 ## Installation
