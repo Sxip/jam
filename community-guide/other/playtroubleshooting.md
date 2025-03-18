@@ -4,7 +4,7 @@
 
 I've found that sometimes just unpacking and re-packing the Asar archive Aj Classic uses can fix the issue, couldn't tell you why. Download [AjcUtils](https://github.com/babylard/AjcUtils/) from releases, and run it. Accept anything if prompted. Highlight Unpack with your arrow keys, and press Enter. After it's finished, press M when prompted to return to the menu. Highlight RePack this time, and press enter. Afterwards you can close the window. Try launching Aj through Jam again and see if it fixes your issue.
 
-![unpack.png](..\Images\unpack.png)
+![unpack.png](../Images/unpack.png)
 
 ## **Clear Cache**
 
