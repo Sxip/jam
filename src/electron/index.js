@@ -155,8 +155,6 @@ class Electron {
     this._window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
     this._window.webContents.setWindowOpenHandler((details) => this._createWindow(details))
 
-    remoteMain.enable(this._window.webContents)
-
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
 
     this._registerShortcut('F11', () => this._window.webContents.openDevTools())
