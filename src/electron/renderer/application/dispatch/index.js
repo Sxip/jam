@@ -256,7 +256,7 @@ module.exports = class Dispatch {
    * @returns {Promise<void>}
    * @public
    */
-  async all ({ type, message }) {
+  async all ({ client, type, message }) {
     const hooks = [
       ...type === ConnectionMessageTypes.aj ? this.hooks.aj.get(message.type) || [] : [],
       ...type === ConnectionMessageTypes.connection ? this.hooks.connection.get(message.type) || [] : [],
@@ -265,7 +265,7 @@ module.exports = class Dispatch {
 
     const promises = hooks.map(async (hook) => {
       try {
-        await hook({ type, dispatch: this, message })
+        await hook({ client, type, dispatch: this, message })
       } catch (error) {
         this._application.consoleMessage({
           type: 'error',
@@ -468,7 +468,8 @@ module.exports = class Dispatch {
    * @public
    */
   sendConnectionMessage (message) {
-    return this._application.server.client.sendConnectionMessage(message)
+    const promises = this._application.server.clients.map(client => client.sendConnectionMessage(message))
+    return Promise.all(promises)
   }
 
   /**
@@ -478,7 +479,8 @@ module.exports = class Dispatch {
    * @public
    */
   sendRemoteMessage (message) {
-    return this._application.server.client.sendRemoteMessage(message)
+    const promises = this._application.server.clients.map(client => client.sendRemoteMessage(message))
+    return Promise.all(promises)
   }
 
   /**

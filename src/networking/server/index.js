@@ -23,10 +23,10 @@ module.exports = class Server {
 
     /**
      * The client that has connected to the server.
-     * @type {Client}
+     * @type {Set<Client>}
      * @public
      */
-    this.client = null
+    this.clients = new Set()
   }
 
   /**
@@ -36,8 +36,10 @@ module.exports = class Server {
    */
   async _onConnection (connection) {
     try {
-      this.client = new Client(connection, this)
-      this.client.connect()
+      const client = new Client(connection, this)
+      await client.connect()
+
+      this.clients.add(client)
     } catch (error) {
       this.application.consoleMessage({
         message: `Unexpected error occurred while trying to connect to the Animal Jam servers. ${error.message}`,

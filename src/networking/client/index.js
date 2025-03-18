@@ -248,7 +248,7 @@ module.exports = class Client {
    * @private
    */
   async _onMessageReceived ({ type, message, packet }) {
-    this._server.application.dispatch.all({ type, message })
+    this._server.application.dispatch.all({ client: this, type, message })
 
     if (type === ConnectionMessageTypes.aj && packet.includes('cross-domain-policy')) {
       const crossDomainMessage = `<?xml version="1.0"?>
@@ -291,6 +291,6 @@ module.exports = class Client {
     dispatch.intervals.clear()
 
     this.connected = false
-    this._server.client = null
+    this._server.clients.remove(this)
   }
 }

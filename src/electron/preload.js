@@ -1,11 +1,16 @@
+const path = require('path')
+
 const __init__ = () => {
   const isPluginPage = window.location.pathname.includes('plugins')
 
+  const basePath = path.join(__dirname, '..', '..', 'assets', 'css')
+  const cssPath = isPluginPage
+    ? `file://${path.join(basePath, 'plugins', 'style.css')}`
+    : `file://${path.join(basePath, 'style.css')}`
+
   const link = document.createElement('link')
   link.setAttribute('rel', 'stylesheet')
-  link.setAttribute('href', isPluginPage
-    ? '../../../../../assets/css/plugins/style.css'
-    : '../../../../../assets/css/style.css')
+  link.setAttribute('href', cssPath)
 
   document.head.appendChild(link)
 
