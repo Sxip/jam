@@ -34,7 +34,7 @@ To begin, run Jam from the shortcut that was created on the Desktop, or search f
 
 **Q: Pressing Play does nothing, why isn't it working?**
 
-**A:** Please refer to [this page](other\playtroubleshooting.md)
+**A:** Please refer to [this page](other/playtroubleshooting.md)
 
 ---
 
