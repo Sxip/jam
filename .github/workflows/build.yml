@@ -1,0 +1,62 @@
+name: Build
+
+on:
+    push:
+        tags:
+            - '*.*.*'
+
+jobs:
+    build_electron:
+        name: Build Electron App
+        runs-on: macos-14
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22.11.0'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Build Electron App
+              run: npm run build:win && npm run build:mac
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Rename macOS files
+              run: |
+                  mv build/*.dmg build/Jam-${{ github.ref_name }}.dmg
+                  mv build/*.dmg.blockmap build/Jam-${{ github.ref_name }}.dmg.blockmap
+              working-directory: .
+
+            - name: Rename Windows files
+              run: |
+                  mv build/*.exe build/Jam-Setup-${{ github.ref_name }}.exe
+                  mv build/*.exe.blockmap build/Jam-Setup-${{ github.ref_name }}.exe.blockmap
+              working-directory: .
+
+            - name: Move metadata files
+              run: |
+                  mv build/latest-mac.yml build/latest.yml
+              working-directory: .
+
+            - name: Create and Publish GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  name: Release ${{ github.ref_name }}
+                  draft: false
+                  prerelease: false
+                  files: |
+                      build/Jam-${{ github.ref_name }}.dmg
+                      build/Jam-${{ github.ref_name }}.dmg.blockmap
+                      build/Jam-Setup-${{ github.ref_name }}.exe
+                      build/Jam-Setup-${{ github.ref_name }}.exe.blockmap
+                      build/latest.yml
+                      build/latest-mac.yml
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
