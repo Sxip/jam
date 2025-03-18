@@ -2,17 +2,24 @@ name: Build
 
 on:
     push:
-        tags:
-            - '*.*.*'
-          
+        branches:
+            - main
 
 jobs:
     build_electron:
         name: Build Electron App
         runs-on: macos-14
+
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+
+            - name: Check commit message for version number
+              run: |
+                  if ! echo "${{ github.event.head_commit.message }}" | grep -E '[0-9]+\.[0-9]+\.[0-9]+'; then
+                      echo "Commit message does not contain a version number. Skipping build."
+                      exit 1
+                  fi
 
             - name: Install Node.js
               uses: actions/setup-node@v4
@@ -30,14 +37,14 @@ jobs:
 
             - name: Rename macOS files
               run: |
-                  mv build/*.dmg build/Jam-${{ github.ref_name }}.dmg
-                  mv build/*.dmg.blockmap build/Jam-${{ github.ref_name }}.dmg.blockmap
+                  mv build/*.dmg build/Jam-latest.dmg
+                  mv build/*.dmg.blockmap build/Jam-latest.dmg.blockmap
               working-directory: .
 
             - name: Rename Windows files
               run: |
-                  mv build/*.exe build/Jam-Setup-${{ github.ref_name }}.exe
-                  mv build/*.exe.blockmap build/Jam-Setup-${{ github.ref_name }}.exe.blockmap
+                  mv build/*.exe build/Jam-Setup-latest.exe
+                  mv build/*.exe.blockmap build/Jam-Setup-latest.exe.blockmap
               working-directory: .
 
             - name: Move metadata files
@@ -48,15 +55,15 @@ jobs:
             - name: Create and Publish GitHub Release
               uses: softprops/action-gh-release@v2
               with:
-                  tag_name: ${{ github.ref_name }}
-                  name: Release ${{ github.ref_name }}
+                  tag_name: latest
+                  name: Latest Build
                   draft: false
                   prerelease: false
                   files: |
-                      build/Jam-${{ github.ref_name }}.dmg
-                      build/Jam-${{ github.ref_name }}.dmg.blockmap
-                      build/Jam-Setup-${{ github.ref_name }}.exe
-                      build/Jam-Setup-${{ github.ref_name }}.exe.blockmap
+                      build/Jam-latest.dmg
+                      build/Jam-latest.dmg.blockmap
+                      build/Jam-Setup-latest.exe
+                      build/Jam-Setup-latest.exe.blockmap
                       build/latest.yml
                       build/latest-mac.yml
               env:
