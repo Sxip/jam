@@ -1,12 +1,12 @@
+const { ipcRenderer } = require('electron')
 const path = require('path')
 
-const __init__ = () => {
+const __init__ = async () => {
   const isPluginPage = window.location.pathname.includes('plugins')
 
-  const basePath = path.join(__dirname, '..', '..', 'assets', 'css')
   const cssPath = isPluginPage
-    ? `file://${path.join(basePath, 'plugins', 'style.css')}`
-    : `file://${path.join(basePath, 'style.css')}`
+    ? `file://${path.resolve('assets', 'css', 'plugins', 'style.css')}`
+    : `file://${path.resolve('assets', 'css', 'style.css')}`
 
   const link = document.createElement('link')
   link.setAttribute('rel', 'stylesheet')

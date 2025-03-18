@@ -22,6 +22,7 @@ const defaultWindowOptions = {
     webSecurity: false,
     nativeWindowOpen: true,
     contextIsolation: false,
+    enableRemoteModule: true,
     nodeIntegration: true,
     preload: path.resolve(__dirname, 'preload.js')
   },
@@ -100,7 +101,7 @@ class Electron {
         autoHideMenuBar: true,
         frame: true,
         webPreferences: {
-          ...defaultWindowOptions.webPreferences
+          ...defaultWindowOptions.webPreferences,
         }
       }
     }
@@ -153,6 +154,8 @@ class Electron {
     this._window = new BrowserWindow(defaultWindowOptions)
     this._window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
     this._window.webContents.setWindowOpenHandler((details) => this._createWindow(details))
+
+    remoteMain.enable(this._window.webContents)
 
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
 

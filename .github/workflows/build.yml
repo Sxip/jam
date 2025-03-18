@@ -14,12 +14,15 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Check commit message for version number
+            - name: Extract version number from commit message
+              id: extract_version
               run: |
-                  if ! echo "${{ github.event.head_commit.message }}" | grep -E '[0-9]+\.[0-9]+\.[0-9]+'; then
+                  VERSION=$(echo "${{ github.event.head_commit.message }}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+                  if [ -z "$VERSION" ]; then
                       echo "Commit message does not contain a version number. Skipping build."
                       exit 1
                   fi
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
 
             - name: Install Node.js
               uses: actions/setup-node@v4
@@ -37,14 +40,14 @@ jobs:
 
             - name: Rename macOS files
               run: |
-                  mv build/*.dmg build/Jam-latest.dmg
-                  mv build/*.dmg.blockmap build/Jam-latest.dmg.blockmap
+                  mv build/*.dmg build/Jam-${{ env.VERSION }}.dmg
+                  mv build/*.dmg.blockmap build/Jam-${{ env.VERSION }}.dmg.blockmap
               working-directory: .
 
             - name: Rename Windows files
               run: |
-                  mv build/*.exe build/Jam-Setup-latest.exe
-                  mv build/*.exe.blockmap build/Jam-Setup-latest.exe.blockmap
+                  mv build/*.exe build/Jam-Setup-${{ env.VERSION }}.exe
+                  mv build/*.exe.blockmap build/Jam-Setup-${{ env.VERSION }}.exe.blockmap
               working-directory: .
 
             - name: Move metadata files
@@ -55,15 +58,15 @@ jobs:
             - name: Create and Publish GitHub Release
               uses: softprops/action-gh-release@v2
               with:
-                  tag_name: latest
-                  name: Latest Build
+                  tag_name: ${{ env.VERSION }}
+                  name: Release ${{ env.VERSION }}
                   draft: false
                   prerelease: false
                   files: |
-                      build/Jam-latest.dmg
-                      build/Jam-latest.dmg.blockmap
-                      build/Jam-Setup-latest.exe
-                      build/Jam-Setup-latest.exe.blockmap
+                      build/Jam-${{ env.VERSION }}.dmg
+                      build/Jam-${{ env.VERSION }}.dmg.blockmap
+                      build/Jam-Setup-${{ env.VERSION }}.exe
+                      build/Jam-Setup-${{ env.VERSION }}.exe.blockmap
                       build/latest.yml
                       build/latest-mac.yml
               env:
