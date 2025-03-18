@@ -55,7 +55,6 @@
     "mac": {
       "identity": null
     },
-    "differentialPackage": false,
     "files": [
       "src/**/*"
     ],
