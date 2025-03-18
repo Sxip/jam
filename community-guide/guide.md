@@ -75,6 +75,8 @@ You can customize, and send your own packets by clicking on the Packet Spammer t
 
 Enter the packet you want to send into the Content field. To understand how to customize certain aspects of your packet depending on what it's for, refer to the [DefPacks](#defpacks) section. You can also add multiple packets to a list by clicking add after you have what you want in the Content field, and run each one in order. If you'd like you can save your list setup with the save button.
 
+Delay can be set in the second field which is autofilled with 1.
+
 # DefPacks
 
 DefPacks contain information about different aspects of the game for reference, like IDs, colors, etc.
