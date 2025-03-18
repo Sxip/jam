@@ -4,6 +4,7 @@ on:
     push:
         tags:
             - '*.*.*'
+          
 
 jobs:
     build_electron:
