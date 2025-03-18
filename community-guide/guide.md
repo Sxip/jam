@@ -14,7 +14,7 @@
 
 Make sure you get the latest copy from [Releases](https://github.com/sxip/jam/releases) on the right of the page by clicking the file for your platform. Do not download a Zip from under the Code section unless you're trying to run from source.
 
-![releases.png](images/releases.png)
+![releases.png](Images/releases.png)
 
 `.dmg` should be used for MacOS, and `.exe` on Windows. Run the Installer after it is downloaded and allow changes if prompted.
 
@@ -26,7 +26,7 @@ Make sure you get the latest copy from [Releases](https://github.com/sxip/jam/re
 
 To begin, run Jam from the shortcut that was created on the Desktop, or search for it if there is none.
 
-![jam.png](images/jam.png)
+![jam.png](Images/jam.png)
 
  Assuming Aj Classic is already installed, press Play on the top left. A game window should appear.
 
@@ -61,7 +61,7 @@ If you go the network tab on the top right after you've logged in, you should se
 
 ---
 
-![network.png](images/unpack.pngnetwork.png)
+![network.png](Images/unpack.pngnetwork.png)
 
 ---
 
@@ -71,7 +71,7 @@ You can customize, and send your own packets by clicking on the Packet Spammer t
 
 ---
 
-![packetspammer.png](images/packetspammer.png)
+![packetspammer.png](Images/packetspammer.png)
 
 Enter the packet you want to send into the Content field. To understand how to customize certain aspects of your packet depending on what it's for, refer to the [DefPacks](#defpacks) section. You can also add multiple packets to a list by clicking add after you have what you want in the Content field, and run each one in order. If you'd like you can save your list setup with the save button.
 
@@ -83,7 +83,7 @@ DefPacks contain information about different aspects of the game for reference, 
 
 You can pull the latest from Aj's server using [Animaljam.js](https://github.com/sxip/animaljam.js), but I wont be covering how to write your own code here. You can either contact [babylard](https://github.com/babylard) on Discord for the latest defpacks, or use [this repo](https://github.com/babylard/defpacksdecoder) and replace the `deployVersion: '{number}'` with whatever is shown at [https://animaljam.com/flashvars](https://animaljam.com/flashvars) in the Deploy version field if it isn't up to date.
 
-![flashvars.png](images/flashvars.png)
+![flashvars.png](Images/flashvars.png)
 
 ## **Identifying Packet Structure**
 
@@ -93,7 +93,7 @@ In my case I bought a Deer, and the packet I got was `%xt%o%aa%8817%15202%27120%
 
 Now if we look in the json file labeled Animals in our DefPacks, we can search for the Deer by pressing `ctrl + f` to search in your text editor.
 
-![animals.png](images/animals.png)
+![animals.png](Images/animals.png)
 
 As you can see the ID of the animal is 3, and there is also a 3 in our packet seperated by two `%` characters. So this must be where the ID is located. Replace that with whatever you like in the DefPacks as long as you have a sufficient amount of Gems/Diamonds, and send it with the packet spammer set to Animal Jam and not Client on the dropdown.
 
