@@ -98,8 +98,8 @@ module.exports = class Dispatch {
     }
   }
 
-  get client () {
-    return this._application.server.client
+  get connected () {
+    return this._application.server.clients.size > 0
   }
 
   get settings () {
@@ -468,10 +468,9 @@ module.exports = class Dispatch {
    * @public
    */
   sendConnectionMessage (message) {
-    const promises = this._application.server.clients.map(client => client.sendConnectionMessage(message))
+    const promises = [...this._application.server.clients].map(client => client.sendConnectionMessage(message))
     return Promise.all(promises)
   }
-
   /**
    * Sends a remote message.
    * @param message
@@ -479,7 +478,7 @@ module.exports = class Dispatch {
    * @public
    */
   sendRemoteMessage (message) {
-    const promises = this._application.server.clients.map(client => client.sendRemoteMessage(message))
+    const promises = [...this._application.server.clients].map(client => client.sendRemoteMessage(message))
     return Promise.all(promises)
   }
 

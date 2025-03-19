@@ -291,6 +291,6 @@ module.exports = class Client {
     dispatch.intervals.clear()
 
     this.connected = false
-    this._server.clients.remove(this)
+    this._server.clients.delete(this)
   }
 }

@@ -157,7 +157,7 @@ module.exports = function ({ client, dispatch }) {
    */
   const handleAchievementsMessage = async () => {
     for (let i = 0; i < achievements.length; i++) {
-      if (dispatch.client.connected) {
+      if (dispatch.connected) {
         dispatch.sendRemoteMessage(`%xt%o%zs%-1%${achievements[i]}%9999999%1%`)
         await dispatch.wait(110)
       }
