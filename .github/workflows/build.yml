@@ -33,8 +33,13 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Build Electron App
-              run: npm run build:win && npm run build:mac
+            - name: Build Windows App
+              run: npm run build:win
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build macOS App
+              run: npm run build:mac
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

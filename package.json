@@ -13,10 +13,6 @@
     "type": "git",
     "url": "https://github.com/sxip/jam.git"
   },
-  "publish": {
-    "provider": "github",
-    "releaseType": "release"
-  },
   "devDependencies": {
     "electron": "^32.0.1",
     "electron-builder": "^24.13.3",
@@ -43,6 +39,7 @@
     "tailwindcss": "^3.4.10"
   },
   "build": {
+    "generateUpdatesFilesForAllChannels": true,
     "productName": "Jam",
     "appId": "com.jam",
     "icon": "assets/icon.ico",
@@ -53,7 +50,8 @@
       "requestedExecutionLevel": "highestAvailable"
     },
     "mac": {
-      "identity": null
+      "identity": null,
+      "target": ["dmg", "zip"]
     },
     "files": [
       "src/**/*"
@@ -63,6 +61,10 @@
       "assets/**/*",
       "public/**/*",
       "settings.json"
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
+    }
   }
 }
