@@ -61,7 +61,7 @@ If you go the network tab on the top right after you've logged in, you should se
 
 ---
 
-![network.png](Images/unpack.pngnetwork.png)
+![network.png](Images/network.png)
 
 ---
 
