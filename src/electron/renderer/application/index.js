@@ -252,6 +252,7 @@ module.exports = class Application extends EventEmitter {
     }
   }
 
+
   /**
    * Refreshes the autocomplete source.
    * @public
@@ -272,67 +273,76 @@ module.exports = class Application extends EventEmitter {
    * @param message
    * @public
    */
-  consoleMessage ({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false } = {}) {
+  consoleMessage({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false } = {}) {
     const createElement = (tag, classes = '', content = '') => {
       return $('<' + tag + '>').addClass(classes).html(content)
     }
-
+  
     const status = (type, message) => {
       const statusInfo = messageStatus[type]
       if (!statusInfo) throw new Error('Invalid Status Type.')
-        return `<img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 mr-2 opacity-80 align-middle" /> ${message || ''}`
+      return `
+        <div class="flex items-center space-x-2">
+          <img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-80" />
+          <span>${message || ''}</span>
+        </div>
+      `
     }
-
+  
     const getTime = () => {
       const now = new Date()
       const hour = String(now.getHours()).padStart(2, '0')
       const minute = String(now.getMinutes()).padStart(2, '0')
       return `${hour}:${minute}`
     }
-
-    // Define base type classes
+  
     const baseTypeClasses = {
-      success: 'bg-highlight-green bg-opacity-20 border-highlight-green text-highlight-green',
-      error: 'bg-error-red bg-opacity-20 border-error-red text-white',
-      info: 'bg-primary-bg bg-opacity-20 border-primary-bg text-text-primary',
-      warning: 'bg-highlight-yellow bg-opacity-20 border-highlight-yellow text-primary-bg'
+      success: 'bg-highlight-green/10 border-highlight-green text-highlight-green',
+      error: 'bg-error-red/10 border-error-red text-error-red',
+      info: 'bg-primary-bg/10 border-primary-bg text-text-primary',
+      warning: 'bg-highlight-yellow/10 border-highlight-yellow text-highlight-yellow'
     }
-
+  
     const packetTypeClasses = {
-      incoming: 'bg-tertiary-bg bg-opacity-20 border-tertiary-bg text-text-primary',
-      outgoing: 'bg-highlight-green bg-opacity-20 border-highlight-green text-highlight-green'
+      incoming: 'bg-tertiary-bg/10 border-tertiary-bg text-text-primary',
+      outgoing: 'bg-highlight-green/10 border-highlight-green text-highlight-green'
     }
-
-    const $container = createElement('div', 'flex items-center p-3 rounded-lg border mb-2 max-w-full w-full')
-
+  
+    const $container = createElement(
+      'div',
+      'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
+    )
+  
+    // Add time if enabled
     if (time) {
       const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-2', getTime())
       $container.append($timeContainer)
     }
-
+  
     if (isPacket) {
       $container.addClass(packetTypeClasses[isIncoming ? 'incoming' : 'outgoing'])
     } else {
-      $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg bg-opacity-20 border-tertiary-bg text-text-primary')
+      $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg/10 border-tertiary-bg text-text-primary')
     }
-
-    const $messageContainer = createElement('div', 'flex-1 text-sm flex items-center')
-
+  
+    const $messageContainer = createElement('div', 'flex-1 text-xs flex items-center space-x-2')
+  
     if (withStatus && !isPacket) {
       $messageContainer.html(status(type, message))
     } else {
       $messageContainer.text(message)
     }
-
+  
     $messageContainer.css({
-      overflow: 'hidden',
-      'text-overflow': 'clip',
-      'white-space': 'normal',
-      'word-break': 'break-word'
+      overflow: 'hidden', // Prevent content from overflowing
+      'text-overflow': 'ellipsis', // Add ellipsis for long text
+      'white-space': 'normal', // Allow text to wrap to the next line
+      'word-break': 'break-word' // Break long words to prevent overflow
     })
-
+  
     $container.append($messageContainer)
-
+  
+    // Append to the appropriate log
     if (isPacket) {
       $('#message-log').append($container)
     } else {
@@ -361,32 +371,44 @@ module.exports = class Application extends EventEmitter {
    * @param {Object} plugin
    * @returns {JQuery<HTMLElement>}
    */
-  renderPluginItems ({ name, type, description, author } = {}) {
+  renderPluginItems({ name, type, description, author } = {}) {
     const iconClass = type === 'ui' ? 'fas fa-desktop' : type === 'game' ? 'fas fa-gamepad' : ''
-
+  
     const badge = iconClass
       ? $('<span>', {
-        class: 'badge bg-custom-pink text-white-200 rounded-full text-xs px-2 py-1 ml-2 flex items-center'
-      }).append($('<i>', { class: iconClass }))
+          class: 'badge bg-custom-pink text-white rounded-full text-xs px-2 py-1 flex items-center'
+        }).append($('<i>', { class: iconClass }))
       : null
-
-    const hoverClass = type === 'ui' ? 'hover:bg-tertiary-bg cursor-pointer' : ''
-    const onClickEvent = type === 'ui' ? `jam.application.dispatch.open('${name}')` : ''
-
+  
+    const onClickEvent = type === 'ui' ? () => jam.application.dispatch.open(name) : null
+  
+    const hoverClass = type === 'ui' ? 'hover:bg-tertiary-bg hover:shadow-md transition duration-200 cursor-pointer' : ''
     const $listItem = $('<li>', {
-      class: `flex flex-col p-2 border-b border-sidebar-border bg-secondary-bg ${hoverClass}`,
-      click: onClickEvent ? () => eval(onClickEvent) : null
+      class: `flex flex-col gap-2 p-3 border border-sidebar-border bg-secondary-bg rounded-md ${hoverClass}`,
+      click: onClickEvent
     })
-
-    const $title = $('<div>', { class: 'flex items-center' })
-      .append($('<span>', { class: 'text-text-primary font-semibold', text: name }))
+  
+    const $title = $('<div>', { class: 'flex items-center justify-between' })
+      .append($('<span>', { class: 'text-text-primary font-medium text-base', text: name }))
       .append(badge)
-
-    const $description = $('<span>', { class: 'text-gray-400 text-sm mt-1', text: description })
-    const $author = $('<span>', { class: 'text-gray-500 text-xs mt-1', text: `Author: ${author}` })
-
+  
+    const $description = $('<p>', {
+      class: 'text-gray-400 text-xs leading-snug',
+      text: description
+    })
+  
+    const $author = $('<span>', {
+      class: 'text-gray-500 text-xs italic',
+      text: `Author: ${author}`
+    })
+  
     $listItem.append($title, $description, $author)
-    this.$pluginList.prepend($listItem)
+  
+    if (type === 'ui') {
+      this.$pluginList.prepend($listItem)
+    } else {
+      this.$pluginList.append($listItem)
+    }
   }
 
   /**

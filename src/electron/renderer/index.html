@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jam</title>
 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
   <!-- jQuery -->
   <script>
     window.jQuery = window.$ = require('jquery')
@@ -16,76 +19,110 @@
   <script src="file:///../../../../assets/javascript/popper.min.js" async></script>
 </head>
 
-<body class="bg-primary-bg text-sidebar-text h-screen flex">
-  <div class="flex flex-1">
-    <!-- Sidebar -->
-    <div id="sidebar"
-      class="w-64 h-full bg-sidebar-bg p-4 fixed top-0 left-0 transform -translate-x-full transition-transform duration-300 border-r border-sidebar-border z-30 flex flex-col">
+<body class="bg-primary-bg text-sidebar-text h-screen flex font-sans">
+  <!-- Sidebar -->
+  <div id="sidebar"
+    class="w-64 h-full bg-sidebar-bg p-4 fixed top-0 left-0 transform -translate-x-full transition-transform duration-300 border-r border-sidebar-border z-30 flex flex-col shadow-lg">
 
-      <!-- Main Navigation -->
-      <ul class="space-y-2 mb-4">
-        <span class="text-xs text-gray-300">Main Navigation</span>
-        <li><a href="#" class="block text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded"
-            onclick="jam.application.openAnimalJam()">Play</a></li>
-        <li><a href="#" class="block text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded"
-            onclick="jam.application.openSettings()">Settings</a></li>
-        <li><a href="#" class="block text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded"
-            onclick="jam.dispatch.refresh()">Reload</a></li>
+    <!-- Branding -->
+    <div class="mb-6 flex items-center justify-center">
+      <img src="file:///../../../../assets/icon.png" alt="Jam Icon" class="h-8 w-8">
+    </div>
+
+    <!-- Main Navigation -->
+    <div class="mb-6">
+      <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">Main Navigation</h2>
+      <ul class="space-y-2">
+        <li>
+          <a href="#"
+            class="flex items-center space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition"
+            onclick="jam.application.openAnimalJam()">
+            <i class="fas fa-play text-highlight-green"></i>
+            <span>Play</span>
+          </a>
+        </li>
+        <li>
+          <a href="#"
+            class="flex items-center space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition"
+            onclick="jam.application.openSettings()">
+            <i class="fas fa-cog text-highlight-yellow"></i>
+            <span>Settings</span>
+          </a>
+        </li>
+        <li>
+          <a href="#"
+            class="flex items-center space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition"
+            onclick="jam.dispatch.refresh()">
+            <i class="fas fa-sync-alt text-custom-pink"></i>
+            <span>Reload</span>
+          </a>
+        </li>
       </ul>
-
-      <!-- Plugins Section -->
-      <span class="text-xs text-gray-300">Plugins</span>
-      <div class="flex-1 overflow-y-auto">
-        <ul id="pluginList" class="space-y-2 mt-3">
-          <!-- List items will be dynamically added here -->
-        </ul>
-      </div>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" class="flex-1 ml-0 transition-margin duration-300 flex flex-col bg-primary-bg">
+    <!-- Plugins Section -->
+    <div>
+      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3 pb-2">
+        Plugins
+      </h2>
+      <ul id="pluginList"
+        class="space-y-2 overflow-y-auto max-h-64 scrollbar-thin scrollbar-thumb-sidebar-hover scrollbar-track-sidebar-bg bg-secondary-bg rounded-lg p-2 shadow-inner box-border">
+        <!-- List items will be dynamically added here -->
+      </ul>
+    </div>
+  </div>
 
-      <!-- Header -->
-      <header id="header" class="flex items-center p-4 bg-secondary-bg border-b border-sidebar-border">
-        <button id="menuButton" class="text-lg text-white focus:outline-none">
-          <i id="menuIcon" class="fas fa-bars"></i>
-        </button>
+  <!-- Main Content -->
+  <div id="mainContent" class="flex-1 ml-0 transition-margin duration-300 flex flex-col bg-primary-bg">
 
-        <img class="h-10 mx-auto" src="file:///../../../../assets/icon.png" />
+    <!-- Header -->
+    <header id="header" class="flex items-center p-4 bg-secondary-bg border-b border-sidebar-border shadow">
+      <button id="menuButton" class="text-lg text-sidebar-text focus:outline-none">
+        <i id="menuIcon" class="fas fa-bars"></i>
+      </button>
 
-        <button id="closeButton" class="text-lg text-white focus:outline-none">
-          <i class="fas fa-times" onclick="jam.application.close()"></i>
-        </button>
-      </header>
+      <img class="h-10 mx-auto" />
 
-      <!-- Tab Navigation -->
-      <div class="tabs w-full grid grid-cols-2 border-b border-gray-700 bg-tertiary-bg">
-        <button id="consoleTab" class="tab-button active" data-tab="console">Console</button>
-        <button id="packetLoggingTab" class="tab-button" data-tab="packet-logging">Network</button>
-      </div>
+      <button id="closeButton" class="text-lg text-sidebar-text focus:outline-none">
+        <i class="fas fa-times" onclick="jam.application.close()"></i>
+      </button>
+    </header>
 
-      <!-- Tab Content -->
-      <div id="console" class="tab-content flex-1 p-4 overflow-auto">
-        <div id="messages" class="flex flex-col overflow-x-auto"></div>
-      </div>
+    <!-- Tab Navigation -->
+    <div class="tabs w-full grid grid-cols-2 border-b border-sidebar-border bg-tertiary-bg">
+      <button id="consoleTab" class="tab-button active text-sidebar-text hover:bg-sidebar-hover py-2 transition"
+        data-tab="console">Console</button>
+      <button id="packetLoggingTab" class="tab-button text-sidebar-text hover:bg-sidebar-hover py-2 transition"
+        data-tab="packet-logging">Network</button>
+    </div>
 
-      <div id="packet-logging" class="tab-content flex-1 p-4 overflow-auto hidden w-full">
-        <div id="message-log" class="flex flex-col overflow-x-auto">
-        </div>
-      </div>
+    <!-- Tab Content -->
+    <div id="console" class="tab-content flex-1 p-4 overflow-auto">
+      <div id="messages" class="flex flex-col overflow-x-auto"></div>
+    </div>
 
-      <!-- Footer -->
-      <footer class="bg-secondary-bg border-t border-sidebar-border p-4 mt-auto">
-        <input id="input" type="text"
-          class="bg-transparent text-text-primary placeholder-text-primary focus:outline-none w-full"
-          placeholder="Type a command...">
+    <div id="packet-logging" class="tab-content flex-1 p-4 overflow-auto hidden w-full">
+      <div id="message-log" class="flex flex-col overflow-x-auto"></div>
+    </div>
 
+    <!-- Footer -->
+    <footer class="bg-secondary-bg border-t border-sidebar-border p-4 mt-auto">
+      <input id="input" type="text"
+        class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded"
+        placeholder="Type a command...">
+
+      <div class="relative">
         <input id="packetSearch" type="text"
-          class="bg-transparent text-text-primary placeholder-text-primary focus:outline-none w-full hidden"
+          class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded"
           placeholder="Search packets...">
-      </footer>
 
-    </div>
+        <!-- Clear Logs Button -->
+        <button id="clearLogsButton"
+          class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-error-red text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-error-red/90 transition">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </footer>
   </div>
 
   <!-- UI helper scripts -->
@@ -97,6 +134,11 @@
       const $menuIcon = $('#menuIcon')
       const $commandInput = $('#input')
       const $packetSearch = $('#packetSearch')
+      const $clearLogsButton = $('#clearLogsButton')
+
+      $commandInput.removeClass('hidden')
+      $packetSearch.addClass('hidden')
+      $clearLogsButton.addClass('hidden')
 
       function toggleSidebar() {
         const isOpen = !$sidebar.hasClass('-translate-x-full')
@@ -117,9 +159,11 @@
         if (tabId === 'packet-logging') {
           $commandInput.addClass('hidden')
           $packetSearch.removeClass('hidden')
+          $clearLogsButton.removeClass('hidden') // Show the Clear Logs button
         } else {
           $commandInput.removeClass('hidden')
           $packetSearch.addClass('hidden')
+          $clearLogsButton.addClass('hidden') // Hide the Clear Logs button
         }
 
         $('.tab-content').removeClass('active').addClass('hidden')
@@ -129,7 +173,9 @@
         $(`.tab-button[data-tab="${tabId}"]`).addClass('active')
       }
 
+      // Set the default active tab
       $('.tab-content').first().removeClass('hidden').addClass('active')
+      $('.tab-button').first().addClass('active')
 
       $('.tab-button').on('click', function () {
         const tabId = $(this).data('tab')
@@ -137,6 +183,10 @@
       })
 
       window.openTab = openTab
+
+      $('#clearLogsButton').on('click', function () {
+        $('#message-log').empty()
+      })
 
       $packetSearch.on('input', function () {
         const query = $(this).val().toLowerCase()
@@ -146,7 +196,6 @@
         })
       })
     })
-
   </script>
 
   <!-- Jam -->
