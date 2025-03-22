@@ -45,3 +45,4 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 ## Screenshots
 
 ![Screenshot of Jam](https://i.imgur.com/mJKfF4O.png)
+![Screenshot Of Jam Networking Tab](https://i.imgur.com/naKP8Dn.png)

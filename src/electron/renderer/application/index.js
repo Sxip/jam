@@ -93,13 +93,6 @@ module.exports = class Application extends EventEmitter {
     this.$pluginList = $('#pluginList')
 
     /**
-     * The reference to the realtime server.
-     * @type {Realtime}
-     * @public
-     */
-    this.realtime = null
-
-    /**
      * Handles the input events.
      * @type {void}
      * @private
@@ -215,40 +208,34 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   activateAutoComplete () {
-    /**
-     * Renders the autocomplete items.
-     * @param ul
-     * @param item
-     * @returns
-     */
-    const renderItems = (ul, item) => {
-      return $('<li>')
-        .addClass('autocomplete-item ui-menu-item')
-        .data('ui-autocomplete-item', item)
-        .append(`
-          <div class="autocomplete-item-content">
-            <span class="autocomplete-item-name">${item.value}</span>
-            <span class="autocomplete-item-description">${item.item}</span>
-          </div>
-        `)
-        .appendTo(ul)
-    }
-
     this.$input.autocomplete({
       source: Array.from(this.dispatch.commands.values()).map(command => ({
         value: command.name,
-        item: command.description
+        description: command.description
       })),
       position: { my: 'left top', at: 'left bottom', collision: 'flip' },
       classes: {
         'ui-autocomplete': 'bg-secondary-bg border border-sidebar-border rounded-lg shadow-lg z-50'
       },
-      _renderItem: function (ul, item) {
-        return renderItems(ul, item)
+      create: function () {
+        $(this).data('ui-autocomplete')._resizeMenu = function () {
+          this.menu.element.css({ width: this.element.outerWidth() + 'px' })
+        }
+      },
+      select: function (event, ui) {
+        this.value = ui.item.value
+        return false
       }
-    }).data('ui-autocomplete')._resizeMenu = function () {
-      const inputWidth = this.element.outerWidth()
-      this.menu.element.css({ width: inputWidth + 'px' })
+    }).autocomplete('instance')._renderItem = function (ul, item) {
+      return $('<li>')
+        .addClass('autocomplete-item ui-menu-item')
+        .append(`
+          <div class="autocomplete-item-content">
+            <span class="autocomplete-item-name">${item.value}</span>
+            <span class="autocomplete-item-description">${item.description}</span>
+          </div>
+        `)
+        .appendTo(ul)
     }
   }
 
@@ -263,7 +250,7 @@ module.exports = class Application extends EventEmitter {
         Array.from(this.dispatch.commands.values())
           .map(command => ({
             value: command.name,
-            item: command.description
+            description: command.description
           }))
     })
   }
@@ -273,7 +260,7 @@ module.exports = class Application extends EventEmitter {
    * @param message
    * @public
    */
-  consoleMessage({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false } = {}) {
+  consoleMessage({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false, details = null } = {}) {
     const createElement = (tag, classes = '', content = '') => {
       return $('<' + tag + '>').addClass(classes).html(content)
     }
@@ -293,7 +280,8 @@ module.exports = class Application extends EventEmitter {
       const now = new Date()
       const hour = String(now.getHours()).padStart(2, '0')
       const minute = String(now.getMinutes()).padStart(2, '0')
-      return `${hour}:${minute}`
+      const second = String(now.getSeconds()).padStart(2, '0')
+      return `${hour}:${minute}:${second}`
     }
   
     const baseTypeClasses = {
@@ -304,20 +292,16 @@ module.exports = class Application extends EventEmitter {
     }
   
     const packetTypeClasses = {
-      incoming: 'bg-tertiary-bg/10 border-tertiary-bg text-text-primary',
+      incoming: 'bg-tertiary-bg/20 border-tertiary-bg text-text-primary',
       outgoing: 'bg-highlight-green/10 border-highlight-green text-highlight-green'
     }
   
     const $container = createElement(
       'div',
-      'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
+      isPacket 
+        ? 'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
+        : 'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
     )
-  
-    // Add time if enabled
-    if (time) {
-      const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-2', getTime())
-      $container.append($timeContainer)
-    }
   
     if (isPacket) {
       $container.addClass(packetTypeClasses[isIncoming ? 'incoming' : 'outgoing'])
@@ -325,7 +309,22 @@ module.exports = class Application extends EventEmitter {
       $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg/10 border-tertiary-bg text-text-primary')
     }
   
-    const $messageContainer = createElement('div', 'flex-1 text-xs flex items-center space-x-2')
+    if (isPacket) {
+      const iconClass = isIncoming ? 'fa-arrow-down text-highlight-green' : 'fa-arrow-up text-highlight-yellow'
+      $container.append(`<i class="fas ${iconClass} mr-1 hidden"></i>`)
+    }
+
+    else if (time) {
+      const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-2', getTime())
+      $container.append($timeContainer)
+    }
+  
+    const $messageContainer = createElement(
+      'div', 
+      isPacket
+        ? 'text-xs text-text-primary break-all flex-1'
+        : 'flex-1 text-xs flex items-center space-x-2'
+    )
   
     if (withStatus && !isPacket) {
       $messageContainer.html(status(type, message))
@@ -334,20 +333,68 @@ module.exports = class Application extends EventEmitter {
     }
   
     $messageContainer.css({
-      overflow: 'hidden', // Prevent content from overflowing
-      'text-overflow': 'ellipsis', // Add ellipsis for long text
-      'white-space': 'normal', // Allow text to wrap to the next line
-      'word-break': 'break-word' // Break long words to prevent overflow
+      overflow: 'hidden',
+      'text-overflow': 'ellipsis',
+      'white-space': 'normal',
+      'word-break': 'break-word'
     })
   
     $container.append($messageContainer)
   
-    // Append to the appropriate log
+    if (isPacket && details) {
+      const $detailsButton = createElement(
+        'button',
+        'text-xs text-gray-400 mt-2 hover:text-text-primary transition-colors',
+        '<i class="fas fa-code mr-1"></i> View Details'
+      )
+      
+      const $detailsContainer = createElement(
+        'div',
+        'bg-tertiary-bg rounded p-2 mt-2 hidden',
+        `<pre class="text-xs text-text-primary overflow-auto">${JSON.stringify(details, null, 2)}</pre>`
+      )
+      
+      $detailsButton.on('click', () => {
+        $detailsContainer.toggleClass('hidden')
+        const isHidden = $detailsContainer.hasClass('hidden')
+        $detailsButton.html(
+          isHidden 
+            ? '<i class="fas fa-code mr-1"></i> View Details' 
+            : '<i class="fas fa-chevron-up mr-1"></i> Hide Details'
+        )
+      })
+      
+      $container.append($detailsButton, $detailsContainer)
+    }
+  
     if (isPacket) {
+      const $totalCount = $('#totalCount')
+      const $incomingCount = $('#incomingCount')
+      const $outgoingCount = $('#outgoingCount')
+      
+      const totalCount = parseInt($totalCount.text() || '0', 10) + 1
+      $totalCount.text(totalCount)
+      
+      if (isIncoming) {
+        const incomingCount = parseInt($incomingCount.text() || '0', 10) + 1
+        $incomingCount.text(incomingCount)
+      } else {
+        const outgoingCount = parseInt($outgoingCount.text() || '0', 10) + 1
+        $outgoingCount.text(outgoingCount)
+      }
+      
       $('#message-log').append($container)
+      
+      const $messageLog = $('#message-log')
+      const isAtBottom = $messageLog.scrollTop() + $messageLog.innerHeight() >= $messageLog[0].scrollHeight - 30
+      if (isAtBottom) {
+        $messageLog.scrollTop($messageLog[0].scrollHeight)
+      }
     } else {
       $('#messages').append($container)
     }
+
+    if (window.applyFilter) window.applyFilter()
   }
 
   /**

@@ -84,3 +84,35 @@ input:focus-visible {
 ::-webkit-scrollbar-thumb:hover {
   background: #5A5F6D;
 }
+
+#packet-logging {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+#message-log {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #3A3D4D #1C1E26;
+}
+
+.packet-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--secondary-bg);
+}
+
+.tab-content.hidden,
+.tab-content.hidden * {
+  display: none !important;
+}
+
+ #filterAllButton.active,
+ #filterIncomingButton.active,
+ #filterOutgoingButton.active {
+   background-color: var(--sidebar-hover, #2b2b40);
+   color: white;
+ }

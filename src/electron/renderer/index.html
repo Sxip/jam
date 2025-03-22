@@ -13,10 +13,6 @@
   <script>
     window.jQuery = window.$ = require('jquery')
   </script>
-
-  <!-- Auto complete -->
-  <script src="file:///../../../../assets/javascript/jquery-ui.js" async></script>
-  <script src="file:///../../../../assets/javascript/popper.min.js" async></script>
 </head>
 
 <body class="bg-primary-bg text-sidebar-text h-screen flex font-sans">
@@ -90,9 +86,11 @@
 
     <!-- Tab Navigation -->
     <div class="tabs w-full grid grid-cols-2 border-b border-sidebar-border bg-tertiary-bg">
-      <button id="consoleTab" class="tab-button active text-sidebar-text hover:bg-sidebar-hover py-2 transition"
+      <button id="consoleTab"
+        class="tab-button active text-sidebar-text hover:bg-sidebar-hover py-1.5 text-sm transition"
         data-tab="console">Console</button>
-      <button id="packetLoggingTab" class="tab-button text-sidebar-text hover:bg-sidebar-hover py-2 transition"
+      <button id="packetLoggingTab"
+        class="tab-button text-sidebar-text hover:bg-sidebar-hover py-1.5 text-sm transition"
         data-tab="packet-logging">Network</button>
     </div>
 
@@ -101,8 +99,59 @@
       <div id="messages" class="flex flex-col overflow-x-auto"></div>
     </div>
 
-    <div id="packet-logging" class="tab-content flex-1 p-4 overflow-auto hidden w-full">
-      <div id="message-log" class="flex flex-col overflow-x-auto"></div>
+    <div id="packet-logging" class="tab-content flex-1 hidden w-full flex flex-col">
+      <div class="bg-secondary-bg p-2 border-b border-sidebar-border">
+        <!-- Counter Row -->
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center space-x-3">
+            <span class="text-text-primary text-xs">
+              <i class="fas fa-arrow-down text-highlight-green mr-1"></i>
+              <span id="incomingCount">0</span> In
+            </span>
+            <span class="text-text-primary text-xs">
+              <i class="fas fa-arrow-up text-highlight-yellow mr-1"></i>
+              <span id="outgoingCount">0</span> Out
+            </span>
+            <span class="text-text-primary text-xs">
+              <i class="fas fa-list mr-1"></i>
+              <span id="totalCount">0</span> Total
+            </span>
+          </div>
+
+          <div class="flex space-x-2">
+            <!-- Clear Logs Button -->
+            <button id="clearLogsButton"
+              class="bg-error-red text-white px-2 py-1 rounded text-xs hover:bg-error-red/90 transition">
+              <i class="fas fa-trash mr-1"></i> Clear
+            </button>
+
+            <!-- Export Button -->
+            <button id="exportLogsButton"
+              class="bg-highlight-green text-white px-2 py-1 rounded text-xs hover:bg-highlight-green/90 transition">
+              <i class="fas fa-file-export"></i> Export
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex space-x-1">
+          <button id="filterAllButton"
+            class="bg-tertiary-bg text-text-primary px-2 py-1 rounded text-xs hover:bg-sidebar-hover transition active min-w-[40px]">
+            All
+          </button>
+          <button id="filterIncomingButton"
+            class="bg-tertiary-bg text-text-primary px-2 py-1 rounded text-xs hover:bg-sidebar-hover transition min-w-[40px]">
+            Incoming
+          </button>
+          <button id="filterOutgoingButton"
+            class="bg-tertiary-bg text-text-primary px-2 py-1 rounded text-xs hover:bg-sidebar-hover transition min-w-[40px]">
+            Outgoing
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Message Log -->
+      <div id="message-log" class="flex flex-col p-4 overflow-y-auto flex-grow"></div>
     </div>
 
     <!-- Footer -->
@@ -111,21 +160,24 @@
         class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded"
         placeholder="Type a command...">
 
-      <div class="relative">
-        <input id="packetSearch" type="text"
-          class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded"
-          placeholder="Search packets...">
-
-        <!-- Clear Logs Button -->
-        <button id="clearLogsButton"
-          class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-error-red text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-error-red/90 transition">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
+      <input id="packetSearch" type="text"
+        class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded hidden"
+        placeholder="Search packets...">
     </footer>
   </div>
 
-  <!-- UI helper scripts -->
+  <script>
+
+  </script>
+
+
+  <!-- Auto complete -->
+  <script src="file:///../../../../assets/javascript/jquery-ui.js"></script>
+  <script src="file:///../../../../assets/javascript/popper.min.js"></script>
+
+  <!-- Jam -->
+  <script src="index.js"></script>
+
   <script>
     $(document).ready(function () {
       const $menuButton = $('#menuButton')
@@ -134,72 +186,108 @@
       const $menuIcon = $('#menuIcon')
       const $commandInput = $('#input')
       const $packetSearch = $('#packetSearch')
-      const $clearLogsButton = $('#clearLogsButton')
+      const $messageLog = $('#message-log')
+
+      let currentFilter = 'all'
 
       $commandInput.removeClass('hidden')
       $packetSearch.addClass('hidden')
-      $clearLogsButton.addClass('hidden')
 
       function toggleSidebar() {
         const isOpen = !$sidebar.hasClass('-translate-x-full')
-        if (isOpen) {
-          $sidebar.addClass('-translate-x-full')
-          $mainContent.removeClass('ml-64')
-          $menuIcon.removeClass('fa-bars-staggered').addClass('fa-bars')
-        } else {
-          $sidebar.removeClass('-translate-x-full')
-          $mainContent.addClass('ml-64')
-          $menuIcon.removeClass('fa-bars').addClass('fa-bars-staggered')
-        }
+        $sidebar.toggleClass('-translate-x-full', isOpen)
+        $mainContent.toggleClass('ml-64', !isOpen)
+        $menuIcon.toggleClass('fa-bars-staggered', !isOpen).toggleClass('fa-bars', isOpen)
       }
 
       $menuButton.on('click', toggleSidebar)
 
-      const openTab = (tabId) => {
+      function applyFilter() {
+        const $packets = $messageLog.children('div')
+        $packets.each(function () {
+          const $this = $(this)
+          const isIncoming = $this.find('.fa-arrow-down').length > 0
+          const isOutgoing = $this.find('.fa-arrow-up').length > 0
+          $this.toggle(
+            currentFilter === 'all' ||
+            (currentFilter === 'incoming' && isIncoming) ||
+            (currentFilter === 'outgoing' && isOutgoing)
+          )
+        })
+      }
+
+      function openTab(tabId) {
         if (tabId === 'packet-logging') {
           $commandInput.addClass('hidden')
           $packetSearch.removeClass('hidden')
-          $clearLogsButton.removeClass('hidden') // Show the Clear Logs button
+          setTimeout(applyFilter, 0)
         } else {
           $commandInput.removeClass('hidden')
           $packetSearch.addClass('hidden')
-          $clearLogsButton.addClass('hidden') // Hide the Clear Logs button
         }
 
         $('.tab-content').removeClass('active').addClass('hidden')
         $(`#${tabId}`).removeClass('hidden').addClass('active')
-
         $('.tab-button').removeClass('active')
         $(`.tab-button[data-tab="${tabId}"]`).addClass('active')
       }
 
-      // Set the default active tab
-      $('.tab-content').first().removeClass('hidden').addClass('active')
-      $('.tab-button').first().addClass('active')
-
       $('.tab-button').on('click', function () {
-        const tabId = $(this).data('tab')
-        openTab(tabId)
-      })
-
-      window.openTab = openTab
-
-      $('#clearLogsButton').on('click', function () {
-        $('#message-log').empty()
+        openTab($(this).data('tab'))
       })
 
       $packetSearch.on('input', function () {
         const query = $(this).val().toLowerCase()
-        $('#message-log div').each(function () {
-          const text = $(this).text().toLowerCase()
-          $(this).toggle(text.includes(query))
+        $messageLog.children('div').each(function () {
+          $(this).toggle($(this).text().toLowerCase().includes(query))
         })
       })
-    })
-  </script>
 
-  <!-- Jam -->
-  <script src="index.js" async></script>
+      $('#filterAllButton, #filterIncomingButton, #filterOutgoingButton').on('click', function () {
+        $('#filterAllButton, #filterIncomingButton, #filterOutgoingButton').removeClass('active')
+        $(this).addClass('active')
+
+        if (this.id === 'filterAllButton') {
+          currentFilter = 'all'
+        } else if (this.id === 'filterIncomingButton') {
+          currentFilter = 'incoming'
+        } else if (this.id === 'filterOutgoingButton') {
+          currentFilter = 'outgoing'
+        }
+
+        applyFilter()
+      })
+
+      $('#exportLogsButton').on('click', function () {
+        const logs = $messageLog.children('div:visible').map(function () {
+          const $this = $(this)
+          const type = $this.find('.fa-arrow-down').length ? 'INCOMING' : 'OUTGOING'
+          const message = $this.find('.text-text-primary:last').text().trim()
+          return `[${type}] ${message}`
+        }).get()
+
+        if (!logs.length) return
+
+        const content = logs.join('\n')
+        const blob = new Blob([content], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const $a = $('<a>').attr({ href: url, download: `packet-logs-${new Date().toISOString().slice(0, 10)}.txt` })
+        $('body').append($a)
+        $a[0].click()
+        $a.remove()
+        URL.revokeObjectURL(url)
+      })
+
+      $('#clearLogsButton').on('click', function () {
+        $messageLog.empty()
+        $('#incomingCount, #outgoingCount, #totalCount').text('0')
+      })
+
+      window.applyFilter = applyFilter
+      window.openTab = openTab
+    })
+
+  </script>
 </body>
 
 </html>
