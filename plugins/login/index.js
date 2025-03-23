@@ -13,6 +13,7 @@ module.exports = function ({ application, dispatch }) {
     })
   }
 
+  
   /**
    * Hoooks the login packet.
    */
