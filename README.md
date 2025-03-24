@@ -1,6 +1,8 @@
 <div align="center">
   <img src="https://i.imgur.com/Fe6Uvjs.png" alt="Jam Logo" width="28%" /> <br />
-  <img src="https://discord.com/api/guilds/1346482225809592436/widget.png?style=shield" alt="Discord Shield"/>
+  <a href='https://discord.gg/eCM7EAkDCz'>
+    <img src="https://discord.com/api/guilds/1346482225809592436/widget.png?style=shield" alt="Discord" />
+  </a>
 </div>
 
 <br />
