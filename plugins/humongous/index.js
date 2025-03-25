@@ -6,7 +6,7 @@ module.exports = function ({ dispatch }) {
    * @returns 
    */
   const handleHumongousCommand = ({ parameters }) => {
-    active = !active
+    active = true
 
     size = parseInt(parameters[0]) || 13
     dispatch.serverMessage('You are now humongous! Re-join the room so other players can see you as a giant.')

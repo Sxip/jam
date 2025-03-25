@@ -14,7 +14,9 @@ module.exports = {
         'custom-pink': '#F10048',
         'sidebar-text': '#C3C3C3',
         'sidebar-hover': '#2C2E34',
-        'error-red': '#FF4D4F'
+        'error-red': '#FF4D4F',
+        'custom-blue': '#7785cc',
+        'peachy-beige': '#FCE8C7'
       }
     }
   },

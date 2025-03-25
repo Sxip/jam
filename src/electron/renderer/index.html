@@ -53,18 +53,51 @@
             <span>Reload</span>
           </a>
         </li>
+        <li class="relative">
+          <button id="linksDropdownToggle"
+            class="w-full flex items-center justify-between space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-link text-text-primary"></i>
+              <span>Links</span>
+            </div>
+            <i class="fas fa-chevron-down text-xs transition-transform" id="linksDropdownIcon"></i>
+          </button>
+          <div id="linksDropdown"
+            class="hidden absolute z-10 left-0 right-0 mt-1 bg-tertiary-bg rounded-md shadow-lg overflow-hidden transition-all duration-200 ease-in-out">
+            <a href="#"
+              class="flex items-center space-x-2 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 transition pl-8"
+              onclick="jam.application.open('https://discord.gg/9FE86KPcrW')">
+              <i class="fab fa-discord text-custom-blue"></i>
+              <span>Discord</span>
+            </a>
+            <a href="#"
+              class="flex items-center space-x-2 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 transition pl-8"
+              onclick="jam.application.open('https://github.com/sxip/jam')">
+              <i class="fab fa-github text-text-primary"></i>
+              <span>GitHub</span>
+            </a>
+            <a href="#"
+              class="flex items-center space-x-2 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 transition pl-8"
+              onclick="jam.application.open('https://jam.exposed')">
+              <i class="fas fa-palette text-peachy-beige"></i>
+              <span>Masterpieces Viewer</span>
+            </a>
+          </div>
+        </li>
       </ul>
     </div>
 
     <!-- Plugins Section -->
-    <div>
-      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3 pb-2">
+    <div class="flex-1 overflow-hidden flex flex-col min-h-0 mt-6"> <!-- Added margin top -->
+      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">
         Plugins
       </h2>
-      <ul id="pluginList"
-        class="space-y-2 overflow-y-auto max-h-64 scrollbar-thin scrollbar-thumb-sidebar-hover scrollbar-track-sidebar-bg bg-secondary-bg rounded-lg p-2 shadow-inner box-border">
-        <!-- List items will be dynamically added here -->
-      </ul>
+      <div class="flex-1 overflow-hidden min-h-0">
+        <ul id="pluginList"
+          class="h-full overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-sidebar-hover scrollbar-track-sidebar-bg bg-secondary-bg rounded-lg p-2 shadow-inner box-border">
+          <!-- List items will be dynamically added here -->
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -97,6 +130,10 @@
     <!-- Tab Content -->
     <div id="console" class="tab-content flex-1 p-4 overflow-auto">
       <div id="messages" class="flex flex-col overflow-x-auto"></div>
+    </div>
+
+    <div id="modalContainer" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <!-- Modal content will be dynamically inserted here -->
     </div>
 
     <div id="packet-logging" class="tab-content flex-1 hidden w-full flex flex-col">
@@ -166,10 +203,6 @@
     </footer>
   </div>
 
-  <script>
-
-  </script>
-
 
   <!-- Auto complete -->
   <script src="file:///../../../../assets/javascript/jquery-ui.js"></script>
@@ -178,6 +211,7 @@
   <!-- Jam -->
   <script src="index.js"></script>
 
+  <!-- Todo: clean this up, it's rather messy -->
   <script>
     $(document).ready(function () {
       const $menuButton = $('#menuButton')
@@ -285,6 +319,18 @@
 
       window.applyFilter = applyFilter
       window.openTab = openTab
+    })
+
+    $('#linksDropdownToggle').on('click', function () {
+      $('#linksDropdown').slideToggle(200)
+      $('#linksDropdownIcon').toggleClass('rotate-180')
+    })
+
+    $(document).on('click', function (event) {
+      if (!$(event.target).closest('#linksDropdownToggle, #linksDropdown').length) {
+        $('#linksDropdown').slideUp(200)
+        $('#linksDropdownIcon').removeClass('rotate-180')
+      }
     })
 
   </script>

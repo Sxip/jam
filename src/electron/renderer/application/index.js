@@ -6,6 +6,7 @@ const Settings = require('./settings')
 const Patcher = require('./patcher')
 const Dispatch = require('./dispatch')
 const HttpClient = require('../../../services/HttpClient')
+const ModalSystem = require('./modals')
 
 /**
  * Message status icons.
@@ -79,6 +80,16 @@ module.exports = class Application extends EventEmitter {
     this.dispatch = new Dispatch(this)
 
     /**
+     * Stores the modal system.
+     * @type {ModalSystem}
+     * @public
+     */
+    this.modals = new ModalSystem(this)
+    this.modals.initialize().catch(error => {
+      console.error('Failed to initialize modal system:', error)
+    })
+
+    /**
      * The reference to the application input.
      * @type {JQuery<HTMLElement>}
      * @private
@@ -138,6 +149,10 @@ module.exports = class Application extends EventEmitter {
     }
   }
 
+  open (url) {
+    ipcRenderer.send('open-url', url)
+  }
+
   /**
    * Opens the plugin directory.
    * @param name
@@ -156,8 +171,13 @@ module.exports = class Application extends EventEmitter {
    * Opens the settings json file.
    * @public
    */
+  /**
+   * Opens the settings modal.
+   * @returns {void}
+   * @public
+   */
   openSettings () {
-    ipcRenderer.send('open-settings', this.settings.path)
+    this.modals.show('settings', '#modalContainer')
   }
 
   /**
@@ -239,7 +259,6 @@ module.exports = class Application extends EventEmitter {
     }
   }
 
-
   /**
    * Refreshes the autocomplete source.
    * @public
@@ -260,11 +279,11 @@ module.exports = class Application extends EventEmitter {
    * @param message
    * @public
    */
-  consoleMessage({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false, details = null } = {}) {
+  consoleMessage ({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false, details = null } = {}) {
     const createElement = (tag, classes = '', content = '') => {
       return $('<' + tag + '>').addClass(classes).html(content)
     }
-  
+
     const status = (type, message) => {
       const statusInfo = messageStatus[type]
       if (!statusInfo) throw new Error('Invalid Status Type.')
@@ -275,7 +294,7 @@ module.exports = class Application extends EventEmitter {
         </div>
       `
     }
-  
+
     const getTime = () => {
       const now = new Date()
       const hour = String(now.getHours()).padStart(2, '0')
@@ -283,98 +302,96 @@ module.exports = class Application extends EventEmitter {
       const second = String(now.getSeconds()).padStart(2, '0')
       return `${hour}:${minute}:${second}`
     }
-  
+
     const baseTypeClasses = {
       success: 'bg-highlight-green/10 border-highlight-green text-highlight-green',
       error: 'bg-error-red/10 border-error-red text-error-red',
       info: 'bg-primary-bg/10 border-primary-bg text-text-primary',
       warning: 'bg-highlight-yellow/10 border-highlight-yellow text-highlight-yellow'
     }
-  
+
     const packetTypeClasses = {
       incoming: 'bg-tertiary-bg/20 border-tertiary-bg text-text-primary',
       outgoing: 'bg-highlight-green/10 border-highlight-green text-highlight-green'
     }
-  
+
     const $container = createElement(
       'div',
-      isPacket 
+      isPacket
         ? 'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
         : 'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
     )
-  
+
     if (isPacket) {
       $container.addClass(packetTypeClasses[isIncoming ? 'incoming' : 'outgoing'])
     } else {
       $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg/10 border-tertiary-bg text-text-primary')
     }
-  
+
     if (isPacket) {
       const iconClass = isIncoming ? 'fa-arrow-down text-highlight-green' : 'fa-arrow-up text-highlight-yellow'
       $container.append(`<i class="fas ${iconClass} mr-1 hidden"></i>`)
-    }
-
-    else if (time) {
+    } else if (time) {
       const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-2', getTime())
       $container.append($timeContainer)
     }
-  
+
     const $messageContainer = createElement(
-      'div', 
+      'div',
       isPacket
         ? 'text-xs text-text-primary break-all flex-1'
         : 'flex-1 text-xs flex items-center space-x-2'
     )
-  
+
     if (withStatus && !isPacket) {
       $messageContainer.html(status(type, message))
     } else {
       $messageContainer.text(message)
     }
-  
+
     $messageContainer.css({
       overflow: 'hidden',
       'text-overflow': 'ellipsis',
       'white-space': 'normal',
       'word-break': 'break-word'
     })
-  
+
     $container.append($messageContainer)
-  
+
     if (isPacket && details) {
       const $detailsButton = createElement(
         'button',
         'text-xs text-gray-400 mt-2 hover:text-text-primary transition-colors',
         '<i class="fas fa-code mr-1"></i> View Details'
       )
-      
+
       const $detailsContainer = createElement(
         'div',
         'bg-tertiary-bg rounded p-2 mt-2 hidden',
         `<pre class="text-xs text-text-primary overflow-auto">${JSON.stringify(details, null, 2)}</pre>`
       )
-      
+
       $detailsButton.on('click', () => {
         $detailsContainer.toggleClass('hidden')
         const isHidden = $detailsContainer.hasClass('hidden')
         $detailsButton.html(
-          isHidden 
-            ? '<i class="fas fa-code mr-1"></i> View Details' 
+          isHidden
+            ? '<i class="fas fa-code mr-1"></i> View Details'
             : '<i class="fas fa-chevron-up mr-1"></i> Hide Details'
         )
       })
-      
+
       $container.append($detailsButton, $detailsContainer)
     }
-  
+
     if (isPacket) {
       const $totalCount = $('#totalCount')
       const $incomingCount = $('#incomingCount')
       const $outgoingCount = $('#outgoingCount')
-      
+
       const totalCount = parseInt($totalCount.text() || '0', 10) + 1
       $totalCount.text(totalCount)
-      
+
       if (isIncoming) {
         const incomingCount = parseInt($incomingCount.text() || '0', 10) + 1
         $incomingCount.text(incomingCount)
@@ -382,9 +399,9 @@ module.exports = class Application extends EventEmitter {
         const outgoingCount = parseInt($outgoingCount.text() || '0', 10) + 1
         $outgoingCount.text(outgoingCount)
       }
-      
+
       $('#message-log').append($container)
-      
+
       const $messageLog = $('#message-log')
       const isAtBottom = $messageLog.scrollTop() + $messageLog.innerHeight() >= $messageLog[0].scrollHeight - 30
       if (isAtBottom) {
@@ -418,39 +435,39 @@ module.exports = class Application extends EventEmitter {
    * @param {Object} plugin
    * @returns {JQuery<HTMLElement>}
    */
-  renderPluginItems({ name, type, description, author } = {}) {
+  renderPluginItems ({ name, type, description, author } = {}) {
     const iconClass = type === 'ui' ? 'fas fa-desktop' : type === 'game' ? 'fas fa-gamepad' : ''
-  
+
     const badge = iconClass
       ? $('<span>', {
-          class: 'badge bg-custom-pink text-white rounded-full text-xs px-2 py-1 flex items-center'
-        }).append($('<i>', { class: iconClass }))
+        class: 'badge bg-custom-pink text-white rounded-full text-xs px-2 py-1 flex items-center'
+      }).append($('<i>', { class: iconClass }))
       : null
-  
+
     const onClickEvent = type === 'ui' ? () => jam.application.dispatch.open(name) : null
-  
+
     const hoverClass = type === 'ui' ? 'hover:bg-tertiary-bg hover:shadow-md transition duration-200 cursor-pointer' : ''
     const $listItem = $('<li>', {
       class: `flex flex-col gap-2 p-3 border border-sidebar-border bg-secondary-bg rounded-md ${hoverClass}`,
       click: onClickEvent
     })
-  
+
     const $title = $('<div>', { class: 'flex items-center justify-between' })
       .append($('<span>', { class: 'text-text-primary font-medium text-base', text: name }))
       .append(badge)
-  
+
     const $description = $('<p>', {
       class: 'text-gray-400 text-xs leading-snug',
       text: description
     })
-  
+
     const $author = $('<span>', {
       class: 'text-gray-500 text-xs italic',
       text: `Author: ${author}`
     })
-  
+
     $listItem.append($title, $description, $author)
-  
+
     if (type === 'ui') {
       this.$pluginList.prepend($listItem)
     } else {

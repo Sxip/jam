@@ -55,6 +55,8 @@ class Electron {
         app.exit()
       }, 5000)
     })
+
+    ipcMain.on('open-url', (_, url) => shell.openExternal(url))
   }
 
   /**
@@ -101,7 +103,7 @@ class Electron {
         autoHideMenuBar: true,
         frame: true,
         webPreferences: {
-          ...defaultWindowOptions.webPreferences,
+          ...defaultWindowOptions.webPreferences
         }
       }
     }
@@ -166,4 +168,3 @@ class Electron {
 }
 
 module.exports = Electron
-

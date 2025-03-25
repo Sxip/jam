@@ -3,11 +3,11 @@ const { watch } = require('fs')
 const path = require('path')
 const { debounce } = require('lodash')
 
-const BASE_PATH = process.platform == 'win32'
+const BASE_PATH = process.platform === 'win32'
   ? path.resolve('settings.json')
-  : process.platform == 'darwin'
-  ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..','settings.json')
-  : undefined
+  : process.platform === 'darwin'
+    ? path.join(__dirname, '..', '..', '..', '..', '..', '..', '..', 'settings.json')
+    : undefined
 
 module.exports = class Settings {
   constructor () {
@@ -63,6 +63,29 @@ module.exports = class Settings {
   }
 
   /**
+   * Gets all settings.
+   * @returns
+   */
+  getAll () {
+    if (!this._isLoaded) {
+      throw new Error('Settings have not been loaded yet. Call `load()` first.')
+    }
+    return this.settings
+  }
+
+  /**
+   * Saves all settings
+   */
+  setAll (settings) {
+    if (!this._isLoaded) {
+      throw new Error('Settings have not been loaded yet. Call `load()` first.')
+    }
+
+    this.settings = settings
+    this._saveSettingsDebounced()
+  }
+
+  /**
    * Updates the settings file.
    * @param key
    * @param value
@@ -101,7 +124,6 @@ module.exports = class Settings {
         try {
           const settings = await readFile(BASE_PATH, 'utf-8')
           this.settings = JSON.parse(settings)
-          console.log('Settings reloaded due to external change.')
         } catch (error) {
           console.error(`Failed reloading the settings file after external change. ${error.message}`)
         }
