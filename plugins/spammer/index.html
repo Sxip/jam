@@ -1,99 +1,91 @@
-<html>
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <title>Packet Spammer</title>
-
-  <style>
-    body {
-      background: var(--primary-dark-color) !important;
-      color: var(--primary-white-color);
-      padding-top: 20px;
-    }
-
-    .action-box {
-      height: 50vh;
-      overflow-y: auto;
-    }
-  </style>
-</head>
-
-<body>
-
-  <div class="container text-center">
-
+<body class="bg-primary-bg text-text-primary p-6 h-screen flex flex-col">
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col space-y-4">
     <!-- Table -->
-    <div class="action-box">
-      <table class="table" id="table">
-        <thead>
-          <tr class="clickable-row">
-            <th scope="col">Type</th>
-            <th scope="col">Content</th>
-            <th scope="col">Delay</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        </tbody>
-      </table>
+    <div class="bg-secondary-bg rounded-md shadow overflow-hidden flex-1">
+      <div class="max-h-[50vh] overflow-y-auto">
+        <table class="w-full text-left">
+          <thead class="bg-tertiary-bg sticky top-0 z-20">
+            <tr>
+              <th class="text-base py-3 px-4 font-medium">Type</th>
+              <th class="text-base py-3 px-4 font-medium">Content</th>
+              <th class="text-base py-3 px-4 font-medium">Delay</th>
+              <th class="text-base py-3 px-4 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table">
+            <!-- Packets will be added here -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="md-form">
-      <textarea id="inputTxt" class="md-textarea form-control" rows="3" placeholder="Content"></textarea>
-    </div>
+    <!-- Input Area -->
+    <div class="bg-secondary-bg rounded-md shadow p-4 space-y-4">
+      <textarea id="inputTxt" 
+        class="w-full bg-tertiary-bg text-text-primary placeholder-gray-400 p-3 rounded-md focus:outline-none resize-y min-h-[100px] text-base" 
+        placeholder="Enter packet content here..."></textarea>
 
-    <br />
-
-    <div class="row">
-      <div class="col-3 px-1">
-        <select class="custom-select w-100" style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
-          id="inputType">
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Type Selector -->
+        <select id="inputType" class="min-w-[150px] bg-tertiary-bg text-text-primary p-2 rounded-md focus:outline-none text-base">
           <option value="connection">Client</option>
           <option value="aj">Animal Jam</option>
         </select>
-      </div>
 
-      <div class="col px-1">
-        <input type="text" class="form-control input-sm w-100"
-          style="border-top-left-radius: 0; border-bottom-left-radius: 0;" placeholder="Delay" value="1"
-          id="inputDelay" />
-      </div>
+        <!-- Delay Input -->
+        <input type="text" id="inputDelay" 
+          class="min-w-[100px] bg-tertiary-bg text-text-primary p-2 rounded-md focus:outline-none text-base" 
+          placeholder="Delay" value="1">
 
-      <div class="px-1">
-        <button type="button" class="btn btn-add" onclick="spammer.addClick()">Add</button>
-        <button type="button" class="btn btn-send" onclick="spammer.sendClick()">Send</button>
+        <!-- Action Buttons -->
+        <button type="button" onclick="spammer.addClick()" 
+          class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base">
+          <i class="fas fa-plus mr-2"></i> Add
+        </button>
+        <button type="button" onclick="spammer.sendClick()" 
+          class="px-4 py-2 bg-highlight-green/20 hover:bg-highlight-green/30 text-highlight-green rounded-md transition text-base">
+          <i class="fas fa-paper-plane mr-2"></i> Send
+        </button>
       </div>
     </div>
 
-    <br />
-    <br />
+    <!-- Controls -->
+    <div class="bg-secondary-bg rounded-md shadow p-4 space-y-4">
+      <div class="flex flex-wrap gap-4 items-center">
+        <!-- File Operations -->
+        <div class="flex gap-2">
+          <button type="button" onclick="spammer.saveToFile()" 
+            class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base">
+            <i class="fas fa-save mr-2"></i> Save
+          </button>
+          <button type="button" onclick="spammer.loadFromFile()" 
+            class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base">
+            <i class="fas fa-folder-open mr-2"></i> Load
+          </button>
+        </div>
 
-    <div class="text-center">
-      <div class="row justify-content-center">
-        <div class="px-1">
-          <button type="button" class="btn btn-save" onclick="spammer.saveToFile()">Save</button>
-          <button type="button" class="btn btn-load" onclick="spammer.loadFromFile()">Load</button>
-        </div>
-        <div class="px-1">
-          <select id="inputRunType" style="margin: 6px;">
-            <option value="loop">Loop</option>
-            <option value="once">Once</option>
-          </select>
-        </div>
-        <div class="px-1">
-          <button type="button" class="btn btn-send" onclick="spammer.stopClick()" id="stopButton">Stop</button>
-          <button type="button" class="btn btn-add" onclick="spammer.runClick()" id="runButton">Start</button>
+        <!-- Run Type Selector -->
+        <select id="inputRunType" class="min-w-[120px] bg-tertiary-bg text-text-primary p-2 rounded-md focus:outline-none text-base">
+          <option value="loop">Loop</option>
+          <option value="once">Once</option>
+        </select>
+
+        <!-- Run Controls -->
+        <div class="flex gap-2 ml-auto">
+          <button type="button" id="stopButton" onclick="spammer.stopClick()" 
+            class="px-4 py-2 bg-error-red/20 hover:bg-error-red/30 text-error-red rounded-md transition text-base">
+            <i class="fas fa-stop mr-2"></i> Stop
+          </button>
+          <button type="button" id="runButton" onclick="spammer.runClick()" 
+            class="px-4 py-2 bg-highlight-green/20 hover:bg-highlight-green/30 text-highlight-green rounded-md transition text-base">
+            <i class="fas fa-play mr-2"></i> Start
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-
-  <!-- Spammer -->
+  <!-- Spammer Script -->
   <script src="./index.js"></script>
 </body>
-
-</html>

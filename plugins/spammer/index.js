@@ -11,16 +11,20 @@ const stopButton = document.getElementById('stopButton')
 const runButton = document.getElementById('runButton')
 const table = document.getElementById('table')
 
+// Initial button states
+stopButton.disabled = true
+
 const tab = ' '.repeat(2)
 
 let runner
 let runnerType
 let runnerRow
+let activeRow = null
 
 class Spammer {
   constructor () {
     /**
-     * Handles input events
+     * Handles input events for tab support in textarea
      */
     input.onkeydown = e => {
       const keyCode = e.which
@@ -29,7 +33,7 @@ class Spammer {
         e.preventDefault()
 
         const s = input.selectionStart
-        input.value = this.value.substring(0, input.selectionStart) + tab + input.value.substring(this.selectionEnd)
+        input.value = input.value.substring(0, input.selectionStart) + tab + input.value.substring(input.selectionEnd)
         input.selectionEnd = s + tab.length
       }
     }
@@ -37,6 +41,8 @@ class Spammer {
 
   /**
    * Sends a packet
+   * @param {string|string[]} content - The packet content
+   * @param {string} type - The packet type (aj or connection)
    */
   async sendPacket (content, type) {
     if (!content) return
@@ -50,12 +56,16 @@ class Spammer {
       })
     }
 
-    if (type === 'aj') dispatch.sendRemoteMessage(content)
-    else dispatch.sendConnectionMessage(content)
+    try {
+      if (type === 'aj') dispatch.sendRemoteMessage(content)
+      else dispatch.sendConnectionMessage(content)
+    } catch (error) {
+      console.error('Error sending packet:', error)
+    }
   }
 
   /**
-   * Adds a click
+   * Adds a packet to the queue
    */
   addClick () {
     if (!input.value) return
@@ -64,51 +74,67 @@ class Spammer {
     const content = input.value
     const delay = inputDelay.value
 
-    const row = table.insertRow()
+    const row = table.insertRow(-1)
+    row.className = 'hover:bg-tertiary-bg/20 transition'
+
     const typeCell = row.insertCell(0)
     const contentCell = row.insertCell(1)
     const delayCell = row.insertCell(2)
-    const removeCell = row.insertCell(3)
+    const actionCell = row.insertCell(3)
+
+    typeCell.className = 'py-2 px-3 text-xs'
+    contentCell.className = 'py-2 px-3 text-xs truncate max-w-[300px]'
+    delayCell.className = 'py-2 px-3 text-xs'
+    actionCell.className = 'py-2 px-3 text-xs'
 
     typeCell.innerText = type
     contentCell.innerText = content
     delayCell.innerText = delay
-    removeCell.innerHTML = '<button type="button" class="btn btn-add" onclick="spammer.deleteRow(this)">Remove</button>'
+
+    // Add tooltip for full content
+    contentCell.title = content
+
+    actionCell.innerHTML = `
+      <button type="button" class="px-2 py-1 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-xs" onclick="spammer.deleteRow(this)">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    `
   }
 
   /**
-   * Deletes a row
+   * Deletes a row from the queue
    */
   deleteRow (btn) {
-    const row = btn.parentNode.parentNode
+    const row = btn.closest('tr')
     row.parentNode.removeChild(row)
   }
 
   /**
-   * Sends a click
+   * Sends the current packet
    */
   sendClick () {
     const content = input.value
+    if (!content) return
+
     const type = inputType.value
 
-    switch (inputType.value) {
-      case 'aj':
-      case 'connection': {
-        const packets = content.match(/[^\r\n]+/g)
-
-        if (packets.length > 1) this.sendPacket(packets, type)
-        else this.sendPacket(content, type)
+    try {
+      const packets = content.match(/[^\r\n]+/g)
+      if (packets && packets.length > 1) {
+        this.sendPacket(packets, type)
+      } else {
+        this.sendPacket(content, type)
       }
-        break
+    } catch (error) {
+      console.error('Error sending packet:', error)
     }
   }
 
   /**
-   * Run click
+   * Starts running the queue
    */
   runClick () {
     if (table.rows.length <= 1) {
-      this.stopClick()
       return
     }
 
@@ -117,47 +143,49 @@ class Spammer {
     runnerRow = 1
     runnerType = inputRunType.value
 
-    setTimeout(this.runNext())
+    this.runNext()
   }
 
   /**
-   * Handles run next
+   * Processes the next packet in the queue
    */
   runNext () {
-    let row, type, content, delay
+    if (activeRow) {
+      activeRow.classList.remove('bg-tertiary-bg/40')
+    }
 
-    row = table.rows[runnerRow++]
+    const row = table.rows[runnerRow++]
 
     if (!row) {
       if (runnerType === 'loop') {
-        this.runClick()
+        runnerRow = 1
+        this.runNext()
       } else {
         this.stopClick()
       }
       return
     }
 
-    type = row.cells[0].innerText
-    content = row.cells[1].innerText
-    delay = parseFloat(row.cells[2].innerText)
+    const type = row.cells[0].innerText
+    const content = row.cells[1].innerText
+    const delay = parseFloat(row.cells[2].innerText)
 
-    switch (type) {
-      case 'aj':
-      case 'connection':
-        this.sendPacket(content, type)
-        break
+    activeRow = row
+    row.classList.add('bg-tertiary-bg/40')
+
+    try {
+      this.sendPacket(content, type)
+    } catch (error) {
+      console.error('Error in packet execution:', error)
     }
 
-    row.classList.add('row-selected')
-
     runner = setTimeout(() => {
-      row.classList.remove('row-selected')
       this.runNext()
     }, delay * 1000)
   }
 
   /**
-   * Stops click
+   * Stops the queue execution
    */
   stopClick () {
     runButton.disabled = false
@@ -165,13 +193,14 @@ class Spammer {
 
     if (runner) clearTimeout(runner)
 
-    for (let i = 1; i < table.rows.length; i++) {
-      table.rows[i].classList.remove('rowSelected')
+    if (activeRow) {
+      activeRow.classList.remove('bg-tertiary-bg/40')
+      activeRow = null
     }
   }
 
   /**
-   * Saves the current table contents and text box to a file
+   * Saves the current queue to a file
    */
   saveToFile () {
     const packets = []
@@ -191,48 +220,67 @@ class Spammer {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = 'packets.txt'
+    a.download = 'packet-queue.json'
     a.click()
+    URL.revokeObjectURL(a.href)
   }
 
   /**
-   * Loads the contents from a file into the table and text box
+   * Loads a queue from a file
    */
   loadFromFile () {
     const inputElement = document.createElement('input')
     inputElement.type = 'file'
+    inputElement.accept = '.json,.txt'
 
     inputElement.onchange = async (event) => {
-      const file = event.target.files[0]
-      const text = await file.text()
-      const data = JSON.parse(text)
+      try {
+        const file = event.target.files[0]
+        if (!file) return
 
-      input.value = data.input
-      table.innerHTML = `
-            <thead>
-                <tr class="clickable-row">
-                    <th scope="col">Type</th>
-                    <th scope="col">Content</th>
-                    <th scope="col">Delay</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        `
+        const text = await file.text()
+        const data = JSON.parse(text)
 
-      data.packets.forEach(packet => {
-        const row = table.insertRow()
-        const typeCell = row.insertCell(0)
-        const contentCell = row.insertCell(1)
-        const delayCell = row.insertCell(2)
-        const removeCell = row.insertCell(3)
+        input.value = data.input || ''
 
-        typeCell.innerText = packet.type
-        contentCell.innerText = packet.content
-        delayCell.innerText = packet.delay
-        removeCell.innerHTML = '<button type="button" class="btn btn-add" onclick="spammer.deleteRow(this)">Remove</button>'
-      })
+        // Clear existing rows except header
+        while (table.rows.length > 1) {
+          table.deleteRow(1)
+        }
+
+        // Add packets from file
+        if (data.packets && Array.isArray(data.packets)) {
+          data.packets.forEach(packet => {
+            const row = table.insertRow(-1)
+            row.className = 'hover:bg-tertiary-bg/20 transition'
+
+            const typeCell = row.insertCell(0)
+            const contentCell = row.insertCell(1)
+            const delayCell = row.insertCell(2)
+            const actionCell = row.insertCell(3)
+
+            typeCell.className = 'py-2 px-3 text-xs'
+            contentCell.className = 'py-2 px-3 text-xs truncate max-w-[300px]'
+            delayCell.className = 'py-2 px-3 text-xs'
+            actionCell.className = 'py-2 px-3 text-xs'
+
+            typeCell.innerText = packet.type
+            contentCell.innerText = packet.content
+            delayCell.innerText = packet.delay
+
+            // Add tooltip for full content
+            contentCell.title = packet.content
+
+            actionCell.innerHTML = `
+              <button type="button" class="px-2 py-1 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-xs" onclick="spammer.deleteRow(this)">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            `
+          })
+        }
+      } catch (error) {
+        console.error('Error loading file:', error)
+      }
     }
 
     inputElement.click()

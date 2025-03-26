@@ -168,16 +168,16 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
-   * Opens the settings json file.
-   * @public
-   */
-  /**
    * Opens the settings modal.
    * @returns {void}
    * @public
    */
   openSettings () {
     this.modals.show('settings', '#modalContainer')
+  }
+
+  openAbout () {
+    this.modals.show('pluginLibraryModal', '#modalContainer')
   }
 
   /**

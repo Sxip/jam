@@ -21,41 +21,41 @@
     class="w-64 h-full bg-sidebar-bg p-4 fixed top-0 left-0 transform -translate-x-full transition-transform duration-300 border-r border-sidebar-border z-30 flex flex-col shadow-lg">
 
     <!-- Branding -->
-    <div class="mb-6 flex items-center justify-center">
-      <img src="file:///../../../../assets/icon.png" alt="Jam Icon" class="h-8 w-8">
+    <div class="mb-4 flex items-center justify-center">
+      <img src="file:///../../../../assets/icon.png" alt="Jam Icon" class="h-9 w-9">
     </div>
 
     <!-- Main Navigation -->
-    <div class="mb-6">
-      <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">Main Navigation</h2>
-      <ul class="space-y-2">
-        <li>
+    <div class="mb-4">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">Navigation</h2>
+      <ul class="space-y-1">
+        <li class="border border-transparent transition-colors rounded-md">
           <a href="#"
-            class="flex items-center space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition"
+            class="flex items-center space-x-3 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded-md transition"
             onclick="jam.application.openAnimalJam()">
             <i class="fas fa-play text-highlight-green"></i>
             <span>Play</span>
           </a>
         </li>
-        <li>
+        <li class="border border-transparent transition-colors rounded-md">
           <a href="#"
-            class="flex items-center space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition"
+            class="flex items-center space-x-3 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded-md transition"
             onclick="jam.application.openSettings()">
-            <i class="fas fa-cog text-highlight-yellow"></i>
+            <i class="fas fa-cog text-amber-400"></i>
             <span>Settings</span>
           </a>
         </li>
-        <li>
+        <li class="border border-transparent transition-colors rounded-md">
           <a href="#"
-            class="flex items-center space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition"
+            class="flex items-center space-x-3 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded-md transition"
             onclick="jam.dispatch.refresh()">
-            <i class="fas fa-sync-alt text-custom-pink"></i>
+            <i class="fas fa-sync-alt text-blue-400"></i>
             <span>Reload</span>
           </a>
         </li>
-        <li class="relative">
+        <li class="relative border border-transparent transition-colors rounded-md">
           <button id="linksDropdownToggle"
-            class="w-full flex items-center justify-between space-x-3 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 rounded-md transition">
+            class="w-full flex items-center justify-between space-x-3 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 rounded-md transition">
             <div class="flex items-center space-x-3">
               <i class="fas fa-link text-text-primary"></i>
               <span>Links</span>
@@ -65,19 +65,19 @@
           <div id="linksDropdown"
             class="hidden absolute z-10 left-0 right-0 mt-1 bg-tertiary-bg rounded-md shadow-lg overflow-hidden transition-all duration-200 ease-in-out">
             <a href="#"
-              class="flex items-center space-x-2 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 transition pl-8"
+              class="flex items-center space-x-2 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 transition group pl-8"
               onclick="jam.application.open('https://discord.gg/9FE86KPcrW')">
-              <i class="fab fa-discord text-custom-blue"></i>
+              <i class="fab fa-discord text-indigo-400"></i>
               <span>Discord</span>
             </a>
             <a href="#"
-              class="flex items-center space-x-2 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 transition pl-8"
+              class="flex items-center space-x-2 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 transition group pl-8"
               onclick="jam.application.open('https://github.com/sxip/jam')">
               <i class="fab fa-github text-text-primary"></i>
               <span>GitHub</span>
             </a>
             <a href="#"
-              class="flex items-center space-x-2 text-sidebar-text hover:bg-sidebar-hover px-3 py-2 transition pl-8"
+              class="flex items-center space-x-2 text-sidebar-text hover:bg-tertiary-bg px-3 py-2 transition group pl-8"
               onclick="jam.application.open('https://jam.exposed')">
               <i class="fas fa-palette text-peachy-beige"></i>
               <span>Masterpieces Viewer</span>
@@ -88,16 +88,24 @@
     </div>
 
     <!-- Plugins Section -->
-    <div class="flex-1 overflow-hidden flex flex-col min-h-0 mt-6"> <!-- Added margin top -->
-      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">
-        Plugins
-      </h2>
-      <div class="flex-1 overflow-hidden min-h-0">
+    <div class="flex-1 overflow-hidden flex flex-col min-h-0 mt-2"> 
+      <div class="flex items-center justify-between px-3 mb-2">
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Plugins</h2>
+        <button class="text-sidebar-text hover:text-highlight-green transition-colors text-xs" 
+                onclick="jam.application.openAbout()">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto">
         <ul id="pluginList"
-          class="h-full overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-sidebar-hover scrollbar-track-sidebar-bg bg-secondary-bg rounded-lg p-2 shadow-inner box-border">
-          <!-- List items will be dynamically added here -->
+          class="space-y-1 pr-1">
+          <li class="px-3 py-2 text-xs text-gray-400 italic">No plugins installed</li>
         </ul>
       </div>
+    </div>
+    
+    <div class="mt-4 pt-3 border-t border-sidebar-border/30 text-xs text-gray-500 text-center">
+      Made with ❤️ by Sxip
     </div>
   </div>
 

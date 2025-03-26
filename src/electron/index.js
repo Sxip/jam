@@ -13,10 +13,10 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 const defaultWindowOptions = {
   title: 'Jam',
   backgroundColor: '#16171f',
-  resizable: false,
+  resizable: true,
   useContentSize: true,
   width: 840,
-  height: 545,
+  height: 645,
   frame: false,
   webPreferences: {
     webSecurity: false,
