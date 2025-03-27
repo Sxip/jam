@@ -93,12 +93,9 @@ module.exports = class Settings {
    * @public
    */
   async update (key, value) {
-    if (!this._isLoaded) {
-      throw new Error('Settings have not been loaded yet. Call `load()` first.')
-    }
-    this.settings[key] = value
+    if (!this._isLoaded) throw new Error('Settings have not been loaded yet. Call `load()` first.')
 
-    // Debounce the save operation to batch changes
+    this.settings[key] = value
     this._saveSettingsDebounced()
   }
 

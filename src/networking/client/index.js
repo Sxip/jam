@@ -193,9 +193,7 @@ module.exports = class Client {
    * @private
    */
   async _sendMessage (socket, message) {
-    if (message instanceof Message) {
-      message = message.toMessage()
-    }
+    if (message instanceof Message) message = message.toMessage()
 
     if (!socket.writable || socket.destroyed) {
       throw new Error('Failed to write to socket after end!')
@@ -267,7 +265,6 @@ module.exports = class Client {
       return
     }
 
-    // Handle messages based on the type
     if (message.send) {
       if (type === ConnectionMessageTypes.connection) {
         await this.sendRemoteMessage(message)

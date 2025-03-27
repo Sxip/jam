@@ -264,14 +264,7 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   refreshAutoComplete () {
-    this.$input.autocomplete('option', {
-      source:
-        Array.from(this.dispatch.commands.values())
-          .map(command => ({
-            value: command.name,
-            description: command.description
-          }))
-    })
+    this.activateAutoComplete()
   }
 
   /**
@@ -280,19 +273,25 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   consoleMessage ({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false, details = null } = {}) {
-    const createElement = (tag, classes = '', content = '') => {
-      return $('<' + tag + '>').addClass(classes).html(content)
+    const baseTypeClasses = {
+      success: 'bg-highlight-green/10 border-l-4 border-highlight-green text-highlight-green',
+      error: 'bg-error-red/10 border-l-4 border-error-red text-error-red',
+      wait: 'bg-tertiary-bg/30 border-l-4 border-tertiary-bg text-gray-300',
+      celebrate: 'bg-purple-500/10 border-l-4 border-purple-500 text-purple-400',
+      warn: 'bg-highlight-yellow/10 border-l-4 border-highlight-yellow text-highlight-yellow',
+      notify: 'bg-blue-500/10 border-l-4 border-blue-500 text-blue-400',
+      speech: 'bg-primary-bg/10 border-l-4 border-primary-bg text-text-primary',
+      logger: 'bg-gray-700/30 border-l-4 border-gray-600 text-gray-300',
+      action: 'bg-teal-500/10 border-l-4 border-teal-500 text-teal-400'
     }
 
-    const status = (type, message) => {
-      const statusInfo = messageStatus[type]
-      if (!statusInfo) throw new Error('Invalid Status Type.')
-      return `
-        <div class="flex items-center space-x-2">
-          <img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-80" />
-          <span>${message || ''}</span>
-        </div>
-      `
+    const packetTypeClasses = {
+      incoming: 'bg-tertiary-bg/20 border-l-4 border-highlight-green text-text-primary',
+      outgoing: 'bg-highlight-green/5 border-l-4 border-highlight-yellow text-text-primary'
+    }
+
+    const createElement = (tag, classes = '', content = '') => {
+      return $('<' + tag + '>').addClass(classes).html(content)
     }
 
     const getTime = () => {
@@ -303,50 +302,51 @@ module.exports = class Application extends EventEmitter {
       return `${hour}:${minute}:${second}`
     }
 
-    const baseTypeClasses = {
-      success: 'bg-highlight-green/10 border-highlight-green text-highlight-green',
-      error: 'bg-error-red/10 border-error-red text-error-red',
-      info: 'bg-primary-bg/10 border-primary-bg text-text-primary',
-      warning: 'bg-highlight-yellow/10 border-highlight-yellow text-highlight-yellow'
-    }
-
-    const packetTypeClasses = {
-      incoming: 'bg-tertiary-bg/20 border-tertiary-bg text-text-primary',
-      outgoing: 'bg-highlight-green/10 border-highlight-green text-highlight-green'
+    const status = (type, message) => {
+      const statusInfo = messageStatus[type]
+      if (!statusInfo) throw new Error('Invalid Status Type.')
+      return `
+        <div class="flex items-center space-x-2">
+          <img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-90" />
+          <span class="font-medium">${message || ''}</span>
+        </div>
+      `
     }
 
     const $container = createElement(
       'div',
-      isPacket
-        ? 'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
-        : 'flex items-center p-2 rounded-md border mb-1 shadow-sm max-w-full w-full'
+      'flex items-start p-3 rounded-md mb-2 shadow-sm max-w-full w-full transition-colors duration-150 hover:bg-opacity-20'
     )
 
     if (isPacket) {
       $container.addClass(packetTypeClasses[isIncoming ? 'incoming' : 'outgoing'])
     } else {
-      $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg/10 border-tertiary-bg text-text-primary')
+      $container.addClass(baseTypeClasses[type] || 'bg-tertiary-bg/10 border-l-4 border-tertiary-bg text-text-primary')
     }
 
     if (isPacket) {
       const iconClass = isIncoming ? 'fa-arrow-down text-highlight-green' : 'fa-arrow-up text-highlight-yellow'
-      $container.append(`<i class="fas ${iconClass} mr-1 hidden"></i>`)
+      const $iconContainer = createElement('div', 'flex items-center mr-3 text-base', `<i class="fas ${iconClass}"></i>`)
+      $container.append($iconContainer)
     } else if (time) {
-      const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-2', getTime())
+      const $timeContainer = createElement('div', 'text-xs text-gray-500 mr-3 whitespace-nowrap font-mono', getTime())
       $container.append($timeContainer)
     }
 
     const $messageContainer = createElement(
       'div',
       isPacket
-        ? 'text-xs text-text-primary break-all flex-1'
-        : 'flex-1 text-xs flex items-center space-x-2'
+        ? 'text-xs flex-1 break-all leading-relaxed'
+        : 'flex-1 text-xs flex items-center space-x-2 leading-relaxed'
     )
 
     if (withStatus && !isPacket) {
       $messageContainer.html(status(type, message))
     } else {
       $messageContainer.text(message)
+      if (isPacket) {
+        $messageContainer.addClass('font-mono')
+      }
     }
 
     $messageContainer.css({
@@ -359,29 +359,62 @@ module.exports = class Application extends EventEmitter {
     $container.append($messageContainer)
 
     if (isPacket && details) {
+      const $actionsContainer = createElement('div', 'flex ml-2 items-center')
+
       const $detailsButton = createElement(
         'button',
-        'text-xs text-gray-400 mt-2 hover:text-text-primary transition-colors',
-        '<i class="fas fa-code mr-1"></i> View Details'
+        'text-xs text-gray-400 hover:text-text-primary transition-colors px-2 py-1 rounded hover:bg-tertiary-bg/20',
+        '<i class="fas fa-code mr-1"></i> Details'
       )
+
+      const $copyButton = createElement(
+        'button',
+        'text-xs text-gray-400 hover:text-text-primary transition-colors ml-1 px-2 py-1 rounded hover:bg-tertiary-bg/20',
+        '<i class="fas fa-copy mr-1"></i> Copy'
+      )
+
+      $copyButton.on('click', (e) => {
+        e.stopPropagation()
+        navigator.clipboard.writeText(message)
+
+        const originalHtml = $copyButton.html()
+        $copyButton.html('<i class="fas fa-check mr-1"></i> Copied!')
+        $copyButton.addClass('text-highlight-green')
+
+        setTimeout(() => {
+          $copyButton.html(originalHtml)
+          $copyButton.removeClass('text-highlight-green')
+        }, 1500)
+      })
+
+      $actionsContainer.append($detailsButton, $copyButton)
+      $container.append($actionsContainer)
 
       const $detailsContainer = createElement(
         'div',
-        'bg-tertiary-bg rounded p-2 mt-2 hidden',
-        `<pre class="text-xs text-text-primary overflow-auto">${JSON.stringify(details, null, 2)}</pre>`
+        'bg-tertiary-bg/50 rounded-md p-3 mt-2 hidden w-full',
+        `<pre class="text-xs text-text-primary overflow-auto max-h-[300px] font-mono">${JSON.stringify(details, null, 2)}</pre>`
       )
 
-      $detailsButton.on('click', () => {
+      $detailsButton.on('click', (e) => {
+        e.stopPropagation()
         $detailsContainer.toggleClass('hidden')
         const isHidden = $detailsContainer.hasClass('hidden')
         $detailsButton.html(
           isHidden
-            ? '<i class="fas fa-code mr-1"></i> View Details'
-            : '<i class="fas fa-chevron-up mr-1"></i> Hide Details'
+            ? '<i class="fas fa-code mr-1"></i> Details'
+            : '<i class="fas fa-chevron-up mr-1"></i> Hide'
         )
       })
 
-      $container.append($detailsButton, $detailsContainer)
+      $container.after($detailsContainer)
+
+      $container.css('cursor', 'pointer')
+      $container.on('click', function (e) {
+        if (!$(e.target).closest('button').length) {
+          $detailsButton.click()
+        }
+      })
     }
 
     if (isPacket) {
@@ -409,6 +442,9 @@ module.exports = class Application extends EventEmitter {
       }
     } else {
       $('#messages').append($container)
+
+      const $messages = $('#messages')
+      $messages.scrollTop($messages[0].scrollHeight)
     }
 
     if (window.applyFilter) window.applyFilter()
