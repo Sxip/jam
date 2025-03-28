@@ -11,7 +11,6 @@
 
 # Installation
 
-
 Make sure you get the latest copy from [Releases](https://github.com/sxip/jam/releases) on the right of the page by clicking the file for your platform. Do not download a Zip from under the Code section unless you're trying to run from source.
 
 ![releases.png](Images/releases.png)
@@ -53,7 +52,7 @@ If you're just getting familiar with Jam, there are some built in commands you c
 - `color`
     Randomly changes your animal's colors
 
-Not sure how outfit cycling works so won't be covering that here. Feel free to make a pr if you wan't to document more here.
+Not sure how outfit cycling works so won't be covering that. Feel free to make a pr if you wan't to document more here.
 
 ## **Networking**
 
@@ -65,7 +64,9 @@ If you go the network tab on the top right after you've logged in, you should se
 
 ---
 
-These are Packets. Ones highlighted in green are outgoing from your client, grey is recieving/server sided. This was taken while playing The Return of the Phantoms. Each is formatted differently depending on what's intended to be performed/communicated.
+These are Packets. Packets are small units of data that are transmitted over the network to communicate between your client, and the server. Ones highlighted in green are outgoing from your client, grey is recieving/server sided. This screenshot was taken while playing The Return of the Phantoms. Each is formatted differently depending on what's intended to be performed/communicated.
+
+**For example;** If you move your character to a certain spot in a room, updated location information would be sent to the server via a packet, so your position can update on other player's screens.
 
 You can customize, and send your own packets by clicking on the Packet Spammer to the left of the window.
 
@@ -73,13 +74,15 @@ You can customize, and send your own packets by clicking on the Packet Spammer t
 
 ![packetspammer.png](Images/packetspammer.png)
 
-Enter the packet you want to send into the Content field. To understand how to customize certain aspects of your packet depending on what it's for, refer to the [DefPacks](#defpacks) section. You can also add multiple packets to a list by clicking add after you have what you want in the Content field, and run each one in order. If you'd like you can save your list setup with the save button.
+Enter the packet you want to send into the Content field. You can also add multiple packets to a list by clicking add after you have what you want in the Content field, and run each one in order. If you'd like you can save your list setup with the save button.
 
-Delay can be set in the second field which is autofilled with 1.
+Delay between sending packets in your list can be set as well which is autofilled with 1, decimals are also supported. 
+
+To understand how to customize certain aspects of your packet depending on what it's for, refer to the [DefPacks](#defpacks) section.
 
 # DefPacks
 
-DefPacks contain information about different aspects of the game for reference, like IDs, colors, etc.
+DefPacks contain information about different aspects of the game for reference.
 
 ## **Retrieving**
 
@@ -99,4 +102,4 @@ Now if we look in the json file labeled Animals in our DefPacks, we can search f
 
 As you can see the ID of the animal is 3, and there is also a 3 in our packet seperated by two `%` characters. So this must be where the ID is located. Replace that with whatever you like in the DefPacks as long as you have a sufficient amount of Gems/Diamonds, and send it with the packet spammer set to Animal Jam and not Client on the dropdown.
 
-Relog, and you should have your animal.
+Reload, and you should have your animal.
