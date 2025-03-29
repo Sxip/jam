@@ -1,0 +1,47 @@
+{
+  "productName": "jam",
+  "electronVersion": "32.0.1",
+  "directories": {
+    "output": "build"
+  },
+  "mac": {
+    "files": [
+      "src/**/*"
+    ],
+    "asar": "true",
+    "target": {
+      "target": "dmg",
+      "arch": [
+        "x64"
+      ]
+    },
+    "icon": "assets/icon.png"
+  },
+  "win": {
+    "files": [
+      "src/**/*"
+    ],
+    "icon": "assets/icon.ico",
+    "asar": "true",
+    "target": {
+      "target": "nsis",
+      "arch": [
+        "x64"
+      ]
+    }
+  },
+  "extraFiles": [
+    "plugins/**/*",
+    "assets/**/*",
+    "public/**/*",
+    "settings.json"
+  ],
+  "extraResources": [
+    "assets/",
+    "public/"
+  ],
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
+  }
+}

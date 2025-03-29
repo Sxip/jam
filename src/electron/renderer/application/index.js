@@ -176,7 +176,10 @@ module.exports = class Application extends EventEmitter {
     this.modals.show('settings', '#modalContainer')
   }
 
-  openAbout () {
+  /**
+   * Opens plugins hub.
+   */
+  openPluginHub () {
     this.modals.show('pluginLibraryModal', '#modalContainer')
   }
 
@@ -307,7 +310,7 @@ module.exports = class Application extends EventEmitter {
       if (!statusInfo) throw new Error('Invalid Status Type.')
       return `
         <div class="flex items-center space-x-2">
-          <img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-90" />
+          <img src="app://assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-90" />
           <span class="font-medium">${message || ''}</span>
         </div>
       `

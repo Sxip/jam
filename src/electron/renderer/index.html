@@ -6,9 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jam</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
   <!-- jQuery -->
   <script>
     window.jQuery = window.$ = require('jquery')
@@ -22,7 +19,7 @@
 
     <!-- Branding -->
     <div class="mb-4 flex items-center justify-center">
-      <img src="file:///../../../../assets/icon.png" alt="Jam Icon" class="h-9 w-9">
+      <img src="app://assets/icon.png" alt="Jam Icon" class="h-9 w-9">
     </div>
 
     <!-- Main Navigation -->
@@ -92,7 +89,7 @@
       <div class="flex items-center justify-between px-3 mb-2">
         <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Plugins</h2>
         <button class="text-sidebar-text hover:text-highlight-green transition-colors text-xs" 
-                onclick="jam.application.openAbout()">
+                onclick="jam.application.openPluginHub()">
           <i class="fas fa-plus"></i>
         </button>
       </div>
@@ -212,8 +209,8 @@
 
 
   <!-- Auto complete -->
-  <script src="file:///../../../../assets/javascript/jquery-ui.js"></script>
-  <script src="file:///../../../../assets/javascript/popper.min.js"></script>
+  <script src="app://assets/javascript/jquery-ui.js"></script>
+  <script src="app://assets/javascript/popper.min.js"></script>
 
   <!-- Jam -->
   <script src="index.js"></script>

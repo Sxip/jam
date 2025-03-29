@@ -33,32 +33,15 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Build Windows App
-              run: npm run build:win
+            - name: Update version in package.json
+              run: |
+                  sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+                  cat package.json
+
+            - name: Build Windows and macOS Apps
+              run: npm run build:all
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Build macOS App
-              run: npm run build:mac
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Rename macOS files
-              run: |
-                  mv build/*.dmg build/Jam-${{ env.VERSION }}.dmg
-                  mv build/*.dmg.blockmap build/Jam-${{ env.VERSION }}.dmg.blockmap
-              working-directory: .
-
-            - name: Rename Windows files
-              run: |
-                  mv build/*.exe build/Jam-Setup-${{ env.VERSION }}.exe
-                  mv build/*.exe.blockmap build/Jam-Setup-${{ env.VERSION }}.exe.blockmap
-              working-directory: .
-
-            - name: Move metadata files
-              run: |
-                  mv build/latest-mac.yml build/latest.yml
-              working-directory: .
 
             - name: Create and Publish GitHub Release
               uses: softprops/action-gh-release@v2
@@ -68,10 +51,9 @@ jobs:
                   draft: false
                   prerelease: false
                   files: |
-                      build/Jam-${{ env.VERSION }}.dmg
-                      build/Jam-${{ env.VERSION }}.dmg.blockmap
-                      build/Jam-Setup-${{ env.VERSION }}.exe
-                      build/Jam-Setup-${{ env.VERSION }}.exe.blockmap
+                      build/*.dmg
+                      build/*.exe
+                      build/*.blockmap
                       build/latest.yml
                       build/latest-mac.yml
               env:

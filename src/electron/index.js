@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, shell, ipcMain } = require('electron')
+const { app, BrowserWindow, globalShortcut, shell, ipcMain, protocol, net } = require('electron')
 const path = require('path')
 const { fork } = require('child_process')
 const { autoUpdater } = require('electron-updater')
@@ -157,8 +157,19 @@ class Electron {
     this._window.loadFile(path.join(__dirname, 'renderer', 'index.html'))
     this._window.webContents.setWindowOpenHandler((details) => this._createWindow(details))
 
-    this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
+    protocol.handle('app', (request) => {
+      const url = request.url.slice('app://'.length)
+      let filePath
 
+      if (app.isPackaged) {
+        filePath = path.join(process.resourcesPath, url)
+      } else {
+        filePath = path.normalize(`${__dirname}/../../${url}`)
+      }
+
+      return net.fetch(`file://${filePath}`)
+    })
+    this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
     this._registerShortcut('F11', () => this._window.webContents.openDevTools())
 
     if (!isDevelopment) {
