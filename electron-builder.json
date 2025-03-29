@@ -15,13 +15,13 @@
         "x64"
       ]
     },
-    "icon": "assets/icon.png"
+    "icon": "./assets/icon.png"
   },
   "win": {
     "files": [
       "src/**/*"
     ],
-    "icon": "assets/icon.ico",
+    "icon": "./assets/icon.ico",
     "asar": "true",
     "target": {
       "target": "nsis",
