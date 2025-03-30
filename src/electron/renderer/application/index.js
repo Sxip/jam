@@ -85,9 +85,7 @@ module.exports = class Application extends EventEmitter {
      * @public
      */
     this.modals = new ModalSystem(this)
-    this.modals.initialize().catch(error => {
-      console.error('Failed to initialize modal system:', error)
-    })
+    this.modals.initialize()
 
     /**
      * The reference to the application input.
@@ -230,7 +228,6 @@ module.exports = class Application extends EventEmitter {
    * @type {void}
    * @public
    */
-  // ...existing code...
   activateAutoComplete () {
     if (!$('#autocomplete-styles').length) {
       $('head').append(`
@@ -588,44 +585,73 @@ module.exports = class Application extends EventEmitter {
    * @param {Object} plugin
    * @returns {JQuery<HTMLElement>}
    */
-  renderPluginItems ({ name, type, description, author } = {}) {
-    const iconClass = type === 'ui' ? 'fas fa-desktop' : type === 'game' ? 'fas fa-gamepad' : ''
+  renderPluginItems ({ name, type, description, author = 'Sxip' } = {}) {
+    const getIconClass = () => {
+      switch (type) {
+        case 'ui': return 'fa-desktop'
+        case 'game': return 'fa-gamepad'
+      }
+    }
 
-    const badge = iconClass
-      ? $('<span>', {
-        class: 'badge bg-custom-pink text-white rounded-full text-xs px-2 py-1 flex items-center'
-      }).append($('<i>', { class: iconClass }))
-      : null
+    const getIconColorClass = () => {
+      switch (type) {
+        case 'ui': return 'text-highlight-green bg-highlight-green/10'
+        case 'game': return 'text-highlight-yellow bg-highlight-yellow/10'
+      }
+    }
 
     const onClickEvent = type === 'ui' ? () => jam.application.dispatch.open(name) : null
 
-    const hoverClass = type === 'ui' ? 'hover:bg-tertiary-bg hover:shadow-md transition duration-200 cursor-pointer' : ''
-    const $listItem = $('<li>', {
-      class: `flex flex-col gap-2 p-3 border border-sidebar-border bg-secondary-bg rounded-md ${hoverClass}`,
+    const $listItem = $('<li>', { class: type === 'ui' ? 'group' : '' })
+    const $container = $('<div>', {
+      class: `flex items-center px-3 py-3.5 ${type === 'ui' ? 'hover:bg-tertiary-bg cursor-pointer' : ''} rounded-md transition-colors`,
       click: onClickEvent
     })
 
-    const $title = $('<div>', { class: 'flex items-center justify-between' })
-      .append($('<span>', { class: 'text-text-primary font-medium text-base', text: name }))
-      .append(badge)
+    const $iconContainer = $('<div>', {
+      class: `w-8 h-8 flex items-center justify-center ${getIconColorClass()} rounded mr-3 flex-shrink-0`
+    }).append($('<i>', { class: `fas ${getIconClass()} text-base` }))
+
+    const $contentContainer = $('<div>', { class: 'flex-1 min-w-0' })
+    const $titleRow = $('<div>', { class: 'flex items-center' })
+
+    $titleRow.append($('<span>', {
+      class: 'text-sidebar-text font-medium truncate text-[15px]',
+      text: name
+    }))
+
+    const $metaRow = $('<div>', {
+      class: 'flex items-center text-[11px] text-gray-400 mt-1'
+    })
+
+    $metaRow.append($('<span>', {
+      class: 'flex items-center',
+      html: `<i class="fas fa-user mr-1 opacity-70"></i>${author}`
+    }))
+
+    $metaRow.append($('<span>', {
+      class: 'mx-1.5 opacity-50',
+      html: '•'
+    }))
+
+    $metaRow.append($('<span>', {
+      class: 'opacity-70',
+      text: type.charAt(0).toUpperCase() + type.slice(1)
+    }))
 
     const $description = $('<p>', {
-      class: 'text-gray-400 text-xs leading-snug',
-      text: description
+      class: 'text-xs text-gray-400 truncate mt-1.5',
+      text: description || `${type.charAt(0).toUpperCase() + type.slice(1)} plugin for Animal Jam`
     })
 
-    const $author = $('<span>', {
-      class: 'text-gray-500 text-xs italic',
-      text: `Author: ${author}`
-    })
+    $contentContainer.append($titleRow, $metaRow, $description)
+    $container.append($iconContainer, $contentContainer)
+    $listItem.append($container)
 
-    $listItem.append($title, $description, $author)
+    if (type === 'ui') this.$pluginList.prepend($listItem)
+    else this.$pluginList.append($listItem)
 
-    if (type === 'ui') {
-      this.$pluginList.prepend($listItem)
-    } else {
-      this.$pluginList.append($listItem)
-    }
+    return $listItem
   }
 
   /**
