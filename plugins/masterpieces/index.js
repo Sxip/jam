@@ -133,10 +133,12 @@ module.exports = function ({ application, dispatch }) {
             game: gameType
           })
         })
-          .then(data => {
+          .then(async data => {
             $modal.find('#mp-searchStatus').addClass('hidden')
 
-            const masterpieces = data.masterpieces || data
+            const response = await data.json()
+            const masterpieces = response.masterpieces || []
+
             if (masterpieces && Array.isArray(masterpieces) && masterpieces.length > 0) {
               $modal.find('#mp-searchResults').removeClass('hidden')
 
