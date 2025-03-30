@@ -1,5 +1,5 @@
 const Application = require('./application')
-const { ipcRenderer, app } = require('electron')
+const { ipcRenderer } = require('electron')
 
 const application = new Application()
 

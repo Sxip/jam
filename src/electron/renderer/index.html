@@ -85,21 +85,20 @@
     </div>
 
     <!-- Plugins Section -->
-    <div class="flex-1 overflow-hidden flex flex-col min-h-0 mt-2"> 
+    <div class="flex-1 overflow-hidden flex flex-col min-h-0 mt-2">
       <div class="flex items-center justify-between px-3 mb-2">
         <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Plugins</h2>
-        <button class="text-sidebar-text hover:text-highlight-green transition-colors text-xs" 
-                onclick="jam.application.openPluginHub()">
+        <button class="text-sidebar-text hover:text-highlight-green transition-colors text-xs"
+          onclick="jam.application.openPluginHub()">
           <i class="fas fa-plus"></i>
         </button>
       </div>
       <div class="flex-1 overflow-y-auto">
-        <ul id="pluginList"
-          class="space-y-1 pr-1">
+        <ul id="pluginList" class="space-y-1 pr-1">
         </ul>
       </div>
     </div>
-    
+
     <div class="mt-4 pt-3 border-t border-sidebar-border/30 text-xs text-gray-500 text-center">
       Made with ❤️ by Sxip
     </div>
@@ -116,7 +115,8 @@
 
       <img class="h-10 mx-auto" />
 
-      <button id="closeButton" class="text-lg text-sidebar-text focus:outline-none">
+      <button id="closeButton"
+        class="p-2 rounded hover:bg-error-red hover:text-white transition-colors text-sidebar-text focus:outline-none">
         <i class="fas fa-times" onclick="jam.application.close()"></i>
       </button>
     </header>
@@ -197,13 +197,19 @@
 
     <!-- Footer -->
     <footer class="bg-secondary-bg border-t border-sidebar-border p-4 mt-auto">
-      <input id="input" type="text"
-        class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded"
-        placeholder="Type a command...">
+      <div id="commandContainer" class="relative">
+        <i class="fas fa-terminal absolute left-3 top-1/2 transform -translate-y-1/2 text-sidebar-text/70"></i>
+        <input id="input" type="text"
+          class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full pl-10 pr-3 py-2 rounded"
+          placeholder="Type a command...">
+      </div>
 
-      <input id="packetSearch" type="text"
-        class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full px-3 py-2 rounded hidden"
-        placeholder="Search packets...">
+      <div id="searchContainer" class="relative hidden">
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-sidebar-text/70"></i>
+        <input id="packetSearch" type="text"
+          class="bg-tertiary-bg text-text-primary placeholder-text-primary focus:outline-none w-full pl-10 pr-3 py-2 rounded"
+          placeholder="Search packets...">
+      </div>
     </footer>
   </div>
 
@@ -256,12 +262,13 @@
 
       function openTab(tabId) {
         if (tabId === 'packet-logging') {
-          $commandInput.addClass('hidden')
-          $packetSearch.removeClass('hidden')
+          $('#commandContainer').addClass('hidden')
+          $('#searchContainer').removeClass('hidden')
+          $('#packetSearch').removeClass('hidden')
           setTimeout(applyFilter, 0)
         } else {
-          $commandInput.removeClass('hidden')
-          $packetSearch.addClass('hidden')
+          $('#commandContainer').removeClass('hidden')
+          $('#searchContainer').addClass('hidden')
         }
 
         $('.tab-content').removeClass('active').addClass('hidden')
