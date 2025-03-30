@@ -176,15 +176,9 @@ module.exports = function ({ application, dispatch }) {
               $modal.find('#mp-noResults').removeClass('hidden')
             }
           })
-          .catch(error => {
-            console.error('API error:', error)
+          .catch(() => {
             $modal.find('#mp-searchStatus').addClass('hidden')
             $modal.find('#mp-noResults').removeClass('hidden')
-
-            app.consoleMessage({
-              type: 'error',
-              message: `Error searching for masterpieces: ${error.message}`
-            })
           })
       }
 
