@@ -158,7 +158,7 @@ class Spammer {
 
     if (!row) {
       if (runnerType === 'loop') {
-        runnerRow = 1
+        runnerRow = 0
         this.runNext()
       } else {
         this.stopClick()
