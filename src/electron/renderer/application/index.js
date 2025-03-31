@@ -85,9 +85,7 @@ module.exports = class Application extends EventEmitter {
      * @public
      */
     this.modals = new ModalSystem(this)
-    this.modals.initialize().catch(error => {
-      console.error('Failed to initialize modal system:', error)
-    })
+    this.modals.initialize()
 
     /**
      * The reference to the application input.
@@ -176,7 +174,10 @@ module.exports = class Application extends EventEmitter {
     this.modals.show('settings', '#modalContainer')
   }
 
-  openAbout () {
+  /**
+   * Opens plugins hub.
+   */
+  openPluginHub () {
     this.modals.show('pluginLibraryModal', '#modalContainer')
   }
 
@@ -228,6 +229,88 @@ module.exports = class Application extends EventEmitter {
    * @public
    */
   activateAutoComplete () {
+    if (!$('#autocomplete-styles').length) {
+      $('head').append(`
+        <style id="autocomplete-styles">
+          .ui-autocomplete {
+            max-height: 280px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px;
+            backdrop-filter: blur(8px);
+            scrollbar-width: thin;
+            scrollbar-color: #3A3D4D #1C1E26;
+          }
+          .ui-autocomplete::-webkit-scrollbar {
+            width: 8px;
+          }
+          .ui-autocomplete::-webkit-scrollbar-track {
+            background: #1C1E26;
+          }
+          .ui-autocomplete::-webkit-scrollbar-thumb {
+            background: #3A3D4D;
+            border-radius: 8px;
+          }
+          .ui-autocomplete::-webkit-scrollbar-thumb:hover {
+            background: #5A5F6D;
+          }
+          .autocomplete-item {
+            padding: 6px !important;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+          }
+          .autocomplete-item {
+            padding: 6px !important;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+          }
+          .autocomplete-item.ui-state-focus {
+            border: 1px solid rgba(52, 211, 153, 0.5) !important;
+            background: rgba(52, 211, 153, 0.1) !important;
+            margin: 0 0 4px 0 !important;
+          }
+          .autocomplete-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+          .autocomplete-item-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary, #e2e8f0);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .autocomplete-item-description {
+            font-size: 12px;
+            opacity: 0.7;
+            color: var(--text-secondary, #a0aec0);
+            margin-left: 16px;
+          }
+          .autocomplete-shortcut {
+            margin-top: 4px;
+            font-size: 10px;
+            color: rgba(160, 174, 192, 0.6);
+            display: flex;
+            justify-content: flex-end;
+          }
+          .autocomplete-shortcut kbd {
+            background: rgba(45, 55, 72, 0.6);
+            border-radius: 3px;
+            padding: 1px 4px;
+            margin: 0 2px;
+            border: 1px solid rgba(160, 174, 192, 0.2);
+            font-family: monospace;
+          }
+        </style>
+      `)
+    }
+
     this.$input.autocomplete({
       source: Array.from(this.dispatch.commands.values()).map(command => ({
         value: command.name,
@@ -235,8 +318,10 @@ module.exports = class Application extends EventEmitter {
       })),
       position: { my: 'left top', at: 'left bottom', collision: 'flip' },
       classes: {
-        'ui-autocomplete': 'bg-secondary-bg border border-sidebar-border rounded-lg shadow-lg z-50'
+        'ui-autocomplete': 'bg-secondary-bg/95 border border-sidebar-border rounded-lg shadow-lg z-50'
       },
+      delay: 50,
+      minLength: 0,
       create: function () {
         $(this).data('ui-autocomplete')._resizeMenu = function () {
           this.menu.element.css({ width: this.element.outerWidth() + 'px' })
@@ -245,16 +330,45 @@ module.exports = class Application extends EventEmitter {
       select: function (event, ui) {
         this.value = ui.item.value
         return false
+      },
+      focus: function (event, ui) {
+        $('.autocomplete-item').removeClass('scale-[1.01]')
+        $(event.target).closest('.autocomplete-item').addClass('scale-[1.01]')
+        return false
+      },
+      open: function () {
+        const $menu = $(this).autocomplete('widget')
+        $menu.css('opacity', 0)
+          .animate({ opacity: 1 }, 150)
+      },
+      close: function () {
+        const $menu = $(this).autocomplete('widget')
+        $menu.animate({ opacity: 0 }, 100)
       }
-    }).autocomplete('instance')._renderItem = function (ul, item) {
+    }).autocomplete('instance')._renderMenu = function (ul, items) {
+      const that = this
+
+      items.forEach(item => {
+        that._renderItemData(ul, item)
+      })
+    }
+
+    this.$input.autocomplete('instance')._renderItem = function (ul, item) {
       return $('<li>')
         .addClass('autocomplete-item ui-menu-item')
+        .attr('data-value', item.value)
         .append(`
-          <div class="autocomplete-item-content">
-            <span class="autocomplete-item-name">${item.value}</span>
-            <span class="autocomplete-item-description">${item.description}</span>
+        <div class="autocomplete-item-content">
+          <span class="autocomplete-item-name">
+            <i class="fas fa-terminal text-xs opacity-70"></i>
+            ${item.value}
+          </span>
+          <span class="autocomplete-item-description">${item.description}</span>
+          <div class="autocomplete-shortcut">
+            Press <kbd>Tab</kbd> to complete, <kbd>Enter</kbd> to execute
           </div>
-        `)
+        </div>
+      `)
         .appendTo(ul)
     }
   }
@@ -307,7 +421,7 @@ module.exports = class Application extends EventEmitter {
       if (!statusInfo) throw new Error('Invalid Status Type.')
       return `
         <div class="flex items-center space-x-2">
-          <img src="file:///../../../../assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-90" />
+          <img src="app://assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-90" />
           <span class="font-medium">${message || ''}</span>
         </div>
       `
@@ -471,44 +585,73 @@ module.exports = class Application extends EventEmitter {
    * @param {Object} plugin
    * @returns {JQuery<HTMLElement>}
    */
-  renderPluginItems ({ name, type, description, author } = {}) {
-    const iconClass = type === 'ui' ? 'fas fa-desktop' : type === 'game' ? 'fas fa-gamepad' : ''
+  renderPluginItems ({ name, type, description, author = 'Sxip' } = {}) {
+    const getIconClass = () => {
+      switch (type) {
+        case 'ui': return 'fa-desktop'
+        case 'game': return 'fa-gamepad'
+      }
+    }
 
-    const badge = iconClass
-      ? $('<span>', {
-        class: 'badge bg-custom-pink text-white rounded-full text-xs px-2 py-1 flex items-center'
-      }).append($('<i>', { class: iconClass }))
-      : null
+    const getIconColorClass = () => {
+      switch (type) {
+        case 'ui': return 'text-highlight-green bg-highlight-green/10'
+        case 'game': return 'text-highlight-yellow bg-highlight-yellow/10'
+      }
+    }
 
     const onClickEvent = type === 'ui' ? () => jam.application.dispatch.open(name) : null
 
-    const hoverClass = type === 'ui' ? 'hover:bg-tertiary-bg hover:shadow-md transition duration-200 cursor-pointer' : ''
-    const $listItem = $('<li>', {
-      class: `flex flex-col gap-2 p-3 border border-sidebar-border bg-secondary-bg rounded-md ${hoverClass}`,
+    const $listItem = $('<li>', { class: type === 'ui' ? 'group' : '' })
+    const $container = $('<div>', {
+      class: `flex items-center px-3 py-3.5 ${type === 'ui' ? 'hover:bg-tertiary-bg cursor-pointer' : ''} rounded-md transition-colors`,
       click: onClickEvent
     })
 
-    const $title = $('<div>', { class: 'flex items-center justify-between' })
-      .append($('<span>', { class: 'text-text-primary font-medium text-base', text: name }))
-      .append(badge)
+    const $iconContainer = $('<div>', {
+      class: `w-8 h-8 flex items-center justify-center ${getIconColorClass()} rounded mr-3 flex-shrink-0`
+    }).append($('<i>', { class: `fas ${getIconClass()} text-base` }))
+
+    const $contentContainer = $('<div>', { class: 'flex-1 min-w-0' })
+    const $titleRow = $('<div>', { class: 'flex items-center' })
+
+    $titleRow.append($('<span>', {
+      class: 'text-sidebar-text font-medium truncate text-[15px]',
+      text: name
+    }))
+
+    const $metaRow = $('<div>', {
+      class: 'flex items-center text-[11px] text-gray-400 mt-1'
+    })
+
+    $metaRow.append($('<span>', {
+      class: 'flex items-center',
+      html: `<i class="fas fa-user mr-1 opacity-70"></i>${author}`
+    }))
+
+    $metaRow.append($('<span>', {
+      class: 'mx-1.5 opacity-50',
+      html: '•'
+    }))
+
+    $metaRow.append($('<span>', {
+      class: 'opacity-70',
+      text: type.charAt(0).toUpperCase() + type.slice(1)
+    }))
 
     const $description = $('<p>', {
-      class: 'text-gray-400 text-xs leading-snug',
-      text: description
+      class: 'text-xs text-gray-400 truncate mt-1.5',
+      text: description || `${type.charAt(0).toUpperCase() + type.slice(1)} plugin for Animal Jam`
     })
 
-    const $author = $('<span>', {
-      class: 'text-gray-500 text-xs italic',
-      text: `Author: ${author}`
-    })
+    $contentContainer.append($titleRow, $metaRow, $description)
+    $container.append($iconContainer, $contentContainer)
+    $listItem.append($container)
 
-    $listItem.append($title, $description, $author)
+    if (type === 'ui') this.$pluginList.prepend($listItem)
+    else this.$pluginList.append($listItem)
 
-    if (type === 'ui') {
-      this.$pluginList.prepend($listItem)
-    } else {
-      this.$pluginList.append($listItem)
-    }
+    return $listItem
   }
 
   /**
