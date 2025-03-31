@@ -140,7 +140,7 @@ class Spammer {
 
     stopButton.disabled = false
     runButton.disabled = true
-    runnerRow = 1
+    runnerRow = 0
     runnerType = inputRunType.value
 
     this.runNext()
