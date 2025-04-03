@@ -13,9 +13,8 @@ module.exports = function ({ application, dispatch }) {
     })
   }
 
-  
   /**
-   * Hoooks the login packet.
+   * Hooks the login packet.
    */
   dispatch.onMessage({
     type: 'aj',

@@ -4,17 +4,11 @@ module.exports = function ({ application, dispatch }) {
    */
   const handleRoomJoin = ({ message }) => {
     const room = message.value[3]
-
     dispatch.setState('room', room)
-
-    application.consoleMessage({
-      message: 'Successfully logged in!',
-      type: 'action'
-    })
   }
 
   /**
-   * Hoooks the login packet.
+   * Hooks the room join packet.
    */
   dispatch.onMessage({
     type: 'aj',
