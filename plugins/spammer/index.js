@@ -49,11 +49,28 @@ class Spammer {
 
     content = content || input.value
 
+    // Process array content
     if (Array.isArray(content)) {
+      const processedMessages = content.map(msg => {
+        if (msg.includes('{room}')) {
+          const room = dispatch.getState('room')
+          return room ? msg.replaceAll('{room}', room) : msg
+        }
+        return msg
+      })
+
       return dispatch.sendMultipleMessages({
         type,
-        messages: content
+        messages: processedMessages
       })
+    }
+
+    // Process single content string
+    if (content.includes('{room}')) {
+      const room = dispatch.getState('room')
+      if (room) {
+        content = content.replaceAll('{room}', room)
+      }
     }
 
     try {

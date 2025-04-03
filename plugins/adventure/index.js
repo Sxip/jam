@@ -1,4 +1,4 @@
-module.exports = function ({ dispatch }) {
+module.exports = function ({ dispatch, application }) {
   /**
    * Color interval.
    */
@@ -8,17 +8,25 @@ module.exports = function ({ dispatch }) {
    * Handles adventure command.
    */
   const handleAdventureCommnd = () => {
-    if (interval) return clear()
+    const room = dispatch.getState('room')
 
-    interval = dispatch.setInterval(() => adventure(), 600)
+    if (!room) {
+      return application.consoleMessage({
+        message: 'You must be in a room to use this plugin.',
+        type: 'error'
+      })
+    }
+
+    if (interval) return clear()
+    interval = dispatch.setInterval(() => adventure(room), 600)
   }
 
   /**
    * Sends the treasure packet to the server.
    */
-  const adventure = async () => {
-    await dispatch.sendRemoteMessage('%xt%o%qat%4640562%treasure_1%0%')
-    dispatch.sendRemoteMessage('%xt%o%qatt%4640562%treasure_1%1%')
+  const adventure = async (room) => {
+    await dispatch.sendRemoteMessage(`%xt%o%qat%${room}%treasure_1%0%`)
+    dispatch.sendRemoteMessage(`%xt%o%qatt%${room}%treasure_1%1%`)
   }
 
   /**
