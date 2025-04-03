@@ -1,13 +1,15 @@
 module.exports = function ({ dispatch, application }) {
   let size = 13
+  let active = false
 
   /**
    * Handles the humongous command.
    * @returns
    */
   const handleHumongousCommand = ({ parameters }) => {
-    const room = dispatch.getState('room')
+    active = !active
 
+    const room = dispatch.getState('room')
     if (!room) {
       return application.consoleMessage({
         message: 'You must be in a room to use this plugin.',
@@ -15,8 +17,11 @@ module.exports = function ({ dispatch, application }) {
       })
     }
 
+    if (active) {
+      dispatch.serverMessage('You are now humongous! Re-join the room so other players can see you as a giant.')
+    }
+
     size = parseInt(parameters[0]) || 13
-    dispatch.serverMessage('You are now humongous! Re-join the room so other players can see you as a giant.')
   }
 
   /**
@@ -26,6 +31,8 @@ module.exports = function ({ dispatch, application }) {
    * @returns
    */
   const handleMovementUpdate = ({ message }) => {
+    if (!active) return
+
     const room = dispatch.getState('room')
 
     const x = message.value[6]
