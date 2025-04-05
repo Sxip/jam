@@ -1,437 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Custom Colors</title>
-    <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Custom Colors</title>
+  <style>
 
-        body {
-            padding-top: 20px;
-            position: relative;
-            background-color: #16171F;
-            animation: fadeIn 1s ease-in-out;
-        }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
 
-        .container {
-            text-align: left;
-            position: absolute;
-            top: 20px;
-            left: 50px;
-            border: 2px solid #1A1C28;
-            padding: 10px;
-            border-radius: 10px;
-            background-color: #21232F;
-            height: 250px;
-            width: 600px;
-            animation: fadeIn 1s ease-in-out;
-        }
+    .container {
+  position: relative;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 90% !important;
+  height: 250px !important;
+  background-color: #1c1e26;
+  min-height: 250px !important;
+  padding: 20px;
+  box-sizing: border-box;
+  border-radius: 5px;
 
-        .form-group {
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            animation: fadeIn 1s ease-in-out;
-        }
+}
 
-        .btn {
-            width: 250px;
-            transition: background-color 0.3s, transform 0.3s;
-            border: 2px solid #1A1C28;
-            border-radius: 5px;
-            background-color: #444652;
-            color: #CECECE;
-            cursor: pointer;
-            position: absolute;
-        }
+    .form-group {
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      position: relative;
+      animation: fadeIn 1s ease-in-out;
+    }
 
-        .btn:hover {
-            background-color: #ddd;
-            transform: scale(1.05);
-            color: #000;
-        }
+    .btn {
+      width: 250px;
+      border: 2px solid #1A1C28;
+      border-radius: 5px;
+      background-color: #3a3d4d;
+      color: #CECECE;
+      cursor: pointer;
+      position: relative;
+    }
 
-        #sendPacketBtn {
-            right: 20px;
-            top: 180px;
-        }
+    #sendPacketBtn { position: absolute; right: 20px; top: 185px; }
+    #copyPacketBtn { position: absolute; right: 20px; top: 135px; }
 
-        #copyPacketBtn {
-            right: 20px;
-            top: 130px;
-        }
+    .color-display {
+      width: 30px;
+      height: 30px;
+      border: 2px solid #1A1C28;
+      border-radius: 5px;
+      margin-left: 10px;
+      transition: transform 0.3s;
+    }
+    .color-display:hover { transform: scale(1.2); }
+    .eyedropper-btn {
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      color: #3a3d4d;
+      transition: color 0.3s;
+    }
+    .eyedropper-btn:hover { color: #38b000; }
 
-        .color-display {
-            width: 30px;
-            height: 30px;
-            border: 2px solid #1A1C28;
-            margin-left: 10px;
-            transition: transform 0.3s;
-            border-radius: 5px;
-        }
+    #addPresetBtn,
+    #savePresetsBtn,
+    #loadPresetsBtn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      position: absolute;
+    }
+    #savePresetsBtn { top: 305px; left: 5%; }
+    #loadPresetsBtn { top: 305px; left: 19%; }
+    #addPresetBtn { top: 305px; right: 5%; }
 
-        .color-display:hover {
-            transform: scale(1.2);
-        }
+    #modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.5s;
+    }
+    #modal-content {
+      background-color: #1c1e26;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #3a3d4d;
+      width: 80%;
+      max-width: 800px;
+      text-align: center;
+      border-radius: 10px;
+      animation: slideIn 0.5s;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
 
-        .eyedropper-btn {
-            margin-left: 10px;
-            cursor: pointer;
-            font-size: 20px;
-            color: #888;
-            transition: color 0.3s;
-        }
+    .color-chart {
+      display: grid;
+      grid-template-columns: repeat(20, 30px);
+      justify-content: center;
+      gap: 0;
+      margin: 10px auto 0;
+      background-color: #0D0E13;
+      width: fit-content;
+    }
+    .color-cell {
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      border: none;
+      box-sizing: border-box;
+      transition: transform 0.3s;
+    }
+    .color-cell:hover { transform: scale(1.2); }
 
-        .eyedropper-btn:hover {
-            color: #ff0055;
-        }
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .tab-button {
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #20232F;
+      color: #38b000;
+      border: 1px solid #1A1C28;
+      margin-right: 5px;
+      border-radius: 5px;
+    }
+    .tab-button.active { background-color: #444652; }
+    .color-chart-tab { display: none; }
+    .color-chart-tab.active { display: grid; }
+    #ajClassicChart {
+      grid-template-columns: repeat(10, 30px);
+      grid-template-rows: repeat(5, 30px);
+      justify-content: center;
+      width: fit-content;
+      margin: 0 auto;
+    }
+    #exclusiveColorChart { grid-template-columns: repeat(16, 30px); }
 
-        #addPresetBtn,
-        #savePresetsBtn,
-        #loadPresetsBtn {
-            padding: 8px 20px;
-            background-color: #444652;
-            color: #CECECE;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
-            position: absolute;
-        }
+    .preset-container {
+      margin: 70px auto;  
+      width: 90%;
+      height: 90%;
+      max-width: 90%;
+      padding: 20px;
+      border: 2px solid #1A1C28;
+      border-radius: 5px;
+      background-color: #1c1e26;
+    }
+    .preset {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #20232F;
+      border-radius: 5px;
+      background-color: #3a3d4d;
+    }
+    .preset input[type="text"] {
+      background-color: transparent;
+      color: #CECECE;
+      border: none;
+      border-bottom: 1px solid #CECECE;
+      outline: none;
+      width: 150px;
+      margin-left: 10px;
+    }
+    .preset-color-display {
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      margin: 0 5px;
+    }
+    .apply-btn,
+    .delete-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
 
-        #addPresetBtn:hover,
-        #savePresetsBtn:hover,
-        #loadPresetsBtn:hover {
-            background-color: #5a3a44;
-            transform: scale(1.05);
-        }
+    input[type="file"] { display: none; }
+    .random-color-icon {
+      position: absolute;
+      top: 190px;
+      right: 240px;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.3s, color 0.3s;
+      color: #c3c3c3;
+    }
+    .random-color-icon:hover { color: #38b000; }
 
-        #addPresetBtn {
-            top: 285px;
-            right: 190px;
-        }
+    .info-button {
+      position: absolute;
+      top: 10px;
+      right: 30px;
+      width: 10px;
+      height: 10px;
+      color: #3a3d4d;
+      border: none;
+      font-size: 30px;
+      line-height: 30px;
+      text-align: center;
+      cursor: pointer;
+    }
 
-        #savePresetsBtn {
-            top: 285px;
-            left: 50px;
-        }
-
-        #loadPresetsBtn {
-            top: 285px;
-            left: 140px;
-        }
-
-        #modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-            animation: fadeIn 0.5s;
-        }
-
-        #modal-content {
-            background-color: #0D0E13;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 800px;
-            text-align: center;
-            animation: slideIn 0.5s;
-            border-radius: 10px;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            transition: color 0.3s;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .color-chart {
-            display: grid;
-            grid-template-columns: repeat(20, 30px);
-            justify-content: center;
-            justify-items: center;
-            gap: 0;
-            margin-top: 10px;
-            background-color: #0D0E13;
-            width: fit-content;
-            margin: 0 auto;
-        }
-
-        .color-cell {
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            border: none;
-            box-sizing: border-box;
-            transition: transform 0.3s;
-        }
-
-        .color-cell:hover {
-            transform: scale(1.2);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .info-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #444652;
-            color: #ff0055;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 20px;
-            line-height: 30px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-
-        .tab-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .tab-button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #20232F;
-            color: #ff0055;
-            border: 1px solid #1A1C28;
-            margin-right: 5px;
-            border-radius: 5px;
-        }
-
-        .tab-button.active {
-            background-color: #444652;
-        }
-
-        .color-chart-tab {
-            display: none;
-        }
-
-        .color-chart-tab.active {
-            display: grid;
-        }
-
-        #ajClassicChart {
-            grid-template-columns: repeat(10, 30px);
-            grid-template-rows: repeat(5, 30px);
-            justify-content: center;
-            justify-items: center;
-            width: fit-content;
-            margin: 0 auto;
-
-        }
-
-        #exclusiveColorChart {
-            grid-template-columns: repeat(16, 30px);
-        }
-
-        .preset-container {
-            position: absolute;
-            top: 340px;
-            left: 50px;
-            padding: 8px;
-            border: 2px solid #1A1C28;
-            border-radius: 5px;
-            background-color: #21232F;
-            width: 600px;
-        }
-
-        .preset {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #20232F;
-            border-radius: 5px;
-            background-color: #444652;
-            justify-content: space-between;
-        }
-
-        .preset input[type="text"] {
-            background-color: transparent;
-            color: #CECECE;
-            border: none;
-            border-bottom: 1px solid #CECECE;
-            outline: none;
-            width: 150px;
-            margin-left: 10px;
-        }
-
-        .preset-color-display {
-            width: 30px;
-            height: 30px;
-            border-radius: 5px;
-            margin: 0 5px;
-        }
-
-        .apply-btn,
-        .delete-btn {
-            padding: 5px 10px;
-            background-color: #5F5F6B;
-            border: none;
-            border-radius: 5px;
-            color: #CECECE;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
-            margin-left: 5px;
-        }
-
-        .apply-btn:hover {
-            background-color: #6d7584;
-            transform: scale(1.05);
-        }
-
-        .delete-btn:hover {
-            background-color: #a10043;
-            transform: scale(1.05);
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .random-color-icon {
-            font-size: 24px;
-            position: absolute;
-            top: 180px;
-            right: 280px;
-            cursor: pointer;
-            transition: transform 0.3s, color 0.3s;
-            color: #888;
-
-        }
-
-        .random-color-icon:hover {
-            transform: scale(1.2);
-            color: #ff0055;
-        }
-    </style>
+  </style>
 </head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-<body>
+<body class="bg-primary-bg text-text-primary  h-screen flex flex-col">
 
-    <div class="container">
-        <button type="button" class="info-button" onclick="sendHelloMessage()">i</button>
+  <div class="container">
+    <button type="button" class="info-button" onclick="sendHelloMessage()"><i class="fas fa-info-circle mr-2"></i></button>
 
-        <div class="form-group" style="position: relative;">
-            <button type="button" class="btn" id="primaryBodyColorBtn" style="position: relative;"
-                onclick="openColorChart('primaryBodyColor')">Primary Body Color:</button>
-            <input type="hidden" id="primaryBodyColor" value="0" />
-            <span id="primaryBodyColorDisplay" class="color-display" style="background-color: #793647;"></span>
-            <span class="eyedropper-btn" onclick="openColorPicker('primaryBodyColor')">🖍</span>
-        </div>
-
-        <div class="form-group" style="position: relative;">
-            <button type="button" class="btn" id="secondaryBodyColorBtn" style="position: relative;"
-                onclick="openColorChart('secondaryBodyColor')">Secondary Body Color:</button>
-            <input type="hidden" id="secondaryBodyColor" value="0" />
-            <span id="secondaryBodyColorDisplay" class="color-display" style="background-color: #793647;"></span>
-            <span class="eyedropper-btn" onclick="openColorPicker('secondaryBodyColor')">🖍</span>
-        </div>
-
-        <div class="form-group" style="position: relative;">
-            <button type="button" class="btn" id="patternColorBtn" style="position: relative;"
-                onclick="openColorChart('patternColor')">Pattern Color:</button>
-            <input type="hidden" id="patternColor" value="0" />
-            <span id="patternColorDisplay" class="color-display" style="background-color: #793647;"></span>
-            <span class="eyedropper-btn" onclick="openColorPicker('patternColor')">🖍</span>
-        </div>
-
-        <div class="form-group" style="position: relative;">
-            <button type="button" class="btn" id="eyeColorBtn" style="position: relative;"
-                onclick="openColorChart('eyeColor')">Eye Color:</button>
-            <input type="hidden" id="eyeColor" value="0" />
-            <span id="eyeColorDisplay" class="color-display" style="background-color: #793647;"></span>
-            <span class="eyedropper-btn" onclick="openColorPicker('eyeColor')">🖍</span>
-        </div>
-
-        <button type="button" class="btn" id="sendPacketBtn" onclick="sendColorPacket()">Change Colors!</button>
-        <button type="button" class="btn" id="copyPacketBtn" onclick="copyColorPacket()">Copy Packet</button>
-        <span id="randomColorIcon" class="random-color-icon" onclick="randomizeColors()">🎨</span>
+    <div class="form-group">
+      <button type="button" style="width: 200px; "class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" id="primaryBodyColorBtn" onclick="openColorChart('primaryBodyColor')"><i class="fas fa-external-link mr-2"></i> Primary Color
+      </button>
+      <input type="hidden" id="primaryBodyColor" value="0" />
+      <span id="primaryBodyColorDisplay" class="color-display" style="background-color: #793647;"></span>
+      <span class="eyedropper-btn" onclick="openColorPicker('primaryBodyColor')"><i class="fas fa-eyedropper mr-2"></i></span>
+    </div>
+    <div class="form-group">
+      <button type="button" style="width: 200px; "class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" id="secondaryBodyColorBtn" onclick="openColorChart('secondaryBodyColor')"><i class="fas fa-external-link mr-2"></i> Secondary Color
+      </button>
+      <input type="hidden" id="secondaryBodyColor" value="0" />
+      <span id="secondaryBodyColorDisplay" class="color-display" style="background-color: #793647;"></span>
+      <span class="eyedropper-btn" onclick="openColorPicker('secondaryBodyColor')"><i class="fas fa-eyedropper mr-2"></i></span>
+    </div>
+    <div class="form-group">
+      <button type="button" style="width: 200px; "class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" id="patternColorBtn" onclick="openColorChart('patternColor')"><i class="fas fa-external-link mr-2"></i> Pattern Color
+      </button>
+      <input type="hidden" id="patternColor" value="0" />
+      <span id="patternColorDisplay" class="color-display" style="background-color: #793647;"></span>
+      <span class="eyedropper-btn" onclick="openColorPicker('patternColor')"><i class="fas fa-eyedropper mr-2"></i></span>
+    </div>
+    <div class="form-group">
+      <button type="button" style="width: 200px; "class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" id="eyeColorBtn" onclick="openColorChart('eyeColor')"><i class="fas fa-external-link mr-2"></i> Eye Color
+      </button>
+      <input type="hidden" id="eyeColor" value="0" />
+      <span id="eyeColorDisplay" class="color-display" style="background-color: #793647;"></span>
+      <span class="eyedropper-btn" onclick="openColorPicker('eyeColor')"><i class="fas fa-eyedropper mr-2"></i></span>
     </div>
 
-    <button type="button" id="addPresetBtn" onclick="addPreset()">Add Preset</button>
-    <button type="button" id="savePresetsBtn" onclick="savePresets()">Save</button>
-    <button type="button" id="loadPresetsBtn" onclick="loadPresets()">Load</button>
-    <input type="file" id="fileInput" accept=".json" />
+    <button type="button" style="width: 200px; "class="px-4 py-2 bg-highlight-green/20 hover:bg-highlight-green/30 text-highlight-green rounded-md transition text-base" id="sendPacketBtn" onclick="sendColorPacket()"><i class="fas fa-paint-brush mr-2"></i> Change Colors!</button>
+    <button type="button" style="width: 200px; "class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" id="copyPacketBtn" onclick="copyColorPacket()"><i class="fas fa-clipboard mr-2"></i> Copy Packet</button>
+    <span id="randomColorIcon" class="random-color-icon" onclick="randomizeColors()"><i class="fas fa-random mr-2"></i></span>
+  </div>
 
-    <div id="presetContainer" class="preset-container">
-        <!-- Presets added here -->
+<button type="button" id="savePresetsBtn" class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" onclick="savePresets()">
+    <i class="fas fa-save mr-2"></i> Save
+  </button>
+  <button type="button" id="loadPresetsBtn" class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" onclick="loadPresets()">
+    <i class="fas fa-folder-open mr-2"></i> Load
+  </button>
+
+  <button type="button" id="addPresetBtn" class="px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" onclick="addPreset()"><i class="fas fa-plus mr-2"></i> Add Preset</button>
+  <input type="file" id="fileInput" accept=".json" />
+
+  <div id="presetContainer" class="preset-container">
+  </div>
+
+  <div id="modal">
+    <div id="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div class="tab-container">
+        <div class="tab-button active px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" onclick="switchTab('full')"><i class="fas fa-paint-brush mr-2"></i> Full AJ Palette
+          </div>
+          <div class="tab-button px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" onclick="switchTab('ajClassic')"><i class="fas fa-paint-brush mr-2"></i> Classic Palette
+          </div>
+          <div class="tab-button px-4 py-2 bg-tertiary-bg hover:bg-sidebar-hover text-text-primary rounded-md transition text-base" onclick="switchTab('exclusive')"><i class="fas fa-paint-brush mr-2"></i> Exclusive Palette
+          </div>
+      </div>
+      <div id="fullChart" class="color-chart-tab active">
+        <div id="colorChart" class="color-chart"></div>
+      </div>
+      <div id="ajClassicChart" class="color-chart-tab">
+        <div id="ajColorChart" class="color-chart" style="grid-template-columns: repeat(10, 30px);"></div>
+      </div>
+      <div id="exclusiveChart" class="color-chart-tab">
+        <div id="exclusiveColorChart" class="color-chart"></div>
+      </div>
     </div>
+  </div>
 
-    <div id="modal">
-        <div id="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <div class="tab-container">
-                <div class="tab-button active" onclick="switchTab('full')">Full AJ Palette</div>
-                <div class="tab-button" onclick="switchTab('ajClassic')">Classic Palette</div>
-                <div class="tab-button" onclick="switchTab('exclusive')">Exclusive Palette</div>
-            </div>
-            <div id="fullChart" class="color-chart-tab active">
-                <div id="colorChart" class="color-chart"></div>
-            </div>
-            <div id="ajClassicChart" class="color-chart-tab">
-                <div id="ajColorChart" class="color-chart" style="grid-template-columns: repeat(10, 30px);"></div>
-            </div>
-            <div id="exclusiveChart" class="color-chart-tab">
-                <div id="exclusiveColorChart" class="color-chart"></div>
-            </div>
-        </div>
-    </div>
-
-    <input type="color" id="colorPicker" style="display:none" />
+  <input type="color" id="colorPicker" style="display: none;" />
 
     <script>
         const { dispatch } = jam;
@@ -494,16 +372,19 @@
         }
 
         function getColorPacket(primaryColor, secondaryColor, patternColor, eyeColor) {
-            const bodyColorHex = convertToHexString(primaryColor, secondaryColor, 0, 0);
-            const patternColorHex = convertToHexString(patternColor, 0, 0, 0);
-            const eyeColorHex = convertToHexString(eyeColor, 0, 0, 0);
 
-            const bodyColor = hexToSignedInt(bodyColorHex);
-            const patternColorInt = hexToSignedInt(patternColorHex);
-            const eyeColorInt = hexToSignedInt(eyeColorHex);
+    const room = dispatch.getState('room');
 
-            return `%xt%o%ap%75789%${bodyColor}%${patternColorInt}%${eyeColorInt}%0%`;
-        }
+    const bodyColorHex = convertToHexString(primaryColor, secondaryColor, 0, 0);
+    const patternColorHex = convertToHexString(patternColor, 0, 0, 0);
+    const eyeColorHex = convertToHexString(eyeColor, 0, 0, 0);
+
+    const bodyColor = hexToSignedInt(bodyColorHex);
+    const patternColorInt = hexToSignedInt(patternColorHex);
+    const eyeColorInt = hexToSignedInt(eyeColorHex);
+
+    return `%xt%o%ap%${room}%${bodyColor}%${patternColorInt}%${eyeColorInt}%0%`;
+}
 
         function sendColorPacket() {
             const primaryBodyColor = parseInt(document.getElementById('primaryBodyColor').value, 10);
@@ -689,8 +570,8 @@
                 <span class="preset-color-display" style="background-color: ${colors[preset.patternColor]};"></span>
                 <span class="preset-color-display" style="background-color: ${colors[preset.eyeColor]};"></span>
                 <input type="text" value="${preset.name}" onchange="updatePresetName(${index}, this.value)" />
-                <button class="apply-btn" onclick="applyPreset(${index})">Apply</button>
-                <button class="delete-btn" onclick="deletePreset(${index})">Delete</button>
+                <button class="px-4 py-2 bg-highlight-green/20 hover:bg-highlight-green/30 text-highlight-green rounded-md transition text-base" onclick="applyPreset(${index})"><i class="fas fa-paint-brush mr-2"></i> Apply</button>
+                <button class="px-4 py-2 bg-error-red/20 hover:bg-error-red/30 text-error-red rounded-md transition text-base" onclick="deletePreset(${index})"><i class="fas fa-trash mr-2"></i> Delete</button>
                 `;
 
                 presetContainer.appendChild(presetElement);
