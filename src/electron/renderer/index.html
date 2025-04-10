@@ -27,13 +27,14 @@
     <!-- Main Navigation -->
     <div class="px-3 py-4">
       <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3">Navigation</h2>
-      
+
       <ul class="space-y-1">
         <li>
           <a href="#"
             class="flex items-center space-x-3 text-sidebar-text hover:bg-tertiary-bg group px-3 py-2.5 rounded-md transition-all"
             onclick="jam.application.openAnimalJam()">
-            <div class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-highlight-green/10 transition-colors">
+            <div
+              class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-highlight-green/10 transition-colors">
               <i class="fas fa-play text-highlight-green"></i>
             </div>
             <span class="font-medium">Play</span>
@@ -41,37 +42,40 @@
             </div>
           </a>
         </li>
-        
+
         <!-- Settings -->
         <li>
           <a href="#"
             class="flex items-center space-x-3 text-sidebar-text hover:bg-tertiary-bg group px-3 py-2.5 rounded-md transition-all"
             onclick="jam.application.openSettings()">
-            <div class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-amber-400/10 transition-colors">
+            <div
+              class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-amber-400/10 transition-colors">
               <i class="fas fa-cog text-amber-400"></i>
             </div>
             <span class="font-medium">Settings</span>
           </a>
         </li>
-        
+
         <!-- Reload -->
         <li>
           <a href="#"
             class="flex items-center space-x-3 text-sidebar-text hover:bg-tertiary-bg group px-3 py-2.5 rounded-md transition-all"
             onclick="jam.dispatch.refresh()">
-            <div class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-blue-400/10 transition-colors">
+            <div
+              class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-blue-400/10 transition-colors">
               <i class="fas fa-sync-alt text-blue-400"></i>
             </div>
             <span class="font-medium">Reload</span>
           </a>
         </li>
-        
+
         <!-- Enhanced Dropdown -->
         <li class="relative">
           <button id="linksDropdownToggle"
             class="w-full flex items-center justify-between space-x-3 text-sidebar-text hover:bg-tertiary-bg group px-3 py-2.5 rounded-md transition-all">
             <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-text-primary/10 transition-colors">
+              <div
+                class="w-8 h-8 flex items-center justify-center bg-tertiary-bg/50 rounded-md group-hover:bg-text-primary/10 transition-colors">
                 <i class="fas fa-link text-text-primary"></i>
               </div>
               <span class="font-medium">Links</span>
@@ -113,12 +117,13 @@
           <span>Plugins</span>
           <div class="ml-2 flex-grow h-px bg-sidebar-border/20"></div>
         </h2>
-        <button class="text-sidebar-text hover:text-highlight-green p-1.5 hover:bg-tertiary-bg/70 rounded transition-all"
+        <button
+          class="text-sidebar-text hover:text-highlight-green p-1.5 hover:bg-tertiary-bg/70 rounded transition-all"
           onclick="jam.application.openPluginHub()" data-tooltip="Add plugins">
           <i class="fas fa-puzzle-piece"></i>
         </button>
       </div>
-      
+
       <!-- Enhanced Plugin List -->
       <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
         <ul id="pluginList" class="space-y-2.5">
@@ -155,13 +160,15 @@
         class="tab-button active text-sidebar-text hover:bg-sidebar-hover py-2 text-sm font-medium transition-all relative overflow-hidden"
         data-tab="console">
         <i class="fas fa-terminal mr-2 text-xs"></i>Console
-        <span class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-green transform scale-x-0 transition-transform"></span>
+        <span
+          class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-green transform scale-x-0 transition-transform"></span>
       </button>
       <button id="packetLoggingTab"
         class="tab-button text-sidebar-text hover:bg-sidebar-hover py-2 text-sm font-medium transition-all relative overflow-hidden"
         data-tab="packet-logging">
         <i class="fas fa-network-wired mr-2 text-xs"></i>Network
-        <span class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-yellow transform scale-x-0 transition-transform"></span>
+        <span
+          class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-yellow transform scale-x-0 transition-transform"></span>
       </button>
     </div>
 
@@ -341,16 +348,33 @@
         const logs = $messageLog.children('div:visible').map(function () {
           const $this = $(this)
           const type = $this.find('.fa-arrow-down').length ? 'INCOMING' : 'OUTGOING'
-          const message = $this.find('.text-text-primary:last').text().trim()
+
+          let message = ''
+
+          const messageElement = $this.find('.text-text-primary:last')
+          if (messageElement.length) {
+            message = messageElement.text().trim()
+          } else {
+            message = $this.text().replace(/INCOMING|OUTGOING/g, '').trim()
+          }
+
           return `[${type}] ${message}`
         }).get()
 
-        if (!logs.length) return
+        if (!logs.length) {
+          console.log('No messages found to export')
+          return
+        }
+
+        console.log(`Exporting ${logs.length} messages`)
 
         const content = logs.join('\n')
         const blob = new Blob([content], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)
-        const $a = $('<a>').attr({ href: url, download: `packet-logs-${new Date().toISOString().slice(0, 10)}.txt` })
+        const $a = $('<a>').attr({
+          href: url,
+          download: `packet-logs-${new Date().toISOString().slice(0, 10)}.txt`
+        })
         $('body').append($a)
         $a[0].click()
         $a.remove()
