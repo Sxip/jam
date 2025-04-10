@@ -860,6 +860,10 @@ video {
   min-height: 100px;
 }
 
+.min-h-\[60px\]{
+  min-height: 60px;
+}
+
 .min-h-screen{
   min-height: 100vh;
 }
@@ -902,6 +906,10 @@ video {
 
 .min-w-\[150px\]{
   min-width: 150px;
+}
+
+.min-w-\[200px\]{
+  min-width: 200px;
 }
 
 .min-w-\[40px\]{
@@ -1056,6 +1064,12 @@ video {
   margin-bottom: calc(0.625rem * var(--tw-space-y-reverse));
 }
 
+.space-y-3 > :not([hidden]) ~ :not([hidden]){
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+}
+
 .space-y-4 > :not([hidden]) ~ :not([hidden]){
   --tw-space-y-reverse: 0;
   margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
@@ -1196,6 +1210,11 @@ video {
 
 .bg-black\/80{
   background-color: rgb(0 0 0 / 0.8);
+}
+
+.bg-blue-400{
+  --tw-bg-opacity: 1;
+  background-color: rgb(96 165 250 / var(--tw-bg-opacity));
 }
 
 .bg-blue-500\/10{
@@ -1881,6 +1900,10 @@ input:focus-visible {
   background-color: rgb(58 61 77 / 0.2);
 }
 
+.hover\:bg-tertiary-bg\/50:hover{
+  background-color: rgb(58 61 77 / 0.5);
+}
+
 .hover\:bg-tertiary-bg\/70:hover{
   background-color: rgb(58 61 77 / 0.7);
 }
@@ -1892,6 +1915,10 @@ input:focus-visible {
 .hover\:text-error-red:hover{
   --tw-text-opacity: 1;
   color: rgb(255 77 79 / var(--tw-text-opacity));
+}
+
+.hover\:text-error-red\/80:hover{
+  color: rgb(255 77 79 / 0.8);
 }
 
 .hover\:text-highlight-green:hover{
