@@ -69,7 +69,6 @@
           </a>
         </li>
 
-        <!-- Enhanced Dropdown -->
         <li class="relative">
           <button id="linksDropdownToggle"
             class="w-full flex items-center justify-between space-x-3 text-sidebar-text hover:bg-tertiary-bg group px-3 py-2.5 rounded-md transition-all">
@@ -124,10 +123,9 @@
         </button>
       </div>
 
-      <!-- Enhanced Plugin List -->
       <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
         <ul id="pluginList" class="space-y-2.5">
-          <!-- Plugin items will be added dynamically -->
+          <!-- Plugins -->
         </ul>
       </div>
     </div>
@@ -146,7 +144,8 @@
         <i id="menuIcon" class="fas fa-bars"></i>
       </button>
 
-      <img class="h-10 mx-auto" />
+      <div class="flex items-center mx-auto space-x-2">
+      </div>
 
       <button id="closeButton"
         class="p-2 rounded hover:bg-error-red hover:text-white transition-colors text-sidebar-text focus:outline-none">
@@ -238,6 +237,14 @@
 
     <!-- Footer -->
     <footer class="bg-secondary-bg border-t border-sidebar-border p-4 mt-auto">
+      <div class="flex items-center justify-between mb-2">
+        <div id="connection-status" class="flex items-center text-xs text-gray-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-error-red mr-1.5 pulse-animation"></span>
+          <span>Disconnected</span>
+        </div>
+        <div class="text-xs text-gray-400" id="timestamp-display">23:55:56</div>
+      </div>
+      
       <div id="commandContainer" class="relative">
         <i class="fas fa-terminal absolute left-3 top-1/2 transform -translate-y-1/2 text-sidebar-text/70"></i>
         <input id="input" type="text"

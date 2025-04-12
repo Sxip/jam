@@ -11,7 +11,6 @@ const stopButton = document.getElementById('stopButton')
 const runButton = document.getElementById('runButton')
 const table = document.getElementById('table')
 
-// Initial button states
 stopButton.disabled = true
 
 const tab = ' '.repeat(2)
@@ -49,7 +48,6 @@ class Spammer {
 
     content = content || input.value
 
-    // Process array content
     if (Array.isArray(content)) {
       const processedMessages = content.map(msg => {
         if (msg.includes('{room}')) {
@@ -65,7 +63,6 @@ class Spammer {
       })
     }
 
-    // Process single content string
     if (content.includes('{room}')) {
       const room = dispatch.getState('room')
       if (room) {
@@ -108,7 +105,6 @@ class Spammer {
     contentCell.innerText = content
     delayCell.innerText = delay
 
-    // Add tooltip for full content
     contentCell.title = content
 
     actionCell.innerHTML = `
@@ -260,12 +256,10 @@ class Spammer {
 
         input.value = data.input || ''
 
-        // Clear existing rows except header
         while (table.rows.length > 1) {
           table.deleteRow(1)
         }
 
-        // Add packets from file
         if (data.packets && Array.isArray(data.packets)) {
           data.packets.forEach(packet => {
             const row = table.insertRow(-1)
@@ -285,7 +279,6 @@ class Spammer {
             contentCell.innerText = packet.content
             delayCell.innerText = packet.delay
 
-            // Add tooltip for full content
             contentCell.title = packet.content
 
             actionCell.innerHTML = `

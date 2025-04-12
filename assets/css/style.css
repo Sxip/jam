@@ -732,6 +732,10 @@ video {
   margin-right: 0.25rem;
 }
 
+.mr-1\.5{
+  margin-right: 0.375rem;
+}
+
 .mr-2{
   margin-right: 0.5rem;
 }
@@ -796,8 +800,8 @@ video {
   height: 0.125rem;
 }
 
-.h-10{
-  height: 2.5rem;
+.h-1\.5{
+  height: 0.375rem;
 }
 
 .h-11{
@@ -866,6 +870,10 @@ video {
 
 .min-h-screen{
   min-height: 100vh;
+}
+
+.w-1\.5{
+  width: 0.375rem;
 }
 
 .w-11{
@@ -1102,8 +1110,20 @@ video {
   white-space: nowrap;
 }
 
+.text-ellipsis{
+  text-overflow: ellipsis;
+}
+
+.whitespace-normal{
+  white-space: normal;
+}
+
 .whitespace-nowrap{
   white-space: nowrap;
+}
+
+.break-words{
+  overflow-wrap: break-word;
 }
 
 .break-all{
@@ -1215,6 +1235,10 @@ video {
 .bg-blue-400{
   --tw-bg-opacity: 1;
   background-color: rgb(96 165 250 / var(--tw-bg-opacity));
+}
+
+.bg-blue-400\/10{
+  background-color: rgb(96 165 250 / 0.1);
 }
 
 .bg-blue-500\/10{
@@ -1628,10 +1652,6 @@ video {
   opacity: 0.7;
 }
 
-.opacity-90{
-  opacity: 0.9;
-}
-
 .shadow{
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
@@ -1718,6 +1738,21 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.ease-out{
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-feature-settings: "kern", "liga", "calt";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 #header {
   cursor: move !important;
   -webkit-app-region: drag !important;
@@ -1728,10 +1763,23 @@ video {
   -webkit-app-region: no-drag !important;
 }
 
+.tab-button {
+  position: relative;
+  overflow: hidden;
+}
+
 .tab-button.active {
   --tw-bg-opacity: 1;
   background-color: rgb(28 30 38 / var(--tw-bg-opacity));
   border: none;
+}
+
+.tab-button .active-indicator {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-button.active .active-indicator {
+  transform: scaleX(1) !important;
 }
 
 button:focus,
@@ -1763,15 +1811,30 @@ input:focus-visible {
   max-width: 100%;
   max-height: 200px;
   overflow-y: auto;
+  animation: autocompleteIn 0.2s ease-out forwards;
+}
+
+@keyframes autocompleteIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ui-autocomplete .autocomplete-item{
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .ui-autocomplete .autocomplete-item:hover{
   --tw-bg-opacity: 1;
   background-color: rgb(58 61 77 / var(--tw-bg-opacity));
+  transform: translateX(3px);
 }
 
 .ui-autocomplete .autocomplete-item-content{
@@ -1800,20 +1863,24 @@ input:focus-visible {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1C1E26;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #3A3D4D;
+  background: rgba(28, 30, 38, 0.5);
   border-radius: 8px;
 }
 
+::-webkit-scrollbar-thumb {
+  background: rgba(58, 61, 77, 0.8);
+  border-radius: 8px;
+  -webkit-transition: background 0.2s ease;
+  transition: background 0.2s ease;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #5A5F6D;
+  background: rgba(90, 95, 109, 0.9);
 }
 
 #packet-logging {
@@ -1826,7 +1893,8 @@ input:focus-visible {
 #message-log {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #3A3D4D #1C1E26;
+  scrollbar-color: rgba(58, 61, 77, 0.8) rgba(28, 30, 38, 0.5);
+  scroll-behavior: smooth;
 }
 
 .packet-header {
@@ -1842,10 +1910,107 @@ input:focus-visible {
 }
 
 #filterAllButton.active,
- #filterIncomingButton.active,
- #filterOutgoingButton.active {
+#filterIncomingButton.active,
+#filterOutgoingButton.active {
   background-color: var(--sidebar-hover, #2b2b40);
   color: white;
+}
+
+.toast-notification {
+  animation: toastIn 0.3s ease-out forwards;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plugin-item {
+  transition: all 0.2s ease;
+}
+
+.plugin-item:hover {
+  transform: translateY(-2px);
+}
+
+.message-animate-in {
+  animation: messageIn 0.3s ease-out forwards;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.5);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(255, 82, 82, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+  }
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 176, 0, 0.5);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(56, 176, 0, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 176, 0, 0);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+.pulse-green {
+  animation: pulse-green 2s infinite;
 }
 
 .hover\:border-highlight-green:hover{
@@ -1957,6 +2122,12 @@ input:focus-visible {
   --tw-ring-color: rgb(56 176 0 / var(--tw-ring-opacity));
 }
 
+.group:hover .group-hover\:scale-110{
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .group:hover .group-hover\:bg-amber-400\/10{
   background-color: rgb(251 191 36 / 0.1);
 }
@@ -1971,6 +2142,11 @@ input:focus-visible {
 
 .group:hover .group-hover\:bg-text-primary\/10{
   background-color: rgb(195 195 195 / 0.1);
+}
+
+.group:hover .group-hover\:text-text-primary{
+  --tw-text-opacity: 1;
+  color: rgb(195 195 195 / var(--tw-text-opacity));
 }
 
 .group:hover .group-hover\:opacity-100{

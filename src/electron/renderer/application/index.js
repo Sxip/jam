@@ -8,41 +8,6 @@ const Dispatch = require('./dispatch')
 const HttpClient = require('../../../services/HttpClient')
 const ModalSystem = require('./modals')
 
-/**
- * Message status icons.
- * @type {Object}
- * @constant
- */
-const messageStatus = Object.freeze({
-  success: {
-    icon: 'success.png'
-  },
-  logger: {
-    icon: 'logger.png'
-  },
-  action: {
-    icon: 'action.png'
-  },
-  wait: {
-    icon: 'wait.png'
-  },
-  celebrate: {
-    icon: 'celebrate.png'
-  },
-  warn: {
-    icon: 'warn.png'
-  },
-  notify: {
-    icon: 'notify.png'
-  },
-  speech: {
-    icon: 'speech.png'
-  },
-  error: {
-    icon: 'error.png'
-  }
-})
-
 module.exports = class Application extends EventEmitter {
   /**
    * Constructor.
@@ -382,11 +347,20 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
-   * Displays a new console message.
-   * @param message
+   * Displays a new console message with optimized rendering.
+   * @param {Object} options - The message configuration object
+   * @param {string} options.message - The message content to display
+   * @param {string} [options.type='success'] - The message type (success, error, etc.)
+   * @param {boolean} [options.withStatus=true] - Whether to show status icon
+   * @param {boolean} [options.time=true] - Whether to show timestamp
+   * @param {boolean} [options.isPacket=false] - Whether this is a packet message
+   * @param {boolean} [options.isIncoming=false] - For packets, whether it's incoming or outgoing
+   * @param {Object} [options.details=null] - Additional details for expandable content
    * @public
    */
   consoleMessage ({ message, type = 'success', withStatus = true, time = true, isPacket = false, isIncoming = false, details = null } = {}) {
+    if (!message) return
+
     const baseTypeClasses = {
       success: 'bg-highlight-green/10 border-l-4 border-highlight-green text-highlight-green',
       error: 'bg-error-red/10 border-l-4 border-error-red text-error-red',
@@ -405,26 +379,36 @@ module.exports = class Application extends EventEmitter {
     }
 
     const createElement = (tag, classes = '', content = '') => {
-      return $('<' + tag + '>').addClass(classes).html(content)
+      return $('<' + tag + '>').addClass(classes + ' message-animate-in').html(content)
     }
 
     const getTime = () => {
       const now = new Date()
-      const hour = String(now.getHours()).padStart(2, '0')
-      const minute = String(now.getMinutes()).padStart(2, '0')
-      const second = String(now.getSeconds()).padStart(2, '0')
-      return `${hour}:${minute}:${second}`
+      const hours = String(now.getHours()).padStart(2, '0')
+      const minutes = String(now.getMinutes()).padStart(2, '0')
+      const seconds = String(now.getSeconds()).padStart(2, '0')
+      return `${hours}:${minutes}:${seconds}`
     }
 
     const status = (type, message) => {
-      const statusInfo = messageStatus[type]
-      if (!statusInfo) throw new Error('Invalid Status Type.')
-      return `
-        <div class="flex items-center space-x-2">
-          <img src="app://assets/icons/${statusInfo.icon}" class="w-4 h-4 opacity-90" />
-          <span class="font-medium">${message || ''}</span>
+      const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        wait: 'fa-spinner fa-pulse',
+        celebrate: 'fa-trophy',
+        warn: 'fa-exclamation-triangle',
+        notify: 'fa-info-circle',
+        speech: 'fa-comment-alt',
+        logger: 'fa-file-alt',
+        action: 'fa-bolt'
+      }
+
+      return `<div class="flex items-center space-x-2 w-full">
+        <div class="flex">
+          <i class="fas ${icons[type] || 'fa-circle'} mr-2"></i>
         </div>
-      `
+        <span>${message}</span>
+      </div>`
     }
 
     const $container = createElement(
@@ -463,13 +447,7 @@ module.exports = class Application extends EventEmitter {
       }
     }
 
-    $messageContainer.css({
-      overflow: 'hidden',
-      'text-overflow': 'ellipsis',
-      'white-space': 'normal',
-      'word-break': 'break-word'
-    })
-
+    $messageContainer.addClass('overflow-hidden text-ellipsis whitespace-normal break-words')
     $container.append($messageContainer)
 
     if (isPacket && details) {
@@ -483,22 +461,23 @@ module.exports = class Application extends EventEmitter {
 
       const $copyButton = createElement(
         'button',
-        'text-xs text-gray-400 hover:text-text-primary transition-colors ml-1 px-2 py-1 rounded hover:bg-tertiary-bg/20',
+        'text-xs text-gray-400 hover:text-text-primary transition-colors px-2 py-1 rounded hover:bg-tertiary-bg/20 ml-1',
         '<i class="fas fa-copy mr-1"></i> Copy'
       )
 
       $copyButton.on('click', (e) => {
         e.stopPropagation()
-        navigator.clipboard.writeText(message)
-
         const originalHtml = $copyButton.html()
-        $copyButton.html('<i class="fas fa-check mr-1"></i> Copied!')
-        $copyButton.addClass('text-highlight-green')
 
-        setTimeout(() => {
-          $copyButton.html(originalHtml)
-          $copyButton.removeClass('text-highlight-green')
-        }, 1500)
+        navigator.clipboard.writeText(message).then(() => {
+          $copyButton.html('<i class="fas fa-check mr-1"></i> Copied!')
+          $copyButton.addClass('text-highlight-green')
+
+          setTimeout(() => {
+            $copyButton.html(originalHtml)
+            $copyButton.removeClass('text-highlight-green')
+          }, 1500)
+        })
       })
 
       $actionsContainer.append($detailsButton, $copyButton)
@@ -550,18 +529,32 @@ module.exports = class Application extends EventEmitter {
       $('#message-log').append($container)
 
       const $messageLog = $('#message-log')
-      const isAtBottom = $messageLog.scrollTop() + $messageLog.innerHeight() >= $messageLog[0].scrollHeight - 30
+      const messageLogEl = $messageLog[0]
+      const isAtBottom = messageLogEl.scrollHeight - messageLogEl.scrollTop - $messageLog.innerHeight() <= 30
+
       if (isAtBottom) {
-        $messageLog.scrollTop($messageLog[0].scrollHeight)
+        requestAnimationFrame(() => {
+          messageLogEl.scrollTop = messageLogEl.scrollHeight
+        })
       }
     } else {
       $('#messages').append($container)
 
       const $messages = $('#messages')
-      $messages.scrollTop($messages[0].scrollHeight)
+      const messagesEl = $messages[0]
+
+      requestAnimationFrame(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight
+      })
     }
 
-    if (window.applyFilter) window.applyFilter()
+    if (window.applyFilter) {
+      if (window.requestIdleCallback) {
+        window.requestIdleCallback(() => window.applyFilter())
+      } else {
+        setTimeout(() => window.applyFilter(), 0)
+      }
+    }
   }
 
   /**
@@ -581,15 +574,16 @@ module.exports = class Application extends EventEmitter {
   }
 
   /**
-   * Renders a plugin item
-   * @param {Object} plugin
-   * @returns {JQuery<HTMLElement>}
+   * Renders a plugin item in the sidebar.
+   * @param {Object} plugin - The plugin configuration object
+   * @returns {JQuery<HTMLElement>} - The rendered plugin element
    */
   renderPluginItems ({ name, type, description, author = 'Sxip' } = {}) {
     const getIconClass = () => {
       switch (type) {
         case 'ui': return 'fa-desktop'
         case 'game': return 'fa-gamepad'
+        default: return 'fa-plug'
       }
     }
 
@@ -597,26 +591,33 @@ module.exports = class Application extends EventEmitter {
       switch (type) {
         case 'ui': return 'text-highlight-green bg-highlight-green/10'
         case 'game': return 'text-highlight-yellow bg-highlight-yellow/10'
+        default: return 'text-blue-400 bg-blue-400/10'
       }
     }
 
     const onClickEvent = type === 'ui' ? () => jam.application.dispatch.open(name) : null
 
-    const $listItem = $('<li>', { class: type === 'ui' ? 'group' : '' })
+    const $listItem = $('<li>', {
+      class: `plugin-item ${type === 'ui' ? 'group' : ''}`,
+      'data-plugin-name': name.toLowerCase(),
+      'data-plugin-type': type
+    })
+
     const $container = $('<div>', {
-      class: `flex items-center px-3 py-3.5 ${type === 'ui' ? 'hover:bg-tertiary-bg cursor-pointer' : ''} rounded-md transition-colors`,
+      class: `flex items-center px-3 py-3.5 ${type === 'ui' ? 'hover:bg-tertiary-bg/70 cursor-pointer' : ''} rounded-md transition-colors duration-150`,
       click: onClickEvent
     })
 
     const $iconContainer = $('<div>', {
-      class: `w-8 h-8 flex items-center justify-center ${getIconColorClass()} rounded mr-3 flex-shrink-0`
+      class: `w-8 h-8 flex items-center justify-center ${getIconColorClass()} rounded-md mr-3 flex-shrink-0 transition-transform group-hover:scale-110`
     }).append($('<i>', { class: `fas ${getIconClass()} text-base` }))
 
     const $contentContainer = $('<div>', { class: 'flex-1 min-w-0' })
-    const $titleRow = $('<div>', { class: 'flex items-center' })
+
+    const $titleRow = $('<div>', { class: 'flex items-center justify-between' })
 
     $titleRow.append($('<span>', {
-      class: 'text-sidebar-text font-medium truncate text-[15px]',
+      class: 'text-sidebar-text font-medium truncate text-[15px] group-hover:text-text-primary transition-colors',
       text: name
     }))
 
@@ -641,15 +642,43 @@ module.exports = class Application extends EventEmitter {
 
     const $description = $('<p>', {
       class: 'text-xs text-gray-400 truncate mt-1.5',
-      text: description || `${type.charAt(0).toUpperCase() + type.slice(1)} plugin for Animal Jam`
+      text: description || `${type.charAt(0).toUpperCase() + type.slice(1)} plugin for Animal Jam`,
+      title: description
     })
+
+    if (type === 'game') {
+      const $actionButton = $('<button>', {
+        class: 'ml-2 text-gray-400 hover:text-text-primary p-1 rounded-full hover:bg-tertiary-bg/50 transition-colors opacity-0 group-hover:opacity-100',
+        html: '<i class="fas fa-ellipsis-v text-xs"></i>',
+        title: 'Plugin options'
+      })
+
+      $actionButton.on('click', (e) => {
+        e.stopPropagation()
+      })
+
+      $iconContainer.after($actionButton)
+    }
 
     $contentContainer.append($titleRow, $metaRow, $description)
     $container.append($iconContainer, $contentContainer)
     $listItem.append($container)
 
+    $listItem.css({
+      opacity: 0,
+      transform: 'translateX(-10px)'
+    })
+
     if (type === 'ui') this.$pluginList.prepend($listItem)
     else this.$pluginList.append($listItem)
+
+    setTimeout(() => {
+      $listItem.css({
+        transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
+        opacity: 1,
+        transform: 'translateX(0)'
+      })
+    }, 50)
 
     return $listItem
   }
@@ -665,9 +694,6 @@ module.exports = class Application extends EventEmitter {
       this.dispatch.load()
     ])
 
-    /**
-     * Simple check for the host changes for animal jam classic.
-     */
     const secureConnection = this.settings.get('secureConnection')
     if (secureConnection) await this._checkForHostChanges()
 

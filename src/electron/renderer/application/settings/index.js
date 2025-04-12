@@ -15,14 +15,14 @@ module.exports = class Settings {
     this._isLoaded = false
 
     /**
-     * Debounced save operation.
+     * Debounced save operation
      * @type {Function}
      * @private
      */
     this._saveSettingsDebounced = debounce(this._saveSettings, 500, { maxWait: 2000 })
 
     /**
-     * Watches the settings file for external changes.
+     * Watches the settings file for external changes
      * @type {Function}
      * @private
      */
@@ -34,7 +34,7 @@ module.exports = class Settings {
   }
 
   /**
-   * Loads the settings file.
+   * Loads the settings file
    * @returns {Promise<void>}
    * @public
    */
@@ -49,7 +49,7 @@ module.exports = class Settings {
   }
 
   /**
-   * Returns the value if the given key is found.
+   * Returns the value if the given key is found
    * @param key
    * @param defaultValue
    * @returns {any}
@@ -63,7 +63,7 @@ module.exports = class Settings {
   }
 
   /**
-   * Gets all settings.
+   * Gets all settings
    * @returns
    */
   getAll () {
@@ -86,7 +86,7 @@ module.exports = class Settings {
   }
 
   /**
-   * Updates the settings file.
+   * Updates the settings file
    * @param key
    * @param value
    * @returns {Promise<void>}
@@ -100,7 +100,7 @@ module.exports = class Settings {
   }
 
   /**
-   * Immediately saves the settings to file.
+   * Immediately saves the settings to file
    * @private
    */
   async _saveSettings () {
@@ -112,7 +112,7 @@ module.exports = class Settings {
   }
 
   /**
-   * Watches the settings file for external changes and reloads if necessary.
+   * Watches the settings file for external changes and reloads if necessary
    * @private
    */
   _watchSettingsFile () {

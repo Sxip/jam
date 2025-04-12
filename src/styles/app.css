@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-feature-settings: "kern", "liga", "calt";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 #header {
   cursor: move !important;
   -webkit-app-region: drag !important;
@@ -14,10 +25,23 @@
   -webkit-app-region: no-drag !important;
 }
 
+.tab-button {
+  position: relative;
+  overflow: hidden;
+}
+
 .tab-button.active {
   --tw-bg-opacity: 1;
   background-color: rgb(28 30 38 / var(--tw-bg-opacity));
   border: none;
+}
+
+.tab-button .active-indicator {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-button.active .active-indicator {
+  transform: scaleX(1) !important;
 }
 
 button:focus,
@@ -40,14 +64,22 @@ input:focus-visible {
   max-width: 100%;
   max-height: 200px;
   overflow-y: auto;
+  animation: autocompleteIn 0.2s ease-out forwards;
+}
+
+@keyframes autocompleteIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .ui-autocomplete .autocomplete-item {
   @apply cursor-pointer;
+  transition: all 0.15s ease;
 }
 
 .ui-autocomplete .autocomplete-item:hover {
   @apply bg-tertiary-bg;
+  transform: translateX(3px);
 }
 
 .ui-autocomplete .autocomplete-item-content {
@@ -67,22 +99,24 @@ input:focus-visible {
   left: -9999px;
 }
 
-
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1C1E26;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #3A3D4D;
+  background: rgba(28, 30, 38, 0.5);
   border-radius: 8px;
 }
 
+::-webkit-scrollbar-thumb {
+  background: rgba(58, 61, 77, 0.8);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #5A5F6D;
+  background: rgba(90, 95, 109, 0.9);
 }
 
 #packet-logging {
@@ -95,7 +129,8 @@ input:focus-visible {
 #message-log {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #3A3D4D #1C1E26;
+  scrollbar-color: rgba(58, 61, 77, 0.8) rgba(28, 30, 38, 0.5);
+  scroll-behavior: smooth;
 }
 
 .packet-header {
@@ -110,10 +145,84 @@ input:focus-visible {
   display: none !important;
 }
 
- #filterAllButton.active,
- #filterIncomingButton.active,
- #filterOutgoingButton.active {
-   background-color: var(--sidebar-hover, #2b2b40);
-   color: white;
- }
+#filterAllButton.active,
+#filterIncomingButton.active,
+#filterOutgoingButton.active {
+  background-color: var(--sidebar-hover, #2b2b40);
+  color: white;
+}
+
+.toast-notification {
+  animation: toastIn 0.3s ease-out forwards;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.plugin-item {
+  transition: all 0.2s ease;
+}
+
+.plugin-item:hover {
+  transform: translateY(-2px);
+}
+
+.message-animate-in {
+  animation: messageIn 0.3s ease-out forwards;
+}
+
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.5);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(255, 82, 82, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+  }
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 176, 0, 0.5);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(56, 176, 0, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 176, 0, 0);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+.pulse-green {
+  animation: pulse-green 2s infinite;
+}
 

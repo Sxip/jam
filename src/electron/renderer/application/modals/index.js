@@ -108,7 +108,15 @@ class ModalSystem {
       return null
     }
 
+    if (this.activeModal) {
+      this.close(true)
+    }
+
     $container.empty()
+
+    if (!$container.find('.modal-backdrop').length) {
+      $container.append('<div class="modal-backdrop fixed inset-0 bg-black/50 transition-opacity opacity-0"></div>')
+    }
 
     try {
       const $modal = modalModule.render(this.application, data)
@@ -121,8 +129,23 @@ class ModalSystem {
         return null
       }
 
+      $modal.css({
+        opacity: 0,
+        transform: 'translateY(-20px)'
+      })
+
       $container.append($modal)
+
       $container.removeClass('hidden')
+      $container.find('.modal-backdrop').animate({ opacity: 1 }, 200)
+
+      setTimeout(() => {
+        $modal.css({
+          transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
+          opacity: 1,
+          transform: 'translateY(0)'
+        })
+      }, 50)
 
       this.activeModal = {
         name,
@@ -130,35 +153,56 @@ class ModalSystem {
         $container: $container
       }
 
+      $(document).on('keydown.modal', (e) => {
+        if (e.key === 'Escape') {
+          this.close()
+        }
+      })
+
       return $modal
     } catch (error) {
       this.application.consoleMessage({
         message: `Error showing modal "${name}": ${error.message}`,
         type: 'error'
       })
+      $container.addClass('hidden')
       return null
     }
   }
 
   /**
-   * Close the currently active modal
+   * Close the currently active modal with smooth animations
+   * @param {boolean} immediate - Whether to close immediately without animations
    */
-  close () {
+  close (immediate = false) {
     if (this.activeModal) {
-      const { $container, name } = this.activeModal
+      const { $container, name, $element } = this.activeModal
 
       const modalModule = this.registeredModals.get(name)
       if (modalModule && typeof modalModule.close === 'function') {
         modalModule.close(this.application)
       }
 
-      $container.addClass('hidden')
+      $(document).off('keydown.modal')
+
+      if (immediate) {
+        $container.addClass('hidden')
+        this.activeModal = null
+        return
+      }
+
+      $element.css({
+        opacity: 0,
+        transform: 'translateY(-20px)'
+      })
+
+      $container.find('.modal-backdrop').animate({ opacity: 0 }, 200)
 
       setTimeout(() => {
+        $container.addClass('hidden')
         $container.empty()
+        this.activeModal = null
       }, 300)
-
-      this.activeModal = null
     }
   }
 }
