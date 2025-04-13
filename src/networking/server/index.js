@@ -69,24 +69,6 @@ module.exports = class Server {
    */
   async _onConnection (connection) {
     try {
-      let connectionTimeout = 30000
-      if (this.application &&
-          this.application.settings &&
-          typeof this.application.settings.get === 'function') {
-        connectionTimeout = this.application.settings.get('connectionTimeout') || connectionTimeout
-      }
-
-      connection.setTimeout(connectionTimeout)
-      connection.on('timeout', () => {
-        if (this.application) {
-          this.application.consoleMessage({
-            message: 'Connection timed out',
-            type: 'warn'
-          })
-        }
-        connection.end()
-      })
-
       const client = new Client(connection, this)
 
       try {
