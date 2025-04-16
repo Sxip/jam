@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="assets/icon.png" alt="Strawberry Jam Logo" width="200"/> <br/>
   <a href='https://discord.gg/HzFe7XpuPs'>
     <img src="https://discord.com/api/guilds/1355727306177380392/widget.png?style=shield" alt="Discord" />
   </a>
@@ -19,23 +20,18 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
   - [Windows](#windows)
   - [MacOS](#macos)
   - [Run from source](#run-from-source)
-- [Guides](#guides)
-  - [Playing Animal Jam Play Wild with Jam](docs/play-wild.md)
-  - [Running and Troubleshooting Jam on macOS](docs/macos-guide.md)
-  - [Community Guide](community-guide/guide.md)
-
 
 ## Installation
 
 ### Windows
 
-1. Download the latest version of [Jam-Setup.exe](https://github.com/sxip/jam/releases/latest).
+1. Download the latest version of [Jam-Setup.exe](https://github.com/Jam-Exposed/Jam/releases/latest).
 2. Extract the downloaded file.
 3. Run `jam.exe` to start the application.
 
 ### MacOS
 
-1. Download the latest version of [Jam.dmg](https://github.com/sxip/jam/releases/latest).
+1. Download the latest version of [Jam.dmg](hhttps://github.com/Jam-Exposed/Jam/releases/latest).
 2. Mount the downloaded file.
 3. Install `Jam` by moving it to the Applications folder
 4. Run `sudo /Applications/Jam.app/Contents/MacOS/Jam` to start the application.
