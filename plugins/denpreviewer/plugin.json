@@ -1,7 +1,0 @@
-{
-  "name": " Den Item Previewer",
-  "description": "Preview den items client-side.",
-  "main": "index.html",
-  "author": "Nosmile",
-  "type": "ui"
-}

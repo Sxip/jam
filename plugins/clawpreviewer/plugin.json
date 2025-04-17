@@ -1,8 +1,0 @@
-{
-  "name": "Claw Item Previewer",
-  "description": "Win client-side prizes from a claw machine.",
-  "main": "index.html",
-  "author": "Nosmile",
-  "type": "ui",
-  "game": "animal-jam-classic"
-}

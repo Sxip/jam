@@ -1,8 +1,0 @@
-{
-    "name": "Custom Colors",
-    "description": "Save and apply unique colors to your avatar.",
-    "main": "index.html",
-    "author": "Nosmile",
-    "type": "ui",
-    "game": "animal-jam-classic"
-}
