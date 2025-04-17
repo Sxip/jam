@@ -33,11 +33,11 @@ module.exports = new class FilesController {
    * @public
    */
   game (request, response) {
-    return process.platform == 'win32'
+    return process.platform === 'win32'
       ? response.sendFile(path.resolve('assets', 'flash', 'ajclient.swf'))
-      : process.platform == 'darwin'
-      ? response.sendFile(path.join(__dirname, '..', '..', '..', '..', '..', 'assets', 'flash', 'ajclient.swf'))
-      : undefined
+      : process.platform === 'darwin'
+        ? response.sendFile(path.join(__dirname, '..', '..', '..', '..', '..', 'assets', 'flash', 'ajclient.swf'))
+        : undefined
   }
 
   /**

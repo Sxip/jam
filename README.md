@@ -7,12 +7,6 @@
 
 <br />
 
-<div align="center">
-  <strong>Jam has a new home! Visit us at <a href="https://github.com/Jam-Exposed">https://github.com/Jam-Exposed</a></strong>
-</div>
-
-<br />
-
 Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https://classic.animaljam.com). Built with [Node.js](https://nodejs.org) and [Electron](https://www.electronjs.org), Jam provides powerful tools and flexibility for your Animal Jam experience.
 
 ## Features

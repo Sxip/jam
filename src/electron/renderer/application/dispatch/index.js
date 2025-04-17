@@ -103,6 +103,39 @@ module.exports = class Dispatch {
      * @private
      */
     this._debugMode = false
+
+    /**
+     * Initializes the default message handlers
+     */
+    this._initDefaultHandlers()
+  }
+
+  /**
+   * Initializes the default message handlers
+   * @private
+   */
+  _initDefaultHandlers () {
+    this.onMessage({
+      type: 'aj',
+      message: 'rj',
+      callback: ({ message }) => {
+        const room = message.value[3]
+        this.setState('room', room)
+      }
+    }).onMessage({
+      type: 'aj',
+      message: 'login',
+      callback: ({ message }) => {
+        const { params } = message.value.b.o
+
+        this.setState('player', params)
+
+        this._application.consoleMessage({
+          message: 'Successfully logged in!',
+          type: 'action'
+        })
+      }
+    })
   }
 
   get connected () {
@@ -688,6 +721,8 @@ module.exports = class Dispatch {
     if (pluginName) {
       this._trackPluginReference(pluginName, 'command', name, callback)
     }
+
+    return this
   }
 
   /**
@@ -702,6 +737,7 @@ module.exports = class Dispatch {
 
     const index = commandCallbacks.indexOf(callback)
     if (index !== -1) commandCallbacks.splice(index, 1)
+    return this
   }
 
   /**
@@ -724,6 +760,8 @@ module.exports = class Dispatch {
         this._trackPluginReference(pluginName, type, message, callback)
       }
     }
+
+    return this
   }
 
   /**
@@ -749,6 +787,8 @@ module.exports = class Dispatch {
         }
       }
     }
+
+    return this
   }
 
   /**

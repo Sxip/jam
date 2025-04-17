@@ -14,7 +14,7 @@ exports.render = function (app) {
   const CACHE_METADATA_KEY = 'jam-plugins-metadata-cache'
   const CACHE_DURATION = 3600000
 
-  const GITHUB_API_URL = 'https://api.github.com/repos/Sxip/jam/contents/plugins'
+  const GITHUB_API_URL = 'https://api.github.com/repos/Jam-Exposed/plugins/contents'
   const LOCAL_PLUGINS_DIR = path.resolve('plugins/')
 
   const $modal = $(`
@@ -123,7 +123,7 @@ exports.render = function (app) {
         }
       }
 
-      const pluginJsonUrl = `https://api.github.com/repos/Sxip/jam/contents/plugins/${plugin.name}/plugin.json`
+      const pluginJsonUrl = `https://api.github.com/repos/Jam-Exposed/plugins/contents/${plugin.name}/plugin.json`
       const response = await fetch(pluginJsonUrl)
 
       if (response.ok) {

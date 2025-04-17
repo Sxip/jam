@@ -641,7 +641,7 @@ module.exports = class Application extends EventEmitter {
     }))
 
     const $description = $('<p>', {
-      class: 'text-xs text-gray-400 truncate mt-1.5',
+      class: 'text-xs text-gray-400 break-words mt-1.5 pr-1',
       text: description || `${type.charAt(0).toUpperCase() + type.slice(1)} plugin for Animal Jam`,
       title: description
     })
