@@ -58,7 +58,10 @@ module.exports = class Server {
         }
       })
     } catch (error) {
-      console.error('Error initializing default settings:', error)
+      this.application.consoleMessage({
+        message: `Error ensuring default settings: ${error.message}`,
+        type: 'error'
+      })
     }
   }
 

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/icon.png" alt="Strawberry Jam Logo" width="200"/> <br/>
+  <img src="assets/icon.png" alt="Strawberry Jam Logo" width="150"/> <br/>
   <a href='https://discord.gg/HzFe7XpuPs'>
     <img src="https://discord.com/api/guilds/1355727306177380392/widget.png?style=shield" alt="Discord" />
   </a>

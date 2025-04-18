@@ -1,4 +1,5 @@
 const fs = require('fs').promises
+const { app } = require('electron')
 const path = require('path')
 
 class ModalSystem {
@@ -75,7 +76,10 @@ class ModalSystem {
    */
   register (name, modalModule) {
     if (!modalModule || typeof modalModule.render !== 'function') {
-      console.error(`Invalid modal module for "${name}": Missing render method`)
+      app.consoleMessage({
+        message: `Invalid modal module for "${name}"`,
+        type: 'error'
+      })
       return
     }
 

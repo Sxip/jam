@@ -1,4 +1,5 @@
 {
   "smartfoxServer": "lb-iss04-classic-prod.animaljam.com",
-  "secureConnection": true
+  "secureConnection": true,
+  "repositories": []
 }

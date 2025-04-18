@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jam-exposed/jam.git"
+    "url": "https://github.com/sxip/jam.git"
   },
   "devDependencies": {
     "electron": "^32.0.1",

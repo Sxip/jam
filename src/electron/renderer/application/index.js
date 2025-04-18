@@ -108,7 +108,7 @@ module.exports = class Application extends EventEmitter {
         })
       }
     } catch (error) {
-      console.error(`Unexpected error occurred while trying to check for host changes: ${error.message}`)
+      // Swallow the error
     }
   }
 
@@ -143,7 +143,7 @@ module.exports = class Application extends EventEmitter {
    * Opens plugins hub.
    */
   openPluginHub () {
-    this.modals.show('pluginLibraryModal', '#modalContainer')
+    this.modals.show('plugins', '#modalContainer')
   }
 
   /**
@@ -628,16 +628,6 @@ module.exports = class Application extends EventEmitter {
     $metaRow.append($('<span>', {
       class: 'flex items-center',
       html: `<i class="fas fa-user mr-1 opacity-70"></i>${author}`
-    }))
-
-    $metaRow.append($('<span>', {
-      class: 'mx-1.5 opacity-50',
-      html: '•'
-    }))
-
-    $metaRow.append($('<span>', {
-      class: 'opacity-70',
-      text: type.charAt(0).toUpperCase() + type.slice(1)
     }))
 
     const $description = $('<p>', {

@@ -1,4 +1,4 @@
-exports.name = 'pluginLibraryModal'
+exports.name = 'plugins'
 
 /**
  * Render the Plugin Library Modal
@@ -9,43 +9,104 @@ exports.render = function (app) {
   const path = require('path')
   const fs = require('fs')
 
-  const CACHE_KEY = 'jam-plugins-cache'
-  const CACHE_TIME_KEY = 'jam-plugins-cache-time'
-  const CACHE_METADATA_KEY = 'jam-plugins-metadata-cache'
+  const CACHE_KEY_PREFIX = 'jam-plugins-cache-'
+  const CACHE_TIME_KEY_PREFIX = 'jam-plugins-cache-time-'
+  const CACHE_METADATA_KEY_PREFIX = 'jam-plugins-metadata-cache-'
   const CACHE_DURATION = 3600000
 
-  const GITHUB_API_URL = 'https://api.github.com/repos/Jam-Exposed/plugins/contents'
   const LOCAL_PLUGINS_DIR = path.resolve('plugins/')
+
+  let repositories = []
+  try {
+    const settings = JSON.parse(fs.readFileSync(path.resolve('settings.json')))
+    repositories = settings.repositories || []
+
+    if (repositories.length === 0) {
+      repositories.push({
+        name: 'Jam',
+        username: 'sxip',
+        repository: 'plugins',
+        isOfficial: true
+      })
+    } else {
+      repositories = repositories.map((repo) => {
+        if (repo.username && repo.repository) {
+          repo.url = `https://api.github.com/repos/${repo.username}/${repo.repository}/contents`
+        }
+
+        const isOfficial = (
+          repo.username === 'sxip' &&
+          repo.repository === 'plugins'
+        )
+
+        return {
+          ...repo,
+          name: repo.name || 'Repository',
+          isOfficial
+        }
+      })
+    }
+  } catch (error) {
+    repositories = [{
+      name: 'Official',
+      username: 'sxip',
+      repository: 'plugins',
+      url: 'https://api.github.com/repos/sxip/plugins/contents',
+      isOfficial: true
+    }]
+  }
+
+  const repoTabsHTML = repositories.map((repo, index) => {
+    const activeClass = index === 0 ? 'bg-tertiary-bg' : 'text-gray-400'
+    const repoIcon = repo.isOfficial ? 'fa-star' : 'fa-code-branch'
+
+    return `
+      <button type="button" data-repo-index="${index}" data-repo-url="${repo.url}" 
+        class="repo-tab flex items-center px-4 py-2 text-sm rounded-md ${activeClass} hover:bg-tertiary-bg transition">
+        <i class="fas ${repoIcon} mr-1"></i> ${repo.name}
+      </button>
+    `
+  }).join('')
 
   const $modal = $(`
     <div class="flex items-center justify-center min-h-screen p-4" style="z-index: 9999;">
       <!-- Modal Backdrop -->
       <div class="fixed inset-0 bg-black/50 transition-opacity" id="modalBackdrop" style="z-index: 9000;"></div>
       
-      <!-- Modal Content -->
-      <div class="relative bg-secondary-bg rounded-lg shadow-xl max-w-5xl w-full" style="z-index: 9100;">
+      <!-- Modal Content - Compact but with grid system -->
+      <div class="relative bg-secondary-bg rounded-lg shadow-xl max-w-4xl w-full" style="z-index: 9100;">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between p-4 border-b border-sidebar-border">
-          <h3 class="text-lg font-semibold text-text-primary">
+        <div class="flex items-center justify-between p-3 border-b border-sidebar-border">
+          <h3 class="text-base font-semibold text-text-primary">
             <i class="fas fa-puzzle-piece text-highlight-green mr-2"></i>
-            Plugin Library
+            Plugin Hub
           </h3>
+          <button type="button" id="closeModalBtn" class="text-gray-400 hover:text-text-primary p-1 rounded-full hover:bg-tertiary-bg/50 transition-colors">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
         
-        <!-- Search Bar -->
-        <div class="px-4 py-3 border-b border-sidebar-border">
+        <!-- Repository Tabs - More compact -->
+        <div class="px-3 py-2 border-b border-sidebar-border">
+          <div class="flex space-x-2 overflow-x-auto pb-1">
+            ${repoTabsHTML}
+          </div>
+        </div>
+        
+        <!-- Search Bar - Reduced padding -->
+        <div class="px-3 py-2 border-b border-sidebar-border">
           <div class="relative">
             <input type="text" id="pluginSearch" placeholder="Search plugins..." 
-              class="w-full bg-tertiary-bg text-text-primary placeholder-gray-400 p-2 pl-8 rounded-md focus:outline-none">
+              class="w-full bg-tertiary-bg text-text-primary placeholder-gray-400 p-1.5 pl-7 rounded-md focus:outline-none text-sm">
             <div class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <i class="fas fa-search"></i>
+              <i class="fas fa-search text-xs"></i>
             </div>
           </div>
         </div>
         
-        <!-- Modal Body -->
-        <div class="p-5 h-[400px] overflow-y-auto">
-          <div id="pluginsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Modal Body - Grid layout but reduced height -->
+        <div class="p-3 h-[340px] overflow-y-auto">
+          <div id="pluginsList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div class="col-span-full flex justify-center items-center h-32">
               <i class="fas fa-circle-notch fa-spin text-gray-400 mr-2"></i>
               <span class="text-gray-400">Loading plugins...</span>
@@ -53,20 +114,17 @@ exports.render = function (app) {
           </div>
         </div>
         
-        <!-- Modal Footer -->
-        <div class="flex items-center justify-between p-4 border-t border-sidebar-border">
+        <!-- Modal Footer - More compact -->
+        <div class="flex items-center justify-between p-2.5 border-t border-sidebar-border">
           <div>
-            <span class="text-sm text-gray-400">
+            <span class="text-xs text-gray-400">
               <i class="fas fa-info-circle mr-1"></i>
-              Plugins are loaded from the official repository
+              <span id="repoSourceInfo">Plugins are loaded from the official repository</span>
             </span>
           </div>
           <div class="flex space-x-2">
-            <button type="button" class="text-xs text-gray-400 hover:text-highlight-green transition px-2 py-1 rounded" id="refreshPluginsBtn">
+            <button type="button" class="text-xs text-gray-400 hover:text-highlight-green transition px-2 py-0.5 rounded" id="refreshPluginsBtn">
               <i class="fas fa-sync-alt mr-1"></i> Refresh
-            </button>
-            <button type="button" class="bg-tertiary-bg text-text-primary px-3 py-1 rounded hover:bg-sidebar-hover/70 transition" id="closeModalBtn">
-              Close
             </button>
           </div>
         </div>
@@ -86,10 +144,39 @@ exports.render = function (app) {
     app.modals.close()
   })
 
+  let activeRepoIndex = 0
+  const getActiveRepo = () => repositories[activeRepoIndex]
+
+  $modal.find('.repo-tab').on('click', function () {
+    const repoIndex = parseInt($(this).data('repo-index'))
+    if (repoIndex === activeRepoIndex) return
+
+    $modal.find('.repo-tab').removeClass('bg-tertiary-bg text-highlight-green').addClass('text-gray-400')
+    $(this).addClass('bg-tertiary-bg text-highlight-green').removeClass('text-gray-400')
+
+    activeRepoIndex = repoIndex
+    updateRepoSourceInfo()
+    fetchPlugins()
+  })
+
+  const updateRepoSourceInfo = () => {
+    const repo = getActiveRepo()
+    const infoText = repo.isOfficial
+      ? 'Plugins are loaded from the official repository'
+      : `Plugins are loaded from ${repo.name} repository`
+
+    $modal.find('#repoSourceInfo').text(infoText)
+  }
+
   $modal.find('#refreshPluginsBtn').on('click', function () {
-    localStorage.removeItem(CACHE_KEY)
-    localStorage.removeItem(CACHE_TIME_KEY)
-    localStorage.removeItem(CACHE_METADATA_KEY)
+    const repo = getActiveRepo()
+    const cacheKey = `${CACHE_KEY_PREFIX}${repo.url}`
+    const cacheTimeKey = `${CACHE_TIME_KEY_PREFIX}${repo.url}`
+    const cacheMetadataKey = `${CACHE_METADATA_KEY_PREFIX}${repo.url}`
+
+    localStorage.removeItem(cacheKey)
+    localStorage.removeItem(cacheTimeKey)
+    localStorage.removeItem(cacheMetadataKey)
     fetchPlugins(true)
   })
 
@@ -103,7 +190,6 @@ exports.render = function (app) {
       const pluginPath = path.join(LOCAL_PLUGINS_DIR, pluginName)
       return fs.existsSync(pluginPath)
     } catch (error) {
-      console.error('Error checking if plugin is installed:', error)
       return false
     }
   }
@@ -114,8 +200,11 @@ exports.render = function (app) {
    * @returns {Promise<Object>} - Plugin metadata
    */
   const fetchPluginMetadata = async (plugin) => {
+    const repo = getActiveRepo()
+    const cacheMetadataKey = `${CACHE_METADATA_KEY_PREFIX}${repo.url || `${repo.username}/${repo.repository}`}`
+
     try {
-      const metadataCache = localStorage.getItem(CACHE_METADATA_KEY)
+      const metadataCache = localStorage.getItem(cacheMetadataKey)
       if (metadataCache) {
         const parsedCache = JSON.parse(metadataCache)
         if (parsedCache[plugin.name]) {
@@ -123,7 +212,10 @@ exports.render = function (app) {
         }
       }
 
-      const pluginJsonUrl = `https://api.github.com/repos/Jam-Exposed/plugins/contents/${plugin.name}/plugin.json`
+      const repoOwner = repo.username
+      const repoName = repo.repository
+
+      const pluginJsonUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${plugin.name}/plugin.json`
       const response = await fetch(pluginJsonUrl)
 
       if (response.ok) {
@@ -135,38 +227,25 @@ exports.render = function (app) {
           metadata.author = 'Sxip'
         }
 
-        cachePluginMetadata(plugin.name, metadata)
+        const existingCache = localStorage.getItem(cacheMetadataKey) || '{}'
+        const parsedCache = JSON.parse(existingCache)
+        parsedCache[plugin.name] = metadata
+        localStorage.setItem(cacheMetadataKey, JSON.stringify(parsedCache))
+
         return metadata
       }
 
       return {
         name: plugin.name,
         description: 'A plugin for Jam',
-        author: 'Sxip'
+        author: 'Unknown'
       }
     } catch (error) {
       return {
         name: plugin.name,
         description: 'A plugin for Jam',
-        author: 'Sxip'
+        author: 'Unknown'
       }
-    }
-  }
-
-  /**
-   * Cache a plugin's metadata
-   * @param {string} pluginName - Name of the plugin
-   * @param {Object} metadata - Plugin metadata to cache
-   */
-  const cachePluginMetadata = (pluginName, metadata) => {
-    try {
-      const existingCache = localStorage.getItem(CACHE_METADATA_KEY) || '{}'
-      const cacheData = JSON.parse(existingCache)
-
-      cacheData[pluginName] = metadata
-      localStorage.setItem(CACHE_METADATA_KEY, JSON.stringify(cacheData))
-    } catch (error) {
-      console.error('Error caching plugin metadata:', error)
     }
   }
 
@@ -286,11 +365,16 @@ exports.render = function (app) {
    */
   const fetchPlugins = async (forceRefresh = false) => {
     const $pluginsList = $modal.find('#pluginsList')
+    const repo = getActiveRepo()
+
+    const cacheKeyIdentifier = repo.url || `${repo.username}/${repo.repository}`
+    const cacheKey = `${CACHE_KEY_PREFIX}${cacheKeyIdentifier}`
+    const cacheTimeKey = `${CACHE_TIME_KEY_PREFIX}${cacheKeyIdentifier}`
 
     try {
       if (!forceRefresh) {
-        const cachedData = localStorage.getItem(CACHE_KEY)
-        const cacheTime = localStorage.getItem(CACHE_TIME_KEY)
+        const cachedData = localStorage.getItem(cacheKey)
+        const cacheTime = localStorage.getItem(cacheTimeKey)
         const cacheAge = cacheTime ? Date.now() - parseInt(cacheTime) : Infinity
 
         if (cachedData && cacheAge < CACHE_DURATION) {
@@ -307,7 +391,16 @@ exports.render = function (app) {
         </div>
       `)
 
-      const response = await fetch(GITHUB_API_URL)
+      let apiUrl
+      if (repo.username && repo.repository) {
+        apiUrl = `https://api.github.com/repos/${repo.username}/${repo.repository}/contents`
+      } else if (repo.url) {
+        apiUrl = repo.url
+      } else {
+        throw new Error('Repository configuration is invalid')
+      }
+
+      const response = await fetch(apiUrl)
 
       if (response.status === 403) {
         const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining')
@@ -330,8 +423,8 @@ exports.render = function (app) {
 
       const plugins = await response.json()
 
-      localStorage.setItem(CACHE_KEY, JSON.stringify(plugins))
-      localStorage.setItem(CACHE_TIME_KEY, Date.now().toString())
+      localStorage.setItem(cacheKey, JSON.stringify(plugins))
+      localStorage.setItem(cacheTimeKey, Date.now().toString())
       await displayPlugins(plugins)
     } catch (error) {
       $pluginsList.html(`
@@ -356,6 +449,7 @@ exports.render = function (app) {
       return
     }
 
+    const repo = getActiveRepo()
     const pluginPromises = plugins
       .filter(plugin => plugin.type === 'dir')
       .map(async plugin => {
@@ -373,44 +467,50 @@ exports.render = function (app) {
       const pluginData = await Promise.all(pluginPromises)
 
       pluginData.forEach(({ plugin, installed, metadata }) => {
+        const verifiedBadge = repo.isOfficial
+          ? `<span class="ml-1 px-1 py-0.5 text-xs rounded bg-highlight-green/20 text-highlight-green">
+            <i class="fas fa-check-circle text-xs mr-1"></i>Verified
+          </span>`
+          : ''
+
         $pluginsList.append(`
-          <div class="bg-tertiary-bg/30 rounded-lg p-4 border border-sidebar-border hover:border-highlight-green transition-colors" data-plugin-name="${plugin.name.toLowerCase()}">
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <div class="flex items-center">
-                  <i class="fas fa-puzzle-piece text-highlight-green mr-2 text-lg"></i>
-                  <h4 class="text-text-primary font-medium text-base">${metadata.name || plugin.name}</h4>
-                  ${metadata.version ? `<span class="ml-2 text-xs text-gray-400">v${metadata.version}</span>` : ''}
-                </div>
-                <div class="mt-1 text-xs text-gray-400">
-                  <i class="fas fa-user mr-1"></i> ${metadata.author}
+          <div class="bg-tertiary-bg/30 rounded-lg p-2.5 border border-sidebar-border hover:border-highlight-green transition-colors" data-plugin-name="${plugin.name.toLowerCase()}">
+            <div class="flex justify-between items-start">
+              <div class="flex items-center">
+                <i class="fas fa-puzzle-piece text-highlight-green mr-2 text-sm"></i>
+                <div>
+                  <h4 class="text-text-primary font-medium text-sm flex items-center flex-wrap">
+                    ${metadata.name || plugin.name}
+                    ${metadata.version ? `<span class="ml-1 text-xs text-gray-400">v${metadata.version}</span>` : ''}
+                  </h4>
+                  <div class="text-xs text-gray-400">
+                    <i class="fas fa-user mr-1"></i> ${metadata.author}
+                  </div>
                 </div>
               </div>
-              <div>
-                <span class="px-2 py-1 text-xs rounded-full ${installed ? 'bg-highlight-green/20 text-highlight-green' : 'bg-error-red/20 text-error-red'}">
-                  ${installed ? 'Installed' : 'Not Installed'}
-                </span>
+              <div class="flex flex-col items-end">
+                ${verifiedBadge}
               </div>
             </div>
             
-            <div class="mt-3 mb-4">
-              <p class="text-gray-400 text-sm">
+            <div class="mt-2 mb-2">
+              <p class="text-gray-400 text-xs line-clamp-2 h-8">
                 ${metadata.description || 'A plugin for Jam'}
               </p>
             </div>
             
-            <div class="flex justify-end items-center mt-4 pt-2 border-t border-sidebar-border/30">
-              <div class="flex gap-2">
-                <button type="button" data-repo-url="${plugin.html_url}" class="view-repo-btn text-xs text-gray-400 hover:text-highlight-green transition px-2 py-1 rounded">
-                  <i class="fab fa-github mr-1"></i> View Repository
+            <div class="flex justify-end items-center mt-1 pt-1 border-t border-sidebar-border/30">
+              <div class="flex gap-1">
+                <button type="button" data-repo-url="${plugin.html_url}" class="view-repo-btn text-xs text-gray-400 hover:text-highlight-green transition px-1.5 py-0.5 rounded">
+                  <i class="fab fa-github mr-1 text-xs"></i> View
                 </button>
                 
                 ${!installed
-                  ? `<button data-plugin="${encodeURIComponent(JSON.stringify(plugin))}" class="install-plugin-btn px-3 py-1 text-xs bg-highlight-green/20 text-highlight-green rounded hover:bg-highlight-green/30 transition">
-                    <i class="fas fa-download mr-1"></i> Install
+                  ? `<button data-plugin="${encodeURIComponent(JSON.stringify(plugin))}" class="install-plugin-btn px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition">
+                    <i class="fas fa-download mr-1 text-xs"></i> Install
                   </button>`
-                  : `<button data-plugin-name="${plugin.name}" class="uninstall-plugin-btn px-3 py-1 text-xs bg-error-red/20 text-error-red rounded hover:bg-error-red/30 transition">
-                    <i class="fas fa-trash-alt mr-1"></i> Uninstall
+                  : `<button data-plugin-name="${plugin.name}" class="uninstall-plugin-btn px-2 py-0.5 text-xs bg-error-red/20 text-error-red rounded hover:bg-error-red/30 transition">
+                    <i class="fas fa-trash-alt mr-1 text-xs"></i> Uninstall
                   </button>`
                 }
               </div>
@@ -437,7 +537,6 @@ exports.render = function (app) {
         app.open(repoUrl)
       })
     } catch (error) {
-      console.error('Error displaying plugins:', error)
       $pluginsList.html(`
         <div class="col-span-full text-center text-error-red p-4">
           <i class="fas fa-exclamation-circle mr-2"></i>
@@ -460,6 +559,7 @@ exports.render = function (app) {
     })
   }
 
+  updateRepoSourceInfo()
   fetchPlugins()
   return $modal
 }

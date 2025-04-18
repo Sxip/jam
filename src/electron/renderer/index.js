@@ -24,8 +24,6 @@ const initializeApp = async () => {
       type: 'error'
     })
 
-    console.error('Initialization error details:', error)
-
     application.consoleMessage({
       message: 'Attempting to continue with limited functionality...',
       type: 'warn'

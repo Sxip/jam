@@ -9,6 +9,7 @@ module.exports = {
         'text-primary': '#C3C3C3',
         'highlight-yellow': '#f0b429',
         'highlight-green': '#38b000',
+        'highlight-blue': '#335fff',
         'sidebar-bg': '#1C1E26',
         'sidebar-border': '#3A3D4D',
         'custom-pink': '#F10048',

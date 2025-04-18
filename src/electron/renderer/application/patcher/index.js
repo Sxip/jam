@@ -66,11 +66,6 @@ module.exports = class Patcher {
           ? path.join(JAM_CLASSIC_BASE_PATH, 'MacOS', 'AJ Classic')
           : undefined
 
-      this._application.consoleMessage({
-        message: 'Starting Jam Classic...',
-        type: 'success'
-      })
-
       this._animalJamProcess = await execFileAsync(exePath)
     } catch (error) {
       this._application.consoleMessage({
