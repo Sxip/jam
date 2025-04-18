@@ -25,13 +25,13 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 
 ### Windows
 
-1. Download the latest version of [Jam-Setup.exe](https://github.com/Jam-Exposed/Jam/releases/latest).
+1. Download the latest version of [Jam-Setup.exe](https://github.com/sxip/jam/releases/latest).
 2. Extract the downloaded file.
 3. Run `jam.exe` to start the application.
 
 ### MacOS
 
-1. Download the latest version of [Jam.dmg](hhttps://github.com/Jam-Exposed/Jam/releases/latest).
+1. Download the latest version of [Jam.dmg](hhttps://github.com/sxip/jam/releases/latest).
 2. Mount the downloaded file.
 3. Install `Jam` by moving it to the Applications folder
 4. Run `sudo /Applications/Jam.app/Contents/MacOS/Jam` to start the application.

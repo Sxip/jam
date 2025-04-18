@@ -181,11 +181,6 @@ module.exports = class Patcher {
         await rm(asarUnpackedPath, { recursive: true }).catch(() => {})
       }
 
-      this._application.consoleMessage({
-        message: `Copying asar from ${customAsarPath} to ${asarPath}...`,
-        type: 'notify'
-      })
-
       await copyFile(customAsarPath, asarPath)
 
       const exePath = process.platform === 'win32'
