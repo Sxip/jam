@@ -7,6 +7,8 @@ const application = new Application()
  * Initialize the application with better error handling and performance tracking
  */
 const initializeApp = async () => {
+  window.ipcRenderer = ipcRenderer
+
   application.consoleMessage({
     message: 'Starting Jam...',
     type: 'wait'

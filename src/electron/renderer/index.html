@@ -148,27 +148,37 @@
       </div>
 
       <button id="closeButton"
-        class="p-2 rounded hover:bg-error-red hover:text-white transition-colors text-sidebar-text focus:outline-none">
-        <i class="fas fa-times" onclick="jam.application.close()"></i>
+        class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-error-red hover:text-white transition-all duration-200 text-sidebar-text focus:outline-none"
+        onclick="jam.application.close()">
+        <i class="fas fa-times text-sm"></i>
       </button>
     </header>
 
     <!-- Tab Navigation -->
-    <div class="tabs w-full grid grid-cols-2 border-b border-sidebar-border bg-tertiary-bg">
-      <button id="consoleTab"
-        class="tab-button active text-sidebar-text hover:bg-sidebar-hover py-2 text-sm font-medium transition-all relative overflow-hidden"
-        data-tab="console">
-        <i class="fas fa-terminal mr-2 text-xs"></i>Console
-        <span
-          class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-green transform scale-x-0 transition-transform"></span>
-      </button>
-      <button id="packetLoggingTab"
-        class="tab-button text-sidebar-text hover:bg-sidebar-hover py-2 text-sm font-medium transition-all relative overflow-hidden"
-        data-tab="packet-logging">
-        <i class="fas fa-network-wired mr-2 text-xs"></i>Network
-        <span
-          class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-yellow transform scale-x-0 transition-transform"></span>
-      </button>
+    <div class="tabs w-full border-b border-sidebar-border bg-tertiary-bg shadow-sm">
+      <div class="flex items-center justify-center">
+        <button id="consoleTab"
+          class="tab-button active text-sidebar-text py-2.5 px-6 text-sm font-medium transition-all relative"
+          data-tab="console">
+          <i class="fas fa-terminal mr-2.5 text-xs"></i>Console
+          <span
+            class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-green transform scale-x-0 transition-transform"></span>
+        </button>
+        <button id="packetLoggingTab"
+          class="tab-button text-sidebar-text py-2.5 px-6 text-sm font-medium transition-all relative"
+          data-tab="packet-logging">
+          <i class="fas fa-network-wired mr-2.5 text-xs"></i>Network
+          <span
+            class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-highlight-yellow transform scale-x-0 transition-transform"></span>
+        </button>
+        <button id="httpLoggingTab"
+          class="tab-button text-sidebar-text py-2.5 px-6 text-sm font-medium transition-all relative"
+          data-tab="http-logging">
+          <i class="fas fa-globe mr-2.5 text-xs"></i>HTTP
+          <span
+            class="active-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-custom-pink transform scale-x-0 transition-transform"></span>
+        </button>
+      </div>
     </div>
 
     <!-- Tab Content -->
@@ -177,7 +187,7 @@
     </div>
 
     <div id="modalContainer" class="fixed inset-0 z-50 hidden overflow-y-auto">
-      <!-- Modal content will be dynamically inserted here -->
+      <!-- Modal content will be dynamically imported -->
     </div>
 
     <div id="packet-logging" class="tab-content flex-1 hidden w-full flex flex-col">
@@ -235,6 +245,115 @@
       <div id="message-log" class="flex flex-col p-4 overflow-y-auto flex-grow"></div>
     </div>
 
+    <div id="http-logging" class="tab-content flex-1 hidden w-full flex flex-col">
+      <div class="bg-secondary-bg p-2 border-b border-sidebar-border">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center space-x-3">
+            <span class="text-text-primary text-xs">
+              <i class="fas fa-arrow-down text-custom-pink mr-1"></i>
+              <span id="httpIncomingCount">0</span> In
+            </span>
+            <span class="text-text-primary text-xs">
+              <i class="fas fa-arrow-up text-custom-pink mr-1"></i>
+              <span id="httpOutgoingCount">0</span> Out
+            </span>
+            <span class="text-text-primary text-xs">
+              <i class="fas fa-list mr-1"></i>
+              <span id="httpTotalCount">0</span> Total
+            </span>
+          </div>
+
+          <div class="flex space-x-2">
+            <button id="clearHttpLogsButton"
+              class="bg-error-red text-white px-2 py-1 rounded text-xs hover:bg-error-red/90 transition">
+              <i class="fas fa-trash mr-1"></i> Clear
+            </button>
+
+            <button id="exportHttpLogsButton"
+              class="bg-highlight-green text-white px-2 py-1 rounded text-xs hover:bg-highlight-green/90 transition">
+              <i class="fas fa-file-export"></i> Export
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-auto relative" style="max-height: 420px;">
+        <table id="http-table" class="w-full text-sm text-left">
+          <thead class="sticky top-0 z-10 bg-secondary-bg text-xs uppercase text-gray-400 select-none">
+            <tr>
+              <th class="px-2 py-2 w-8 border-b border-sidebar-border">#</th>
+              <th class="px-2 py-2 w-8 border-b border-sidebar-border"><i class="fas fa-exchange-alt"></i></th>
+              <th class="px-2 py-2 border-b border-sidebar-border">Path</th>
+              <th class="px-2 py-2 w-16 border-b border-sidebar-border">Status</th>
+              <th class="px-2 py-2 w-16 border-b border-sidebar-border">Type</th>
+              <th class="px-2 py-2 w-20 border-b border-sidebar-border">Size</th>
+              <th class="px-2 py-2 w-20 border-b border-sidebar-border">Time</th>
+            </tr>
+          </thead>
+          <tbody id="http-log-body" class="divide-y divide-sidebar-border/20">
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="http-details-panel" class="hidden bg-secondary-bg border-t border-sidebar-border h-40 overflow-auto">
+        <div class="flex text-xs border-b border-sidebar-border">
+          <button id="httpDetailsTabRequest" class="px-3 py-1.5 bg-tertiary-bg text-highlight-green border-b border-highlight-green">Request</button>
+          <button id="httpDetailsTabResponse" class="px-3 py-1.5 text-gray-400">Response</button>
+        </div>
+        <div id="httpDetailsContent" class="p-2 text-xs"></div>
+      </div>
+    </div>
+    
+    <div id="httpContextMenu" class="fixed hidden bg-secondary-bg border border-sidebar-border shadow-lg rounded z-50 w-64">
+      <ul class="py-1">
+        <li><button id="menuCopyUrl" class="w-full text-left px-3 py-1 text-xs text-text-primary hover:bg-tertiary-bg">
+          <i class="fas fa-copy mr-2"></i> Copy URL
+        </button></li>
+        <li><button id="menuViewDetails" class="w-full text-left px-3 py-1 text-xs text-text-primary hover:bg-tertiary-bg">
+          <i class="fas fa-info-circle mr-2"></i> View Details
+        </button></li>
+        <li class="border-t border-sidebar-border/50 my-1"></li>
+        <li><button id="menuModifyResponse" class="w-full text-left px-3 py-1 text-xs text-custom-pink hover:bg-tertiary-bg">
+          <i class="fas fa-edit mr-2"></i> Override Future Responses
+        </button></li>
+        <li><button id="menuSaveContent" class="w-full text-left px-3 py-1 text-xs text-highlight-green hover:bg-tertiary-bg">
+          <i class="fas fa-download mr-2"></i> Save Content
+        </button></li>
+      </ul>
+    </div>
+    
+    <div id="fileSelectionDialog" class="fixed hidden inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div class="bg-secondary-bg border border-sidebar-border rounded-lg shadow-lg w-96">
+        <div class="border-b border-sidebar-border p-3 flex justify-between items-center">
+          <h3 class="text-text-primary text-sm font-medium">Override Response</h3>
+          <button id="closeFileSelectionBtn" class="text-gray-400 hover:text-text-primary">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="p-4">
+          <p class="text-xs text-gray-400 mb-2">Select a local file to replace future requests for this resource:</p>
+          <p class="text-xs text-gray-400 mb-4 italic">Your override will apply to all subsequent requests with the same path</p>
+          <input type="file" id="fileSelector" class="hidden">
+          <div class="flex items-center justify-between">
+            <div class="bg-tertiary-bg text-text-primary text-xs p-2 rounded flex-grow truncate" id="selectedFilePath">
+              No file selected
+            </div>
+            <button id="browseFileBtn" class="bg-custom-pink text-white px-2 py-1 ml-2 rounded text-xs">
+              Browse
+            </button>
+          </div>
+        </div>
+        <div class="border-t border-sidebar-border p-3 flex justify-end space-x-2">
+          <button id="cancelFileSelectionBtn" class="text-xs bg-sidebar-hover text-text-primary px-3 py-1 rounded hover:bg-sidebar-hover/70 transition">
+            Cancel
+          </button>
+          <button id="confirmFileSelectionBtn" class="text-xs bg-custom-pink text-white px-3 py-1 rounded hover:bg-custom-pink/90 transition">
+            Override
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-secondary-bg border-t border-sidebar-border p-4 mt-auto">
       <div class="flex items-center justify-between mb-2">
@@ -265,6 +384,7 @@
   <!-- Auto complete -->
   <script src="app://assets/javascript/jquery-ui.js"></script>
   <script src="app://assets/javascript/popper.min.js"></script>
+  <script src="app://assets/javascript/network-logging.js"></script>
 
   <!-- Jam -->
   <script src="index.js"></script>
@@ -330,10 +450,17 @@
       }
 
       function openTab(tabId) {
-        if (tabId === 'packet-logging') {
+        if (tabId === 'packet-logging' || tabId === 'http-logging') {
           $('#commandContainer').addClass('hidden')
           $('#searchContainer').removeClass('hidden')
-          $('#packetSearch').removeClass('hidden')
+          $('.fa-search').addClass('hidden')
+          
+          if (tabId === 'packet-logging') {
+            $('#packetSearch').removeClass('hidden')
+          } else if (tabId === 'http-logging') {
+            $('#packetSearch').addClass('hidden')
+          }
+          
           setTimeout(applyFilter, 0)
         } else {
           $('#commandContainer').removeClass('hidden')
@@ -414,8 +541,75 @@
         $('#incomingCount, #outgoingCount, #totalCount').text('0')
       })
 
+      // HTTP tab functionality
+      const $httpLogBody = $('#http-log-body')
+      let httpCurrentFilter = 'all'
+
+      $('#filterHttpAllButton, #filterHttpIncomingButton, #filterHttpOutgoingButton').on('click', function () {
+        $('#filterHttpAllButton, #filterHttpIncomingButton, #filterHttpOutgoingButton').removeClass('active')
+        $(this).addClass('active')
+
+        if (this.id === 'filterHttpAllButton') {
+          httpCurrentFilter = 'all'
+        } else if (this.id === 'filterHttpIncomingButton') {
+          httpCurrentFilter = 'incoming'
+        } else if (this.id === 'filterHttpOutgoingButton') {
+          httpCurrentFilter = 'outgoing'
+        }
+
+        applyHttpFilter()
+      })
+
+      $('#exportHttpLogsButton').on('click', function () {
+        const logs = $('#http-log-body tr:visible').map(function () {
+          const $this = $(this)
+          const type = $this.find('.fa-arrow-down').length ? 'REQUEST' : 'RESPONSE'
+          const path = $this.find('td:eq(2)').text().trim()
+          const status = $this.find('td:eq(3)').text().trim()
+          
+          return `[${type}] ${path} - Status: ${status}`
+        }).get()
+
+        if (!logs.length) {
+          console.log('No HTTP logs found to export')
+          return
+        }
+
+        const content = logs.join('\n')
+        const blob = new Blob([content], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const $a = $('<a>').attr({
+          href: url,
+          download: `http-logs-${new Date().toISOString().slice(0, 10)}.txt`
+        })
+        $('body').append($a)
+        $a[0].click()
+        $a.remove()
+        URL.revokeObjectURL(url)
+      })
+
+      $('#clearHttpLogsButton').on('click', function () {
+        $httpLogBody.empty()
+        $('#httpIncomingCount, #httpOutgoingCount, #httpTotalCount').text('0')
+      })
+
+      function applyHttpFilter() {
+        const $requests = $('#http-log-body tr')
+        $requests.each(function () {
+          const $this = $(this)
+          const isIncoming = $this.find('.fa-arrow-down').length > 0
+          const isOutgoing = $this.find('.fa-arrow-up').length > 0
+          $this.toggle(
+            httpCurrentFilter === 'all' ||
+            (httpCurrentFilter === 'incoming' && isIncoming) ||
+            (httpCurrentFilter === 'outgoing' && isOutgoing)
+          )
+        })
+      }
+
       window.applyFilter = applyFilter
       window.openTab = openTab
+      window.applyHttpFilter = applyHttpFilter
     })
 
     $('#linksDropdownToggle').on('click', function () {

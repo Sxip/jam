@@ -28,6 +28,10 @@ module.exports = class Server {
      */
     this.clients = new Set()
 
+    /**
+     * Ensures default settings for networking are present
+     * @type {Function}
+     */
     this._ensureDefaultSettings()
   }
 

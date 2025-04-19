@@ -2,6 +2,7 @@ const { app, BrowserWindow, globalShortcut, shell, ipcMain, protocol, net } = re
 const path = require('path')
 const { fork } = require('child_process')
 const { autoUpdater } = require('electron-updater')
+const { writeFile } = require('fs')
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -37,6 +38,7 @@ class Electron {
   constructor () {
     this._window = null
     this._apiProcess = null
+    this._httpLoggerSetup = false
     this._setupIPC()
   }
 
@@ -57,6 +59,49 @@ class Electron {
     })
 
     ipcMain.on('open-url', (_, url) => shell.openExternal(url))
+    ipcMain.on('override-http-response', (event, { requestId, filePath }) => {
+      if (this._apiProcess) {
+        this._apiProcess.send({
+          type: 'override-response',
+          requestId,
+          filePath
+        })
+      }
+    })
+
+    ipcMain.on('export-http-logs', (event, logs) => {
+      const savePath = path.join(app.getPath('downloads'), `http-logs-${new Date().toISOString().slice(0, 10)}.json`)
+
+      writeFile(savePath, JSON.stringify(logs, null, 2), err => {
+        if (err) {
+          this.messageWindow('message', {
+            type: 'error',
+            message: `Failed to export logs: ${err.message}`
+          })
+        } else {
+          this.messageWindow('message', {
+            type: 'success',
+            message: `Logs exported to ${savePath}`
+          })
+        }
+      })
+    })
+
+    ipcMain.on('toggle-http-logging', (event, enabled) => {
+      try {
+        if (this._apiProcess) {
+          this._apiProcess.send({
+            type: 'toggle-http-logging',
+            enabled
+          })
+        }
+      } catch (error) {
+        event.sender.send('message', {
+          message: `Failed to toggle HTTP logging: ${error.message}`,
+          type: 'error'
+        })
+      }
+    })
   }
 
   /**
@@ -149,6 +194,21 @@ class Electron {
   }
 
   /**
+   * Setup HTTP logger connection from API process to renderer
+   * @private
+   */
+  _setupHttpLogger () {
+    if (this._httpLoggerSetup || !this._apiProcess) return
+
+    this._apiProcess.on('message', (message) => {
+      if (message.type === 'http-logger') this.messageWindow('http-log', message.data)
+    })
+
+    this._apiProcess.send({ type: 'start-http-logging' })
+    this._httpLoggerSetup = true
+  }
+
+  /**
    * Handles the ready event, creates the main window and spawns the API process.
    * @private
    */
@@ -169,7 +229,10 @@ class Electron {
 
       return net.fetch(`file://${filePath}`)
     })
+
     this._apiProcess = fork(path.join(__dirname, '..', 'api', 'index.js'))
+
+    this._window.webContents.on('did-finish-load', () => this._setupHttpLogger())
     this._registerShortcut('F11', () => this._window.webContents.openDevTools())
 
     if (!isDevelopment) {

@@ -28,20 +28,65 @@ body {
 .tab-button {
   position: relative;
   overflow: hidden;
+  transition: all 0.25s ease;
+  user-select: none;
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border: 1px solid var(--sidebar-border);
+  border-bottom: none;
+  background-color: rgba(58, 61, 77, 0.2);
+}
+
+.tab-button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--sidebar-border);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background-color: rgba(58, 61, 77, 0.4);
 }
 
 .tab-button.active {
-  --tw-bg-opacity: 1;
-  background-color: rgb(28 30 38 / var(--tw-bg-opacity));
-  border: none;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  z-index: 1;
+}
+
+.tab-button:not(.active)::after {
+  opacity: 1;
 }
 
 .tab-button .active-indicator {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  height: 2px !important;
 }
 
 .tab-button.active .active-indicator {
   transform: scaleX(1) !important;
+}
+
+.tab-button i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.tab-button:hover i,
+.tab-button.active i {
+  transform: translateY(-1px);
 }
 
 button:focus,

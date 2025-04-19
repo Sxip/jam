@@ -497,7 +497,10 @@ module.exports = class Client {
 
   /**
    * Handles received message
-   * @param message
+   * @param {Object} messageData - Message data to process
+   * @param {string} messageData.type - Type of the message (aj or connection)
+   * @param {Message} messageData.message - The message object
+   * @param {string} messageData.packet - The raw message packet
    * @private
    */
   async _onMessageReceived ({ type, message, packet }) {

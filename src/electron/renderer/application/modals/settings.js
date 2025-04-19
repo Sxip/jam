@@ -35,6 +35,9 @@ exports.render = function (app, data = {}) {
             <button id="networkTabBtn" class="px-4 py-3 text-sm font-medium border-b-2 border-custom-pink text-custom-pink">
               Network
             </button>
+            <button id="advancedTabBtn" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-sidebar-text hover:text-text-primary">
+              Advanced
+            </button>
             <button id="repositoriesTabBtn" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-sidebar-text hover:text-text-primary">
               Repositories
             </button>
@@ -64,6 +67,30 @@ exports.render = function (app, data = {}) {
                 Use secure connection (SSL/TLS)
               </label>
             </div>
+          </div>
+          
+          <!-- Advanced Settings Content -->
+          <div id="advancedTab" class="space-y-4 hidden">
+            <h4 class="text-sm font-medium text-text-primary">Performance Options</h4>
+            
+            <!-- HTTP Logging Toggle -->
+            <div class="flex items-center justify-between bg-tertiary-bg/30 p-3 rounded">
+              <div>
+                <label for="enableHttpLogging" class="text-sm text-text-primary">
+                  Enable HTTP Logging
+                </label>
+                <p class="text-xs text-gray-400">Track HTTP requests and responses</p>
+              </div>
+              <div class="relative inline-block w-10 align-middle select-none cursor-pointer">
+                <input type="checkbox" id="enableHttpLogging" class="sr-only">
+                <div class="block bg-tertiary-bg w-10 h-6 rounded-full"></div>
+                <div id="httpLoggingToggle" class="dot absolute left-1 top-1 bg-gray-400 w-4 h-4 rounded-full transition"></div>
+              </div>
+            </div>
+            
+            <p class="text-xs text-gray-400 italic">
+              Note: Disabling HTTP logging can improve performance but will prevent you from monitoring and modifying HTTP requests.
+            </p>
           </div>
           
           <!-- Repositories Content -->
@@ -140,6 +167,7 @@ exports.render = function (app, data = {}) {
   setupEventHandlers($modal, app)
   loadSettings($modal, app)
   loadRepositories($modal, app)
+  setupToggleSwitches($modal)
   return $modal
 }
 
@@ -152,11 +180,38 @@ exports.close = function (app) {
 }
 
 /**
+ * Setup toggle switches in the settings modal
+ * @param {JQuery<HTMLElement>} $modal - The modal element
+ */
+const setupToggleSwitches = ($modal) => {
+  const $httpLoggingToggle = $modal.find('#enableHttpLogging')
+  const $toggleDot = $modal.find('#httpLoggingToggle')
+  const $toggleContainer = $modal.find('#httpLoggingToggle').parent()
+
+  $toggleContainer.on('click', function () {
+    const newCheckedState = !$httpLoggingToggle.prop('checked')
+    $httpLoggingToggle.prop('checked', newCheckedState)
+
+    if (newCheckedState) {
+      $toggleDot.removeClass('left-1 bg-gray-400').addClass('translate-x-4 bg-custom-pink')
+    } else {
+      $toggleDot.removeClass('translate-x-4 bg-custom-pink').addClass('left-1 bg-gray-400')
+    }
+  })
+
+  if ($httpLoggingToggle.prop('checked')) {
+    $toggleDot.removeClass('left-1 bg-gray-400').addClass('translate-x-4 bg-custom-pink')
+  } else {
+    $toggleDot.removeClass('translate-x-4 bg-custom-pink').addClass('left-1 bg-gray-400')
+  }
+}
+
+/**
  * Setup event handlers for the settings modal
  * @param {JQuery<HTMLElement>} $modal - The modal element
  * @param {Application} app - The application instance
  */
-function setupEventHandlers ($modal, app) {
+const setupEventHandlers = ($modal, app) => {
   $modal.find('#closeSettingsBtn, #cancelSettingsBtn').on('click', () => {
     app.modals.close()
   })
@@ -167,6 +222,10 @@ function setupEventHandlers ($modal, app) {
 
   $modal.find('#networkTabBtn').on('click', () => {
     switchTab($modal, 'network')
+  })
+
+  $modal.find('#advancedTabBtn').on('click', () => {
+    switchTab($modal, 'advanced')
   })
 
   $modal.find('#repositoriesTabBtn').on('click', () => {
@@ -206,15 +265,18 @@ function setupEventHandlers ($modal, app) {
 /**
  * Switch between settings tabs
  * @param {JQuery<HTMLElement>} $modal - The modal element
- * @param {string} tabName - The tab to show ('network' or 'repositories')
+ * @param {string} tabName - The tab to show ('network', 'advanced', or 'repositories')
  */
-function switchTab ($modal, tabName) {
-  $modal.find('#networkTab, #repositoriesTab').addClass('hidden')
-  $modal.find('#networkTabBtn, #repositoriesTabBtn').removeClass('border-custom-pink text-custom-pink').addClass('border-transparent text-sidebar-text')
+const switchTab = ($modal, tabName) => {
+  $modal.find('#networkTab, #advancedTab, #repositoriesTab').addClass('hidden')
+  $modal.find('#networkTabBtn, #advancedTabBtn, #repositoriesTabBtn').removeClass('border-custom-pink text-custom-pink').addClass('border-transparent text-sidebar-text')
 
   if (tabName === 'network') {
     $modal.find('#networkTab').removeClass('hidden')
     $modal.find('#networkTabBtn').removeClass('border-transparent text-sidebar-text').addClass('border-custom-pink text-custom-pink')
+  } else if (tabName === 'advanced') {
+    $modal.find('#advancedTab').removeClass('hidden')
+    $modal.find('#advancedTabBtn').removeClass('border-transparent text-sidebar-text').addClass('border-custom-pink text-custom-pink')
   } else if (tabName === 'repositories') {
     $modal.find('#repositoriesTab').removeClass('hidden')
     $modal.find('#repositoriesTabBtn').removeClass('border-transparent text-sidebar-text').addClass('border-custom-pink text-custom-pink')
@@ -226,7 +288,7 @@ function switchTab ($modal, tabName) {
  * @param {JQuery<HTMLElement>} $modal - The modal element
  * @param {Application} app - The application instance
  */
-function loadSettings ($modal, app) {
+const loadSettings = ($modal, app) => {
   try {
     const settings = {}
 
@@ -236,6 +298,7 @@ function loadSettings ($modal, app) {
 
     $modal.find('#smartfoxServer').val(settings.smartfoxServer || 'lb-iss02-classic-prod.animaljam.com')
     $modal.find('#secureConnection').prop('checked', settings.secureConnection === true)
+    $modal.find('#enableHttpLogging').prop('checked', settings.enableHttpLogging !== false)
   } catch (error) {
     showToast('Error loading settings', 'error')
   }
@@ -246,7 +309,7 @@ function loadSettings ($modal, app) {
  * @param {JQuery<HTMLElement>} $modal - The modal element
  * @param {Application} app - The application instance
  */
-function loadRepositories ($modal, app) {
+const loadRepositories = ($modal, app) => {
   try {
     const settings = app.settings && typeof app.settings.getAll === 'function' ? app.settings.getAll() : {}
     const repositories = settings.repositories || []
@@ -309,7 +372,7 @@ function loadRepositories ($modal, app) {
  * @param {Application} app - The application instance
  * @param {Object} repo - The repository to add
  */
-function addRepository ($modal, app, repo) {
+const addRepository = ($modal, app, repo) => {
   try {
     const settings = app.settings && typeof app.settings.getAll === 'function' ? app.settings.getAll() : {}
     const repositories = settings.repositories || []
@@ -342,7 +405,7 @@ function addRepository ($modal, app, repo) {
  * @param {Application} app - The application instance
  * @param {number} index - The index of the repository to remove
  */
-function removeRepository ($modal, app, index) {
+const removeRepository = ($modal, app, index) => {
   try {
     const settings = app.settings && typeof app.settings.getAll === 'function' ? app.settings.getAll() : {}
     const repositories = settings.repositories || []
@@ -372,15 +435,25 @@ function removeRepository ($modal, app, index) {
  * @param {JQuery<HTMLElement>} $modal - The modal element
  * @param {Application} app - The application instance
  */
-function saveSettings ($modal, app) {
+const saveSettings = ($modal, app) => {
   try {
     const settings = app.settings && typeof app.settings.getAll === 'function' ? app.settings.getAll() : {}
 
     settings.smartfoxServer = $modal.find('#smartfoxServer').val()
     settings.secureConnection = $modal.find('#secureConnection').prop('checked')
+    settings.enableHttpLogging = $modal.find('#enableHttpLogging').prop('checked')
 
     if (app.settings && typeof app.settings.setAll === 'function') {
       app.settings.setAll(settings)
+    }
+
+    const httpLoggingChanged = app.httpLoggingState !== settings.enableHttpLogging
+    if (httpLoggingChanged) {
+      app.httpLoggingState = settings.enableHttpLogging
+
+      if (window.ipcRenderer) {
+        window.ipcRenderer.send('toggle-http-logging', settings.enableHttpLogging)
+      }
     }
 
     app.modals.close()
@@ -395,11 +468,12 @@ function saveSettings ($modal, app) {
  * @param {string} message - The message to show
  * @param {string} type - The type of notification (success, error, warning)
  */
-function showToast (message, type = 'success') {
+const showToast = (message, type = 'success') => {
   const colors = {
     success: 'bg-highlight-green text-white',
     error: 'bg-error-red text-white',
-    warning: 'bg-custom-blue text-white'
+    warning: 'bg-custom-blue text-white',
+    info: 'bg-custom-blue text-white'
   }
 
   const toast = $(`<div class="fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg z-50 ${colors[type]}">${message}</div>`)

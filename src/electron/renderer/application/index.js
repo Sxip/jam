@@ -53,6 +53,13 @@ module.exports = class Application extends EventEmitter {
     this.modals.initialize()
 
     /**
+     * HTTP logging state
+     * @type {boolean}
+     * @public
+     */
+    this.httpLoggingState = true
+
+    /**
      * The reference to the application input.
      * @type {JQuery<HTMLElement>}
      * @private
@@ -683,6 +690,11 @@ module.exports = class Application extends EventEmitter {
       this.settings.load(),
       this.dispatch.load()
     ])
+
+    const settings = this.settings.getAll()
+    this.httpLoggingState = settings.enableHttpLogging !== false
+
+    ipcRenderer.send('toggle-http-logging', this.httpLoggingState)
 
     const secureConnection = this.settings.get('secureConnection')
     if (secureConnection) await this._checkForHostChanges()

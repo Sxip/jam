@@ -9,9 +9,10 @@ module.exports = class DelimiterTransform extends Transform {
 
   /**
    * Transforms the data.
-   * @param {Buffer} chunk
-   * @param {string} encoding
-   * @param {Function} callback
+   * @param {Buffer} chunk - The chunk of data to transform.
+   * @param {string} encoding - The encoding of the chunk.
+   * @param {Function} callback - The callback function to call when the transformation is complete.
+   * @returns {void}
    * @private
    */
   _transform (chunk, encoding, callback) {
@@ -29,7 +30,8 @@ module.exports = class DelimiterTransform extends Transform {
 
   /**
    * Flushes the data.
-   * @param {Function} callback
+   * @param {Function} callback - The callback function to call when the flush is complete.
+   * @returns {void}
    * @private
    */
   _flush (callback) {

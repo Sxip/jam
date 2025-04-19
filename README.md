@@ -3,6 +3,9 @@
   <a href='https://discord.gg/HzFe7XpuPs'>
     <img src="https://discord.com/api/guilds/1355727306177380392/widget.png?style=shield" alt="Discord" />
   </a>
+  <a href='https://ko-fi.com/sxips'>
+    <img src="https://img.shields.io/badge/Support-Ko--fi-FF5E5B" alt="Ko-fi" />
+  </a>
 </div>
 
 <br />
@@ -20,6 +23,7 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
   - [Windows](#windows)
   - [MacOS](#macos)
   - [Run from source](#run-from-source)
+- [Support the Project](#support-the-project)
 
 ## Installation
 
@@ -31,7 +35,7 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 
 ### MacOS
 
-1. Download the latest version of [Jam.dmg](hhttps://github.com/sxip/jam/releases/latest).
+1. Download the latest version of [Jam.dmg](https://github.com/sxip/jam/releases/latest).
 2. Mount the downloaded file.
 3. Install `Jam` by moving it to the Applications folder
 4. Run `sudo /Applications/Jam.app/Contents/MacOS/Jam` to start the application.
@@ -41,3 +45,11 @@ Jam is a modular man-in-the-middle proxy designed for [Animal Jam Classic](https
 1. Clone the repository.
 2. Install dependencies with `npm install`.
 3. Run `npm run dev` to start the application.
+
+## Support the Project
+
+If you find Jam useful and would like to support its continued development, consider supporting me on Ko-fi:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/sxips)
+
+Your support helps maintain and improve Jam for everyone!

@@ -21,7 +21,7 @@ module.exports = class HttpClient {
 
   /**
    * Creates a reverse proxy.
-   * @param {string} url
+   * @param {string} url - The URL to proxy.
    * @returns {Request}
    * @static
    */
@@ -31,7 +31,7 @@ module.exports = class HttpClient {
 
   /**
    * Makes a GET request.
-   * @param {Object} options
+   * @param {Object} options - The options for the request.
    * @returns {Promise<RequestPromise<any>>}
    * @static
    */
@@ -42,7 +42,7 @@ module.exports = class HttpClient {
 
   /**
    * Makes a POST request.
-   * @param {Object} options
+   * @param {Object} options - The options for the request.
    * @returns {Promise<RequestPromise<any>>}
    */
   static post (options = {}) {
