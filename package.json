@@ -5,7 +5,7 @@
   "version": "5.0.0",
   "scripts": {
     "dev": "npx cross-env NODE_ENV=development nodemon",
-    "build:all": "npx electron-builder build -w"
+    "build:all": "npx electron-builder build -wm"
   },
   "repository": {
     "type": "git",
