@@ -17,7 +17,7 @@ exports.render = function (app, data = {}) {
       <div class="fixed inset-0 bg-black/50 transition-opacity"></div>
       
       <!-- Modal Content -->
-      <div class="relative bg-secondary-bg rounded-lg shadow-xl max-w-md w-full">
+      <div class="relative bg-secondary-bg rounded-lg shadow-xl max-w-md w-full max-h-[80vh] flex flex-col">
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-4 border-b border-sidebar-border">
           <h3 class="text-lg font-semibold text-text-primary">
@@ -45,7 +45,7 @@ exports.render = function (app, data = {}) {
         </div>
         
         <!-- Tab Content -->
-        <div class="p-5">
+        <div class="p-5 overflow-y-auto">
           <!-- Network Settings Content -->
           <div id="networkTab" class="space-y-4">
             <!-- Server IP -->
@@ -259,6 +259,11 @@ const setupEventHandlers = ($modal, app) => {
     $modal.find('#repoName').val('')
     $modal.find('#repoUsername').val('')
     $modal.find('#repoRepository').val('')
+  })
+
+  $modal.find('#generateUuidBtn').on('click', () => {
+    const uuid = generateUuid()
+    $modal.find('#customUuid').val(uuid)
   })
 }
 
@@ -482,4 +487,16 @@ const showToast = (message, type = 'success') => {
   setTimeout(() => {
     toast.fadeOut(300, function () { $(this).remove() })
   }, 3000)
+}
+
+/**
+ * Generate a random UUID
+ * @returns {string} The generated UUID
+ */
+const generateUuid = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
 }

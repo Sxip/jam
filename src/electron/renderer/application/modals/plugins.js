@@ -8,6 +8,7 @@ exports.name = 'plugins'
 exports.render = function (app) {
   const path = require('path')
   const fs = require('fs')
+  const marked = require('marked')
 
   const CACHE_KEY_PREFIX = 'jam-plugins-cache-'
   const CACHE_TIME_KEY_PREFIX = 'jam-plugins-cache-time-'
@@ -437,6 +438,89 @@ exports.render = function (app) {
   }
 
   /**
+   * Fetch and display a plugin's README
+   * @param {string} pluginName - Name of the plugin
+   * @param {Object} repo - Repository information
+   */
+  const viewPluginReadme = async (pluginName, repo) => {
+    try {
+      const repoOwner = repo.username
+      const repoName = repo.repository
+
+      const README_CACHE_KEY_PREFIX = 'jam-plugins-readme-cache-'
+      const README_CACHE_TIME_KEY_PREFIX = 'jam-plugins-readme-cache-time-'
+      const cacheKeyIdentifier = `${repoOwner}/${repoName}/${pluginName}`
+      const readmeCacheKey = `${README_CACHE_KEY_PREFIX}${cacheKeyIdentifier}`
+      const cacheTimeKey = `${README_CACHE_TIME_KEY_PREFIX}${cacheKeyIdentifier}`
+
+      const cachedReadme = localStorage.getItem(readmeCacheKey)
+      const cacheTime = localStorage.getItem(cacheTimeKey)
+      const cacheAge = cacheTime ? Date.now() - parseInt(cacheTime) : Infinity
+
+      let content = null
+
+      if (cachedReadme && cacheAge < CACHE_DURATION) {
+        content = cachedReadme
+      } else {
+        const readmeUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${pluginName}/README.md`
+        const response = await fetch(readmeUrl)
+
+        if (!response.ok) {
+          throw new Error('No README found for this plugin')
+        }
+
+        const data = await response.json()
+        content = atob(data.content)
+
+        localStorage.setItem(readmeCacheKey, content)
+        localStorage.setItem(cacheTimeKey, Date.now().toString())
+      }
+
+      const $readmeModal = $(`
+        <div class="fixed inset-0 flex items-center justify-center z-[10000] p-4">
+          <div class="fixed inset-0 bg-black/70 transition-opacity"></div>
+          <div class="relative bg-secondary-bg rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden z-[10001]">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-3 border-b border-sidebar-border">
+              <h3 class="text-base font-semibold text-text-primary">
+                <i class="fas fa-book text-highlight-green mr-2"></i>
+                ${pluginName} - README
+              </h3>
+              <button type="button" class="close-readme-modal text-gray-400 hover:text-text-primary p-1 rounded-full hover:bg-tertiary-bg/50 transition-colors">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-4 overflow-y-auto max-h-[calc(80vh-60px)]">
+              <div class="readme-content prose prose-sm prose-invert max-w-none">
+                ${marked.parse(content, { gfm: true, breaks: true })}
+              </div>
+            </div>
+          </div>
+        </div>
+      `)
+
+      $('body').append($readmeModal)
+
+      $readmeModal.find('.close-readme-modal').on('click', function () {
+        $readmeModal.remove()
+      })
+
+      $readmeModal.on('click', function (e) {
+        if ($(e.target).hasClass('fixed') && !$(e.target).hasClass('rounded-lg')) {
+          $readmeModal.remove()
+        }
+      })
+    } catch (error) {
+      app.consoleMessage({
+        message: `Couldn't load README: ${error.message}`,
+        type: 'error'
+      })
+    }
+  }
+
+  /**
    * Display plugins in the UI
    * @param {Array} plugins - List of plugins from GitHub API
    */
@@ -501,6 +585,10 @@ exports.render = function (app) {
             
             <div class="flex justify-end items-center mt-1 pt-1 border-t border-sidebar-border/30">
               <div class="flex gap-1">
+                <button type="button" data-plugin-name="${plugin.name}" class="view-readme-btn text-xs text-gray-400 hover:text-highlight-green transition px-1.5 py-0.5 rounded">
+                  <i class="fas fa-book mr-1 text-xs"></i> README
+                </button>
+                
                 <button type="button" data-repo-url="${plugin.html_url}" class="view-repo-btn text-xs text-gray-400 hover:text-highlight-green transition px-1.5 py-0.5 rounded">
                   <i class="fab fa-github mr-1 text-xs"></i> View
                 </button>
@@ -535,6 +623,11 @@ exports.render = function (app) {
       $pluginsList.find('.view-repo-btn').on('click', function () {
         const repoUrl = $(this).data('repo-url')
         app.open(repoUrl)
+      })
+
+      $pluginsList.find('.view-readme-btn').on('click', function () {
+        const pluginName = $(this).data('plugin-name')
+        viewPluginReadme(pluginName, repo)
       })
     } catch (error) {
       $pluginsList.html(`

@@ -5,3 +5,4 @@ plugin_packages/
 .DS_Store
 assets/winapp/
 assets/osxapp/
+assets/jam-client/

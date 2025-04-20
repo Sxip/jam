@@ -30,10 +30,12 @@
     "express": "^4.17.1",
     "jquery": "^3.6.0",
     "live-plugin-manager": "^0.17.1",
+    "marked": "^15.0.8",
     "node-gyp": "^8.4.1",
     "npm": "^10.8.2",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "tailwindcss": "^3.4.10"
+    "tailwindcss": "^3.4.10",
+    "tunnel": "^0.0.6"
   }
 }
