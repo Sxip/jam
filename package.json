@@ -2,10 +2,10 @@
   "name": "jam",
   "description": "Jam is a modular man-in-the-middle proxy for Animal Jam classic.",
   "main": "src/index.js",
-  "version": "4.0.7",
+  "version": "5.0.0",
   "scripts": {
     "dev": "npx cross-env NODE_ENV=development nodemon",
-    "build:all": "npx electron-builder build -mw"
+    "build:all": "npx electron-builder build -w"
   },
   "repository": {
     "type": "git",

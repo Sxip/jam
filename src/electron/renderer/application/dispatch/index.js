@@ -1,6 +1,7 @@
 const path = require('path')
 const { PluginManager: PM } = require('live-plugin-manager')
 const fs = require('fs').promises
+const { existsSync, mkdirSync } = require('fs')
 const Ajv = new (require('ajv'))({ useDefaults: true })
 const { ConnectionMessageTypes, PluginTypes } = require('../../../../Constants')
 
@@ -272,6 +273,8 @@ module.exports = class Dispatch {
         message: 'Loading plugins...',
         type: 'wait'
       })
+
+      if (!existsSync(BASE_PATH)) mkdirSync(BASE_PATH, { recursive: true })
 
       const filepaths = await this.constructor.readdirRecursive(BASE_PATH)
       const validPaths = filepaths.filter(filter)
